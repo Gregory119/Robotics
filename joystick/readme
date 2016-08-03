@@ -1,0 +1,16 @@
+The joystick class is based on interfacing with an xbox controller using the xboxdrv driver.
+
+To install the xboxdrv driver:
+$ sudo apt-get install xboxdrv
+
+run the driver:
+$ sudo xboxdrv
+
+xboxdrv links:
+git repository - https://github.com/xboxdrv/xboxdrv
+manual page - http://pingus.seul.org/~grumbel/xboxdrv/
+
+coding references:
+simple joystick program - https://gist.github.com/jasonwhite/c5b2048c15993d285130
+file decriptors - https://en.wikipedia.org/wiki/File_descriptor#Operations_on_file_descriptors
+gnu C library - http://www.gnu.org/software/libc/manual/html_node/index.html#SEC_Contents
