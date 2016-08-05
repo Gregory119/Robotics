@@ -1,35 +1,44 @@
 #ifndef JOYSTICK_H
 #define JOYSTICK_H
 
-class JoystickOwner
+namespace JS_CO
+{
+class ButtonEvent;
+class AxisEvent;
+};
+
+class JoyStickOwner
 {
  public:
-  JoystickOwner() = default;
+  JoyStickOwner() = default;
   
  private:
   friend class JoyStick;
-  virtual void handleButton() = 0;
-  virtual void handleAxis() = 0;
+  virtual void handleButton(JS_CO::ButtonEvent&) = 0;
+  virtual void handleAxis(JS_CO::AxisEvent&) = 0;
 };
 
 class JoyStick final
 {
  public:
-  JoyStick(const char *dev_name);
-  ~Joystick();
+  JoyStick(JoyStickOwner* o, const char *dev_name);
+  ~JoyStick(); //closes joystick
 
-  bool open();
+  bool init();
   //must open successfully before calling other functions
 
   void run();
   //runs a read thread and calls owner callback to handle event details
 
+  //private:
+  bool readEvent();
+    
  private:
-  //read()
+  static const int s_error = -1;
 
- private:
-  char *d_dev_name;
-  int d_js_desc;
+  JoyStickOwner* d_owner = nullptr;
+  const char *d_dev_name = nullptr;
+  int d_js_desc = s_error;
 
   bool d_open = false;
 };
