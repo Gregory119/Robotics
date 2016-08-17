@@ -3,8 +3,16 @@ The joystick class is based on interfacing with an xbox controller using the xbo
 To install the xboxdrv driver:
 $ sudo apt-get install xboxdrv
 
+build the test program:
+$ make
+
 run the driver:
 $ sudo xboxdrv
+
+run the test testprog:
+$ ./testprog
+
+push the controller inputs to see event displays
 
 xboxdrv links:
 git repository - https://github.com/xboxdrv/xboxdrv
