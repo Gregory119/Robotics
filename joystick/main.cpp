@@ -12,6 +12,8 @@
 class Test : public JoyStickOwner
 {
 public:
+  bool d_error = false;
+
   Test()
   {
     d_js.reset(new JoyStick(this,"/dev/input/js0"));
@@ -19,15 +21,18 @@ public:
 
   void init()
   {
-    d_js->init();
-  }
-
-  void readTest()
-  {
-    d_js->readEvent();
+    std::cout << "init() = " << d_js->init() << std::endl;
+    d_js->run();
   }
 
 private:
+  virtual void handleReadError()
+  {
+    d_error = true;
+    std::cout << "read error" << std::endl;
+    d_js->stop();
+  }
+
   virtual void handleButton(JS_CO::ButtonEvent& event) override
   {
     using namespace JS_CO;
@@ -128,10 +133,7 @@ int main(int argc, char *argv[])
   Test test;
   test.init();
 
-  while (1)
-    {
-      test.readTest();
-    }
+  while (test.d_error == false) {}
 
   return EXIT_SUCCESS;
 }

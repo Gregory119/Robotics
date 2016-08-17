@@ -1,6 +1,8 @@
 #ifndef JOYSTICK_H
 #define JOYSTICK_H
 
+#include <future>
+
 namespace JS_CO
 {
 class ButtonEvent;
@@ -16,6 +18,7 @@ class JoyStickOwner
   friend class JoyStick;
   virtual void handleButton(JS_CO::ButtonEvent&) = 0;
   virtual void handleAxis(JS_CO::AxisEvent&) = 0;
+  virtual void handleReadError() = 0;
 };
 
 class JoyStick final
@@ -30,8 +33,12 @@ class JoyStick final
   void run();
   //runs a read thread and calls owner callback to handle event details
 
-  //private:
-  bool readEvent();
+  void stop();
+
+ private:
+  bool readEvent() const;
+  static void threadFunc(std::future<bool> shutdown,
+			 const JoyStick* js);
     
  private:
   static const int s_error = -1;
@@ -41,6 +48,9 @@ class JoyStick final
   int d_js_desc = s_error;
 
   bool d_open = false;
+  bool d_running = false;
+
+  std::promise<bool> d_thread_shutdown;
 };
 
 #endif

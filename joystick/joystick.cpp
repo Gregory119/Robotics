@@ -6,8 +6,9 @@
 
 #include <fcntl.h> //open
 #include <unistd.h> //close
+#include <thread>
 
-//#include <iostream> //std::cout
+#include <iostream> //std::cout
 
 //----------------------------------------------------------------------//
 JoyStick::JoyStick(JoyStickOwner* o, const char *dev_name)
@@ -18,10 +19,9 @@ JoyStick::JoyStick(JoyStickOwner* o, const char *dev_name)
 //----------------------------------------------------------------------//
 JoyStick::~JoyStick()
 {
-  if (d_open)
-    {
-      close(d_js_desc);
-    }
+  std::cout << "~JoyStick()" << std::endl;
+  if (d_running) { stop(); }
+  if (d_open) { close(d_js_desc); }
 }
 
 //----------------------------------------------------------------------//
@@ -35,10 +35,8 @@ bool JoyStick::init()
       */
     }
 
-  if (d_js_desc == s_error) 
-    { d_open=false; }
-  else 
-    { d_open=true; }
+  if (d_js_desc == s_error) { d_open=false; }
+  else { d_open=true; }
   
   return d_open;
 }
@@ -46,19 +44,42 @@ bool JoyStick::init()
 //----------------------------------------------------------------------//
 void JoyStick::run()
 {
-  //run thread function and pass pointer to this class
-  //in thread call the owner callback if the owner is not null
-  //handle thread in the desctructor of this class
+  d_running = true;
+  std::thread t(&JoyStick::threadFunc,
+		d_thread_shutdown.get_future(),
+		this);
+  t.detach();
 }
 
 //----------------------------------------------------------------------//
-bool JoyStick::readEvent()
+void JoyStick::stop()
+{
+  d_running = false;
+  d_thread_shutdown.set_value(true);
+}
+
+//----------------------------------------------------------------------//
+void JoyStick::threadFunc(std::future<bool> shutdown,
+			  const JoyStick* js)
+{
+  while (shutdown.wait_for(std::chrono::nanoseconds(0)) != 
+	 std::future_status::ready)
+    {
+      if (!js->readEvent())
+	{
+	  js->d_owner->handleReadError();
+	}
+    }
+}
+
+//----------------------------------------------------------------------//
+bool JoyStick::readEvent() const
 {
   bool ret = false;
   js_event event_details;
   if (read(d_js_desc,&event_details,sizeof(event_details)) != s_error)
     {
-      ret = false;
+      ret = true;
       switch (event_details.type)
 	{
 	case JS_EVENT_BUTTON:
@@ -85,7 +106,7 @@ bool JoyStick::readEvent()
 	}
     }
   else
-    { ret = true; }
+    { ret = false; }
 
   return ret;
 }

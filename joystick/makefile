@@ -1,16 +1,20 @@
-CXXFLAGS = -std=c++11
+OBJ = main.o joystick.o common.o
+CXX = g++
+# use this to include header files in different directories
+INCLUDES = 
+LIBS = -lpthread
+# use -std=c++11 => c++11, -Wall => all warnings enabled
+CXXFLAGS = -std=c++11 -Wall
+NAME = testprog
 
-all: main.o joystick.o common.o
-	g++ $(CXXFLAGS) main.o joystick.o common.o -o testprog
+all: $(OBJ)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $(OBJ) -o $(NAME)
 
-main.o: main.cpp
-	g++ $(CXXFLAGS) -c main.cpp
-
-joystick.o: joystick.h joystick.cpp
-	g++ $(CXXFLAGS) -c joystick.cpp
-
-common.o: common.h common.cpp
-	g++ $(CXXFLAGS) -c common.cpp
+#overwriting the default implicit rule to create a .o file from a .cpp file
+%.o : %.cpp 
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<
+# $< is an implicit variable for the first prerequisite. Because it is an implicit rule, 
+# in this case there is only one prerequisite (source file) for each required object file
 
 clean:
-	rm *~ *.o *#
+	$(RM) *~ *.o *# core *.core $(NAME)

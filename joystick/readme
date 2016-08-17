@@ -12,5 +12,23 @@ manual page - http://pingus.seul.org/~grumbel/xboxdrv/
 
 coding references:
 simple joystick program - https://gist.github.com/jasonwhite/c5b2048c15993d285130
-file decriptors - https://en.wikipedia.org/wiki/File_descriptor#Operations_on_file_descriptors
+file decriptors - https://en.wikipedia.org/wiki/File_descriptor
 gnu C library - http://www.gnu.org/software/libc/manual/html_node/index.html#SEC_Contents
+cancellation points - http://pubs.opengroup.org/onlinepubs/009695399/functions/xsh_chap02_09.html
+makefiles - http://mrbook.org/blog/tutorials/make/
+	  - https://www.gnu.org/software/make/manual/make.html
+	  - http://www.tutorialspoint.com/makefile/ (GOOD)
+
+timers 
+timer with callback examples - http://stackoverflow.com/questions/19022320/implementing-timer-with-timeout-handler-in-c
+      	   	    	     - http://stackoverflow.com/questions/14650885/how-to-create-timer-events-using-c-11
+time in c++ - http://en.cppreference.com/w/cpp/chrono/c/time
+
+-----compiling xboxdrv from source-----
+following instructions at https://github.com/xboxdrv/xboxdrv
+
+apt-get install python{,3}-pip
+pip install python-uinput
+apt-get install g++ libusb-1.0-0 pkg-config libudev-dev libboost-dev scons libX11-dev libdbus-1-dev glibc-source
+
+then continue with online instructions

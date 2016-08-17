@@ -59,9 +59,9 @@ namespace JS_CO
 
     private:
     double d_value = 0.0; //from -1.0 to 1.0 
+    AxisID d_id = AXIS_UNKOWN; 
     double d_min_value;
     double d_max_value;
-    AxisID d_id = AXIS_UNKOWN; 
   };
 
   struct ButtonEvent
