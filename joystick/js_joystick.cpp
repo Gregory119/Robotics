@@ -1,14 +1,14 @@
-#include "joystick.h"
+#include "js_joystick.h"
 
-#include "common.h"
-
-#include <linux/joystick.h>
+#include "js_common.h"
 
 #include <fcntl.h> //open
 #include <unistd.h> //close
 #include <thread>
 
 #include <iostream> //std::cout
+
+using namespace JS;
 
 //----------------------------------------------------------------------//
 JoyStick::JoyStick(JoyStickOwner* o, const char *dev_name)
@@ -80,33 +80,8 @@ bool JoyStick::readEvent() const
   if (read(d_js_desc,&event_details,sizeof(event_details)) != s_error)
     {
       ret = true;
-      switch (event_details.type)
-	{
-	case JS_EVENT_BUTTON:
-	  {
-	    JS_CO::ButtonEvent event(event_details);
-	    d_owner->handleButton(event);
-	  }
-	  break;
-
-	case JS_EVENT_AXIS:
-	  {
-	    JS_CO::AxisEvent event(event_details);
-	    d_owner->handleAxis(event);
-	  }
-	  break;
-
-	case JS_EVENT_INIT:
-	  //inital state events
-	  break;
-
-	default:
-	  //should not get this
-	  break;
-	}
+      d_owner->handleEvent(event_details);
     }
-  else
-    { ret = false; }
 
   return ret;
 }

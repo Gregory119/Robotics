@@ -1,4 +1,4 @@
-OBJ = main.o joystick.o common.o
+OBJ = main.o js_joystick.o js_common.o
 CXX = g++
 # use this to include header files in different directories
 INCLUDES = 

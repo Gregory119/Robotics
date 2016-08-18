@@ -1,13 +1,13 @@
-#include "common.h"
+#include "js_common.h"
 #include "assert.h"
 
-using namespace JS_CO;
+using namespace JS;
 
 Map s_stick_axis_map(32767,-32767,1.0,-1.0);
 Map s_lever_axis_map(32767,-32767,1.0,0.0);
 
 //----------------------------------------------------------------------//
-double JS_CO::mapFromTo(const Map &map, int orig_val, bool flip_axis)
+double JS::mapFromTo(const Map &map, int orig_val, bool flip_axis)
 {
   //check value is in range
   assert(orig_val >= map.d_orig_min);

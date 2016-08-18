@@ -1,9 +1,9 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef JS_COMMON_H
+#define JS_COMMON_H
 
 #include <linux/joystick.h>
 
-namespace JS_CO
+namespace JS
 {
   enum ButtonID
   {
