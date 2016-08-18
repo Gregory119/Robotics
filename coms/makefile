@@ -1,7 +1,7 @@
-OBJ = main.o 
+OBJ = main.o coms_serialjoystick.o
 CXX = g++
 # use this to include header files in different directories
-INCLUDES = 
+INCLUDES = -I../joystick -I../kern
 LIBS = -lwiringPi
 # use -std=c++11 => c++11, -Wall => all warnings enabled
 CXXFLAGS = -std=c++11 -Wall
