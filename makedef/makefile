@@ -1,3 +1,5 @@
+all:
+
 .PHONY = clean
 .PHONY: clean
 clean:
