@@ -8,4 +8,5 @@ clean:
 	$(MAKE) clean -C kern
 	$(MAKE) clean -C coms
 	$(MAKE) clean -C joystick
+	$(MAKE) clean -C makedef
 	$(RM) *~ *.o* *# *.core
