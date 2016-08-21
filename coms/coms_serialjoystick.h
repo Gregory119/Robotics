@@ -16,13 +16,14 @@ namespace COMS
     JoystickTransmitter(const char* serial_port, 
 			int baud,
 			const char* js_source);
+    virtual ~JoystickTransmitter();
 
   private:
     virtual void handleEvent(const js_event &event) override; 
     virtual void handleReadError() override;
     virtual bool stayRunning() override;
 
-    std::string convertValueToString(int64_t value,
+    std::string convertValueToString(double value,
 				     unsigned max_digits);
 
   private:
