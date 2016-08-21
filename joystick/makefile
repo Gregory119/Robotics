@@ -1,4 +1,5 @@
-OBJ = main.o js_joystick.o js_common.o
+SRC = main.cpp js_joystick.cpp js_common.cpp
+OBJ = $(SRC:.cpp=.o)
 CXX = g++
 # use this to include header files in different directories
 INCLUDES = 
@@ -10,11 +11,4 @@ NAME = testprog
 all: $(OBJ)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $(OBJ) -o $(NAME)
 
-#overwriting the default implicit rule to create a .o file from a .cpp file
-%.o : %.cpp 
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<
-# $< is an implicit variable for the first prerequisite. Because it is an implicit rule, 
-# in this case there is only one prerequisite (source file) for each required object file
-
-clean:
-	$(RM) *~ *.o *# core *.core $(NAME)
+include ../makedef/makefile.rules
