@@ -1,7 +1,7 @@
 #ifndef KN_BASIC
 #define KN_BASIC
 
-namespace KN
+namespace KERN
 {
   class KernBasicComponent;
 

@@ -1,6 +1,6 @@
 #include "kn_basic.h"
 
-using namespace KN;
+using namespace KERN;
 
 //----------------------------------------------------------------------//
 void KernBasic::run()
