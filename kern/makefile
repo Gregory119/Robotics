@@ -1,14 +1,10 @@
-SRC = kn_basic.cpp
-OBJ = $(SRC:.cpp=.o)
-CXX = g++
-# use this to include header files in different directories
-INCLUDES = 
-LIBS =
-# use -std=c++11 => c++11, -Wall => all warnings enabled
-CXXFLAGS = -std=c++11 -Wall
-NAME = testprog
+BASE_DIR = ..
+LIBNAME = KERN
 
-# Make all object files. A main has not be made as yet.
-all: $(OBJ)
+include $(BASE_DIR)/makedef/makefile.set
 
-include ../makedef/makefile.rules
+USES_LIBKERN=1
+
+include $(BASE_DIR)/makedef/makefile.libs
+include $(BASE_DIR)/makedef/makefile.rules
+include $(BASE_DIR)/makedef/makefile.test
