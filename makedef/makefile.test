@@ -1,0 +1,13 @@
+ifndef MAKELIBS
+       $(error makefile.libs must be included before this makefile)
+endif
+
+ifndef MAKESETTINGS
+       $(error makefile.set must be included before this makefile)
+endif
+
+ifndef IS_TESTPROG
+.PHONY=testprogs
+testprogs:
+	$(MAKE) -C testprogs
+endif
