@@ -20,5 +20,6 @@ clean:
 	$(MAKE) clean -C kern
 	$(MAKE) clean -C coms
 	$(MAKE) clean -C joystick
+	$(MAKE) clean -C utils
 	$(MAKE) clean -C makedef
 	$(RM) *~ *.d* *.o* *# *.core
