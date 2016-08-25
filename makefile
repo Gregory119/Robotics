@@ -2,11 +2,23 @@ all:
 	$(MAKE) -C coms
 	$(MAKE) -C kern
 	$(MAKE) -C joystick
+	$(MAKE) -C utils
+	$(MAKE) testprogs
 
-.PHONY: clean
+.PHONY=clean libs testprogs
+libs:
+	$(MAKE) -C coms
+	$(MAKE) -C kern
+	$(MAKE) -C joystick
+
+testprogs:
+	$(MAKE) testprogs -C coms
+	$(MAKE) testprogs -C kern
+	$(MAKE) testprogs -C joystick
+
 clean:
 	$(MAKE) clean -C kern
 	$(MAKE) clean -C coms
 	$(MAKE) clean -C joystick
 	$(MAKE) clean -C makedef
-	$(RM) *~ *.o* *# *.core
+	$(RM) *~ *.d* *.o* *# *.core
