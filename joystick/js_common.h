@@ -32,24 +32,6 @@ namespace JS
     AXIS_UNKOWN
   };
 
-  struct Map
-  {
-  Map(int o_max, int o_min, double n_max, double n_min)
-  : d_orig_max(o_max),
-      d_orig_min(o_min),
-      d_new_max(n_max),
-      d_new_min(n_min)
-    {}
-
-    int d_orig_max;
-    int d_orig_min;
-    double d_new_max;
-    double d_new_min;
-  };
-  
-  double mapFromTo(const Map &map, int orig_val, bool flip_axis=false);
-  //flip axis will make the new max value correspond to the original min value and make the new min value correspond to the original max value.
-
   struct AxisEvent
   {
     AxisEvent(const js_event &event);

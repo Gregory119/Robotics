@@ -1,28 +1,11 @@
 #include "js_common.h"
-#include "assert.h"
+#include "utl_mapping.h"
 
 using namespace JS;
+using namespace UTIL;
 
-Map s_stick_axis_map(32767,-32767,1.0,-1.0);
-Map s_lever_axis_map(32767,-32767,1.0,0.0);
-
-//----------------------------------------------------------------------//
-double JS::mapFromTo(const Map &map, int orig_val, bool flip_axis)
-{
-  //check value is in range
-  assert(orig_val >= map.d_orig_min);
-  assert(orig_val <= map.d_orig_max);
-
-  double new_val = static_cast<double>(orig_val - map.d_orig_min)/(map.d_orig_max - map.d_orig_min)*
-    (map.d_new_max - map.d_new_min) + map.d_new_min;
-
-  if (flip_axis)
-    {
-      new_val = (map.d_new_max - new_val) + map.d_new_min;
-    }
-
-  return new_val;
-}
+static const Map s_stick_axis_map(32767,-32767,1.0,-1.0);
+static const Map s_lever_axis_map(32767,-32767,1.0,0.0);
 
 //----------------------------------------------------------------------//
 ButtonEvent::ButtonEvent(const js_event &event)
