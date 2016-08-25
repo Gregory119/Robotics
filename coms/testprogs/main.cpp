@@ -10,8 +10,8 @@ int main()
 
   COMS::JoystickTransmitter js_tran("/dev/ttyAMA0",
 				    baud,
-				    "/dev/js0");
+				    "/dev/input/js0");
 
-  KN::KernBasic k(&js_tran);
+  KERN::KernBasic k(&js_tran);
   k.run();
 }
