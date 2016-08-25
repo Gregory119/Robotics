@@ -1,12 +1,18 @@
 #include "coms_serialjoystick.h"
+#include "utl_mapping.h"
 #include <wiringSerial.h>
 #include <cmath>
+#include <iostream>
 
 using namespace COMS;
 
-static const unsigned char s_digits_u32 = 10;
-static const unsigned char s_digits_s16 = 5;
-static const unsigned char s_digits_u8 = 3;
+const unsigned JoystickTransmitter::s_u32_max_digits = 10;
+const unsigned JoystickTransmitter::s_s16_max_digits = 5;
+const unsigned JoystickTransmitter::s_u8_max_digits = 3;
+
+const unsigned JoystickTransmitter::s_max_time_ms = 3000;
+const UTIL::Map JoystickTransmitter::s_time_to_uchar_map(s_max_time_ms,0,255,0);
+const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,127,-127);
 
 //----------------------------------------------------------------------//
 JoystickTransmitter::JoystickTransmitter(const char* serial_port,
@@ -14,10 +20,18 @@ JoystickTransmitter::JoystickTransmitter(const char* serial_port,
 					 const char* js_source) 
 {
   d_js.reset(new JS::JoyStick(this,js_source));
-  d_desc = serialOpen(source, baud);
 
-  if ((!d_js->init()) || (d_desc == -1))
+  if (!d_js->init())
     {
+      std::cout << "Joystick init failed" << std::endl;
+      d_stay_running = false;
+      return;
+    }
+
+  d_desc = serialOpen(serial_port, baud);
+  if (d_desc == -1)
+    {
+      std::cout << "Could not open serial port" << std::endl;
       d_stay_running = false;
       return;
     }
@@ -35,25 +49,6 @@ JoystickTransmitter::~JoystickTransmitter()
 }
 
 //----------------------------------------------------------------------//
-std::string JoystickTransmitter::convertValueToString(double value, 
-						      unsigned max_digits)
-{
-  std::string ret;
-  
-  if (value < 0)
-    {
-      ret += '-';
-    }
-
-  for (unsigned i=0; i<max_digits; ++i)
-    {
-      ret += static_cast<char>(abs(value)/pow(10,max_digits-i-1)) + '0';
-    }
-
-  return ret;
-}
-
-//----------------------------------------------------------------------//
 void JoystickTransmitter::handleEvent(const js_event &event) 
 {
 //struct js_event {
@@ -62,13 +57,15 @@ void JoystickTransmitter::handleEvent(const js_event &event)
   ///	__u8 type;	/* event type */
   //	__u8 number;	/* axis/button number */
   //};
-  d_serial_cmd = "JSE";
-  d_serial_cmd += ":" + convertValueToString(event.time, s_digits_u32);
-  d_serial_cmd += ":" + convertValueToString(event.value, s_digits_s16);
-  d_serial_cmd += ":" + convertValueToString(event.type, s_digits_u8);
-  d_serial_cmd += ":" + convertValueToString(event.number, s_digits_u8);
-  d_serial_cmd += "#";
+
+  d_serial_cmd = "J";
+  d_serial_cmd += convertValueTo8Bits(event.time, s_u32_max_digits);
+  d_serial_cmd += convertValueTo8Bits(event.value, s_s16_max_digits);
+  d_serial_cmd += convertValueTo8Bits(event.type, s_u8_max_digits);
+  d_serial_cmd += convertValueTo8Bits(event.number, s_u8_max_digits);
   
+  std::cout<<"serial: " << d_serial_cmd << std::endl;
+
   serialPuts(d_desc, d_serial_cmd.c_str());
 }
 
