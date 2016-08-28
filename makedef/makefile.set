@@ -4,5 +4,10 @@ MAKESETTINGS=1
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall
 SRC = $(wildcard *.cpp)
+
+#avoid repetition of library object files in this directory for a library
+ifndef LIBNAME
 OBJ = $(SRC:.cpp=.o)
+endif
+
 INCLUDES =
