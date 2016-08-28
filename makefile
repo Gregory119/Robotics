@@ -1,20 +1,18 @@
 all: 
-	$(MAKE) -C coms
-	$(MAKE) -C kern
-	$(MAKE) -C joystick
-	$(MAKE) -C utils
-	$(MAKE) testprogs
+	$(MAKE) libs
 
 .PHONY=clean libs testprogs
 libs:
 	$(MAKE) -C coms
 	$(MAKE) -C kern
 	$(MAKE) -C joystick
+	$(MAKE) -C utils
 
 testprogs:
-	$(MAKE) testprogs -C coms
+	$(MAKE) testprogs -C utils
 	$(MAKE) testprogs -C kern
 	$(MAKE) testprogs -C joystick
+	$(MAKE) testprogs -C coms
 
 clean:
 	$(MAKE) clean -C kern
