@@ -33,12 +33,12 @@ private:
     d_js->stop();
   }
 
-  virtual void handleEvent(const js_event &event) override
+  virtual void handleEvent(const JS::JSEvent &event) override
   {
     std::cout << "time: " << event.time << std::endl;
     std::cout << "value: " << event.value << std::endl;
-    std::cout << "type: " << event.type << std::endl;
-    std::cout << "number: " << event.number << std::endl;
+    std::cout << "type: " << (int)event.type << std::endl;
+    std::cout << "number: " << (int)event.number << std::endl;
   }
 
 private:
