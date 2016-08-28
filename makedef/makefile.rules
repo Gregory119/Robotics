@@ -31,7 +31,8 @@ endif
 
 #----------------------------------------------------------------------
 # pull in dependency info for *existing* .o files and remake if necessary
-include $(SRC:.cpp=.d)
+# the "-" gets rid of the "no existing file" error 
+-include $(SRC:.cpp=.d)
 
 #----------------------------------------------------------------------
 .PHONY: clean
