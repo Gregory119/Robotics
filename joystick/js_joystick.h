@@ -2,7 +2,7 @@
 #define JS_JOYSTICK_H
 
 #include <future>
-#include <linux/joystick.h>
+#include "js_common.h"
 
 namespace JS
 {
@@ -13,7 +13,7 @@ namespace JS
   
   private:
     friend class JoyStick;
-    virtual void handleEvent(const js_event &event) = 0;
+    virtual void handleEvent(const JSEvent &event) = 0;
     virtual void handleReadError() = 0;
   };
 

@@ -76,7 +76,8 @@ void JoyStick::threadFunc(std::future<bool> shutdown,
 bool JoyStick::readEvent() const
 {
   bool ret = false;
-  js_event event_details;
+  JSEvent event_details;
+  //js_event event_details;
   if (read(d_js_desc,&event_details,sizeof(event_details)) != s_error)
     {
       ret = true;
