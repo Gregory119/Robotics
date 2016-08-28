@@ -16,13 +16,16 @@ namespace COMS
     public KERN::KernBasicComponent
   {
   public:
-    JoystickTransmitter(const char* serial_port, 
-			int baud,
-			const char* js_source);
+    JoystickTransmitter();
     virtual ~JoystickTransmitter();
 
+    bool init(const char* serial_port, 
+	      int baud,
+	      const char* js_source);
+    //must return true before calling other functions
+
   private:
-    virtual void handleEvent(const js_event &event) override; 
+    virtual void handleEvent(const JS::JSEvent &event) override; 
     virtual void handleReadError() override;
     virtual bool stayRunning() override;
 
@@ -62,27 +65,26 @@ namespace COMS
   private:
     std::unique_ptr<JS::JoyStick> d_js = nullptr;
     int d_desc = -1;
-    std::string d_serial_cmd;
+    std::string d_serial_cmd = "";
     bool d_stay_running = true;
-  };
-
-  class JoystickReceiver;
-
-  class JoystickReceiverOwner
-  {
-  private:
-    friend JoystickReceiver;
-    virtual void handleButtonEvent(const JS::ButtonEvent &) = 0;
-    virtual void handleAxisEvent(const JS::AxisEvent &) = 0;
   };
 
   class JoystickReceiver
   {
   public:
-    void readEvent();
+    virtual ~JoystickReceiver();
+    bool init(const char* serial_port, 
+	      int baud);
+    //must return true before calling other functions
+
+    bool readSerialEvent(JS::JSEventMinimal &js_event);
     
   private:
-    bool readSerialPort();
+    bool flushInvalidSerialEvent();
+
+  private:
+    int d_desc = -1;
+    JS::JSEventMinimal d_js_event; //values auto initialised to zero
   };
 };
 
