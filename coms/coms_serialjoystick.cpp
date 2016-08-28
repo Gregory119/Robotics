@@ -1,6 +1,12 @@
+#define DEBUG
+
 #include "coms_serialjoystick.h"
 #include "utl_mapping.h"
+
+#ifndef DEBUG
 #include <wiringSerial.h>
+#endif
+
 #include <cmath>
 #include <iostream>
 
@@ -38,8 +44,9 @@ bool JoystickTransmitter::init(const char* serial_port,
       d_stay_running = false;
       return false;
     }
-
+#ifndef DEBUG
   d_desc = serialOpen(serial_port, baud);
+#endif
   if (d_desc == -1)
     {
       std::cout << "Could not open serial port" << std::endl;
@@ -57,7 +64,9 @@ JoystickTransmitter::~JoystickTransmitter()
 {
   if (d_desc != -1)
     {
+      #ifndef DEBUG
       serialClose(d_desc);
+      #endif
     }
 }
 
@@ -72,8 +81,9 @@ void JoystickTransmitter::handleEvent(const JS::JSEvent &event)
   d_serial_cmd += "#";
   
   std::cout<<"serial: " << d_serial_cmd << std::endl;
-
+#ifndef DEBUG
   serialPuts(d_desc, d_serial_cmd.c_str());
+#endif
 }
 
 //----------------------------------------------------------------------//
@@ -97,7 +107,9 @@ JoystickReceiver::~JoystickReceiver()
 {
   if (d_desc != -1)
     {
+      #ifndef DEBUG
       serialClose(d_desc);
+      #endif
     }
 }
 
@@ -105,7 +117,9 @@ JoystickReceiver::~JoystickReceiver()
 bool JoystickReceiver::init(const char* serial_port,
 			    int baud)
 {
+  #ifndef DEBUG
   d_desc = serialOpen(serial_port, baud);
+  #endif
   if (d_desc == -1)
     {
       std::cout << "Could not open serial port" << std::endl;
@@ -118,21 +132,24 @@ bool JoystickReceiver::init(const char* serial_port,
 //----------------------------------------------------------------------//
 bool JoystickReceiver::flushInvalidSerialEvent()
 {
+#ifndef DEBUG
   if (serialDataAvail(d_desc) >= s_js_serial_chars)
     {
       for (unsigned i=0; i<s_js_serial_chars; ++i)
 	{
-	  serialGetchar(d_desc);
+	  serialGetchar(d_desc);	  
 	}
 
       return true;
       }
+#endif
   return false;
 }
 
 //----------------------------------------------------------------------//
 bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
 {
+#ifndef DEBUG
   if (serialDataAvail(d_desc) < s_js_serial_chars)
     {
       return false;
@@ -159,7 +176,7 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
       flushInvalidSerialEvent();
       return false;
     }
-
+#endif
   js_event = d_js_event;
 
   return true;
