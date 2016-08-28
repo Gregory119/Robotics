@@ -2,7 +2,7 @@
 # INCLUDES - holds internal and third party library paths
 # LIBS - holds external library names
 # IS_TESTPROG - define this in the makefile of a test program
-# TEST_NAME - test program name
+# TEST_NAME - list of test program names
 
 MAKELIBS=1
 
@@ -69,8 +69,11 @@ endif
 	$(MAKE) thisdir	
 
 ifndef IS_TESTPROG
-thisdir: $(OBJ)
+thisdir: $(OBJ) 
 else
 thisdir: $(OBJ)
-	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $(OBJ) -o $(TEST_NAME)
+	 $(MAKE) $(TEST_NAME)
+
+$(TEST_NAME):
+	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $(OBJ) -o $@
 endif
