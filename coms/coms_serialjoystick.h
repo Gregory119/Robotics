@@ -12,9 +12,13 @@ namespace UTIL
 
 namespace COMS
 {
+  class JoystickReceiver;
+
   class JoystickTransmitter : public JS::JoyStickOwner,
     public KERN::KernBasicComponent
   {
+    friend JoystickReceiver; //allow access to the static private constants
+
   public:
     JoystickTransmitter();
     virtual ~JoystickTransmitter();
@@ -85,6 +89,8 @@ namespace COMS
   private:
     int d_desc = -1;
     JS::JSEventMinimal d_js_event; //values auto initialised to zero
+
+    static const UTIL::Map s_uchar_time_to_uint16_map;
   };
 };
 
