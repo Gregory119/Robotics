@@ -23,8 +23,8 @@ endif
 	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-#overwriting the default implicit rule to create a .o file from a .cpp file
-%.o : %.cpp
+#overwriting the default implicit rule to create a .o file if either the .cpp or .d file are not up to date
+%.o : %.cpp %.d
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<
 # $< is an implicit variable for the first prerequisite. Because it is an implicit rule, 
 # in this case there is only one prerequisite (source file) for each required object file
