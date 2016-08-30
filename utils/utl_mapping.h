@@ -7,7 +7,7 @@ namespace UTIL
 {
   struct Map
   {
-  Map(int o_max, int o_min, double n_max, double n_min)
+  Map(int o_max, int o_min, int n_max, int n_min)
   : d_orig_max(o_max),
       d_orig_min(o_min),
       d_new_max(n_max),
@@ -16,8 +16,8 @@ namespace UTIL
 
     int d_orig_max;
     int d_orig_min;
-    double d_new_max;
-    double d_new_min;
+    int d_new_max;
+    int d_new_min;
   };
   
   //----------------------------------------------------------------------//
@@ -26,8 +26,9 @@ namespace UTIL
   template <typename T>
     T mapFromTo(const Map &map, T orig_val, bool flip_axis=false)
     {
-      T new_val = (orig_val - map.d_orig_min)/(map.d_orig_max - map.d_orig_min)*
-	(map.d_new_max - map.d_new_min) + map.d_new_min;
+      T new_val = static_cast<T>((static_cast<double>(orig_val) - map.d_orig_min)/
+				 (map.d_orig_max - map.d_orig_min)*
+				 (map.d_new_max - map.d_new_min) + map.d_new_min);
 
       if (flip_axis)
 	{
