@@ -1,4 +1,4 @@
-#define DEBUG
+//#define DEBUG
 
 #include "coms_serialjoystick.h"
 #include "utl_mapping.h"
@@ -22,7 +22,7 @@ const unsigned JoystickTransmitter::s_max_time_ms = 3000;
 const UTIL::Map JoystickTransmitter::s_time_to_uchar_map(s_max_time_ms,0,255,0);
 const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,127,-127);
 
-static const UTIL::Map s_uchar_to_uint16_map(255,0,65535,0);
+const UTIL::Map JoystickReceiver::s_uchar_time_to_uint16_map(255,0,JoystickTransmitter::s_max_time_ms,0);
 
 //----------------------------------------------------------------------//
 // JoystickTransmitter
@@ -164,8 +164,11 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
       return false;
     }
 
-  uint16_t char_time = serialGetchar(d_desc);
-  d_js_event.time_ms = mapFromTo(s_uchar_to_uint16_map, char_time);
+  char char_time = serialGetchar(d_desc);
+  uint16_t temp_time = (uint16_t)char_time;
+  std::cout<<"char_time: "<<(int)char_time<<std::endl;
+  std::cout<<"temp_time: "<<(int)temp_time<<std::endl;
+  d_js_event.time_ms = mapFromTo(s_uchar_time_to_uint16_map, temp_time);
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
   d_js_event.number = serialGetchar(d_desc);
