@@ -74,6 +74,7 @@ else
 thisdir: $(OBJ)
 	 $(MAKE) $(TEST_NAME)
 
+.PHONY: $(TEST_NAME)
 $(TEST_NAME):
 	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $(OBJ) -o $@
 endif
