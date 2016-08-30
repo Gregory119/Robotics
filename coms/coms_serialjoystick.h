@@ -84,9 +84,6 @@ namespace COMS
     bool readSerialEvent(JS::JSEventMinimal &js_event);
     
   private:
-    bool flushInvalidSerialEvent();
-
-  private:
     int d_desc = -1;
     JS::JSEventMinimal d_js_event; //values auto initialised to zero
 

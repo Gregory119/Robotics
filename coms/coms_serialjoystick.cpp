@@ -1,4 +1,4 @@
-//#define DEBUG
+#define DEBUG
 
 #include "coms_serialjoystick.h"
 #include "utl_mapping.h"
@@ -130,23 +130,6 @@ bool JoystickReceiver::init(const char* serial_port,
 }
 
 //----------------------------------------------------------------------//
-bool JoystickReceiver::flushInvalidSerialEvent()
-{
-#ifndef DEBUG
-  if (serialDataAvail(d_desc) >= s_js_serial_chars)
-    {
-      for (unsigned i=0; i<s_js_serial_chars; ++i)
-	{
-	  serialGetchar(d_desc);	  
-	}
-
-      return true;
-      }
-#endif
-  return false;
-}
-
-//----------------------------------------------------------------------//
 bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
 {
 #ifndef DEBUG
@@ -160,14 +143,12 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
   if (next_char != 'J')
     {
       std::cout<<"no serial joystick start character"<<std::endl;
-      flushInvalidSerialEvent();
+#ifndef DEBUG
+      serialFlush(d_desc);
+#endif
       return false;
     }
 
-  char char_time = serialGetchar(d_desc);
-  uint16_t temp_time = (uint16_t)char_time;
-  std::cout<<"char_time: "<<(int)char_time<<std::endl;
-  std::cout<<"temp_time: "<<(int)temp_time<<std::endl;
   d_js_event.time_ms = mapFromTo(s_uchar_time_to_uint16_map, temp_time);
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
@@ -181,6 +162,10 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
     }
 #endif
   js_event = d_js_event;
+
+#ifndef DEBUG
+      serialFlush(d_desc);
+#endif
 
   return true;
 }
