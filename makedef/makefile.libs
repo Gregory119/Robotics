@@ -13,7 +13,8 @@ endif
 ifdef USES_LIBCOMS
       LIBCOMSPATH = $(BASE_DIR)/coms
       INCLUDES += -I$(LIBCOMSPATH)
-      LIBS += -lwiringPi
+      LIBS += 
+#-lwiringPi
       LIBSRC += $(wildcard $(LIBCOMSPATH)/*.cpp)
       USES_LIBJOYSTICK=1
       USES_LIBKERN=1
