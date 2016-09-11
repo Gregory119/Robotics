@@ -1,0 +1,3 @@
+Extract these packages into the default include and lib directories on the raspberry pi and host. 
+lib*.tgz => /usr/lib/arm-linux-gnueabihf/*
+inc*.tgz => /usr/include/arm-linux-gnueabihf/*
