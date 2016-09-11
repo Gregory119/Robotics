@@ -34,10 +34,16 @@ endif
 # the "-" gets rid of the "no existing file" error 
 -include $(SRC:.cpp=.d)
 
+ifdef HAS_TESTPROGS
+.PHONY: testprogs
+testprogs:
+	$(MAKE) -C testprogs
+endif
+
 #----------------------------------------------------------------------
 .PHONY: clean
 clean:
 	$(RM) *~ *.o* *.d* *# core *.core $(TEST_NAME)
-ifndef IS_TESTPROG
+ifdef HAS_TESTPROGS
 	$(MAKE) clean -C testprogs
 endif
