@@ -44,6 +44,8 @@ endif
 
 OBJ += $(LIBSRC:.cpp=.o)
 
+.PHONY: thisdir $(TEST_NAME)
+
 makelibs:
 #make prerequisite libraries
 ifdef USES_LIBJOYSTICK
@@ -70,11 +72,12 @@ endif
 
 ifndef IS_TESTPROG
 thisdir: $(OBJ) 
+else ifndef TEST_NAME
+$(error please define the test program name by TEST_NAME=<name> in the makefile of the test program)
 else
 thisdir: $(OBJ)
 	 $(MAKE) $(TEST_NAME)
 
-.PHONY: $(TEST_NAME)
 $(TEST_NAME):
-	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $(OBJ) -o $@
+	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ) $(LIBS) -o $@
 endif
