@@ -1,7 +1,6 @@
 #MAKESETTINGS - identifier variable of this makefile
 MAKESETTINGS=1
-#CXX = arm-linux-gnueabihf-g++
-CXX = g++
+CXX = arm-linux-gnueabihf-g++
 CXXFLAGS = -std=c++11 -Wall
 SRC = $(wildcard *.cpp)
 
