@@ -1,7 +1,7 @@
 #MAKESETTINGS - identifier variable of this makefile
 MAKESETTINGS=1
 CXX = arm-linux-gnueabihf-g++
-CXXFLAGS = -std=c++11 -Wall
+CXXFLAGS = -std=c++11 -Wall -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm
 SRC = $(wildcard *.cpp)
 
 #avoid repetition of library object files in this directory for a library
