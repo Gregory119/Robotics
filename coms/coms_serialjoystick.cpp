@@ -1,11 +1,10 @@
-//#define DEBUG
-
 #include "coms_serialjoystick.h"
 #include "utl_mapping.h"
 
 #include <wiringSerial.h>
-#include <cmath>
 #include <iostream>
+#include <cmath>
+#include <unistd.h>
 
 using namespace COMS;
 
@@ -96,6 +95,11 @@ void JoystickTransmitter::handleReadError()
 // JoystickReceiver
 //----------------------------------------------------------------------//
 
+JoystickReceiver::JoystickReceiver(unsigned wait_error_ms)
+  : d_wait_error_ms(wait_error_ms)
+{}
+
+//----------------------------------------------------------------------//
 JoystickReceiver::~JoystickReceiver()
 {
   if (d_desc != -1)
@@ -108,9 +112,7 @@ JoystickReceiver::~JoystickReceiver()
 bool JoystickReceiver::init(const char* serial_port,
 			    int baud)
 {
-  #ifndef DEBUG
   d_desc = serialOpen(serial_port, baud);
-  #endif
   if (d_desc == -1)
     {
       std::cout << "Could not open serial port" << std::endl;
@@ -138,6 +140,7 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
     }
 
   next_char = serialGetchar(d_desc);
+  //need to decompress the time value from a compressed uint8_t to a uint16_t
   d_js_event.time_ms = mapFromTo(s_uchar_time_to_uint16_map, next_char);
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
@@ -146,6 +149,8 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
   if (serialGetchar(d_desc) != '#')
     {
       std::cout<<"no serial joystick end character"<<std::endl;
+      usleep(d_wait_error_ms*1000);
+
       serialFlush(d_desc);
       return false;
     }

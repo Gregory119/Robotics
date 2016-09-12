@@ -21,6 +21,8 @@ namespace COMS
 
   public:
     JoystickTransmitter();
+    JoystickTransmitter(const JoystickTransmitter&) = delete; //cannot use copy constructor
+    JoystickTransmitter& operator=(const JoystickTransmitter&) = delete; //cannot copy
     virtual ~JoystickTransmitter();
 
     bool init(const char* serial_port, 
@@ -76,7 +78,12 @@ namespace COMS
   class JoystickReceiver
   {
   public:
+    JoystickReceiver(unsigned wait_error_ms);
+    //if there is a serial event read error,  the read will wait for a time of wait_error_ms, followed by cleaning the received serial events in an attempt to avoid further read errors
+    JoystickReceiver(const JoystickReceiver&) = default;
+    JoystickReceiver& operator=(const JoystickReceiver &copy) = default;
     virtual ~JoystickReceiver();
+
     bool init(const char* serial_port, 
 	      int baud);
     //must return true before calling other functions
@@ -88,6 +95,8 @@ namespace COMS
     JS::JSEventMinimal d_js_event; //values auto initialised to zero
 
     static const UTIL::Map s_uchar_time_to_uint16_map;
+
+    unsigned d_wait_error_ms = 0;
   };
 };
 
