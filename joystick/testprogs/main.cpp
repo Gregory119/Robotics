@@ -11,6 +11,9 @@
 
 class Test : public JS::JoyStickOwner
 {
+private:
+  std::mutex m;
+
 public:
   bool d_error = false;
 
@@ -28,6 +31,7 @@ public:
 private:
   virtual void handleReadError() override
   {
+    std::lock_guard<std::mutex> lock(m);
     d_error = true;
     std::cout << "read error" << std::endl;
     d_js->stop();
@@ -35,6 +39,7 @@ private:
 
   virtual void handleEvent(const JS::JSEvent &event) override
   {
+    std::lock_guard<std::mutex> lock(m);
     std::cout << "time: " << event.time << std::endl;
     std::cout << "value: " << event.value << std::endl;
     std::cout << "type: " << (int)event.type << std::endl;
