@@ -10,6 +10,14 @@ ifndef MAKESETTINGS
       $(error makefile.set must be included before this makefile)
 endif
 
+ifdef USES_LIBCORE
+      LIBCOREPATH = $(BASE_DIR)/core
+      INCLUDES += -I$(LIBCOREPATH)
+      LIBS += lpthread
+      LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
+      USES_LIBUTILS=1
+endif
+
 ifdef USES_LIBCOMS
       LIBCOMSPATH = $(BASE_DIR)/coms
       INCLUDES += -I$(LIBCOMSPATH)
@@ -48,6 +56,11 @@ OBJ += $(LIBSRC:.cpp=.o)
 
 makelibs:
 #make prerequisite libraries
+ifdef USES_LIBCORE
+ifneq "$(LIBNAME)" "CORE"
+	$(MAKE) -C $(LIBCOREPATH)
+endif
+endif
 ifdef USES_LIBJOYSTICK
 ifneq "$(LIBNAME)" "JOYSTICK"
 	$(MAKE) -C $(LIBJOYSTICKPATH)
