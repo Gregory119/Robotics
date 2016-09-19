@@ -1,0 +1,55 @@
+#ifndef ROBOT_H
+#define ROBOT_H
+
+#include "kn_basic.h"
+#include "coms_serialjoystick.h"
+#include "core_servo.h"
+
+class Robot final : public KERN::KernBasicComponent
+{
+ public:
+  struct Params
+  {
+  Params(unsigned time,
+	 unsigned s_pin,
+	 unsigned m_pin)
+  : wait_error_time_ms(time),
+      steering_pin(s_pin),
+      motor_pin(m_pin)
+    {}
+
+    unsigned wait_error_time_ms;
+    unsigned steering_pin;
+    unsigned motor_pin;
+    //unsigned roll_pin;
+    //unsigned pitch_pin;
+    //unsigned yaw_pin;
+  };
+  
+ public:
+  explicit Robot(Params&);
+  ~Robot();
+  
+  Robot(const Robot&) = default;
+  Robot& operator=(const Robot&) = default;
+
+  bool init(const char* serial_port, int baud=9600);
+
+ private:
+  virtual bool stayRunning();
+
+  void processEvent(const JS::JSEventMinimal &event);
+  void processButton(const JS::JSEventMinimal &event);
+  void processAxis(const JS::JSEventMinimal &event);
+
+ private:
+  COMS::JoystickReceiver d_js_receiver;
+  JS::JSEventMinimal d_js_event;
+
+  unsigned d_steer_pin = 1;
+  unsigned d_motor_pin = 7;
+  CORE::Servo d_steering;
+  CORE::Servo d_motor;
+};
+
+#endif
