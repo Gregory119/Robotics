@@ -8,8 +8,14 @@ int main(int argc, char* argv[])
   Servo d_steering(pin);
 
   d_steering.run();
-  d_steering.setPos(argv[1]);
 
+  //'0' => 0, '1' => 255
+  if (*argv[1] == '0')
+    d_steering.setPos(0); 
+  
+  if (*argv[1] == '1')
+    d_steering.setPos(255);
+  
   while(1){}
   
   return 0;
