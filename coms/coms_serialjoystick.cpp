@@ -67,6 +67,7 @@ JoystickTransmitter::~JoystickTransmitter()
 //----------------------------------------------------------------------//
 void JoystickTransmitter::handleEvent(const JS::JSEvent &event) 
 {
+  std::lock_guard<std::mutex> lock(m);
   d_serial_cmd = "J";
   d_serial_cmd += convertValueTo8Bits(event.time, s_u32_max_digits);
   d_serial_cmd += convertValueTo8Bits(event.value, s_s16_max_digits);
@@ -87,6 +88,7 @@ bool JoystickTransmitter::stayRunning()
 //----------------------------------------------------------------------//
 void JoystickTransmitter::handleReadError()
 {
+  std::lock_guard<std::mutex> lock(m);
   d_stay_running = false;
   d_js->stop();
 }
