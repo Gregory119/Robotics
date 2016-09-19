@@ -15,6 +15,33 @@ Servo::Servo(unsigned control_pin)
   : d_pin(control_pin),
     d_pos_8bit_to_us(UTIL::Map(s_max_8bit, s_min_8bit, d_max_us, d_min_us))
 {
+  initPins();
+}
+
+//----------------------------------------------------------------------//
+Servo::Servo(const Servo& copy)
+  : d_pos_8bit_to_us(UTIL::Map(s_max_8bit, s_min_8bit, d_max_us, d_min_us))
+{
+  operator=(copy);
+  initPins();
+}
+
+//----------------------------------------------------------------------//
+Servo& Servo::operator=(const Servo& copy)
+{
+  //the same settings
+  d_pin = copy.d_pin;
+  d_min_us = copy.d_min_us;
+  d_max_us = copy.d_max_us;
+  d_delay_us = copy.d_delay_us;
+  //not the same position
+
+  return *this;
+}
+
+//----------------------------------------------------------------------//
+void Servo::initPins()
+{
   pinMode(d_pin, OUTPUT);
   digitalWrite(d_pin, LOW);
 }
