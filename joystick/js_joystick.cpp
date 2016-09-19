@@ -11,8 +11,6 @@
 
 using namespace JS;
 
-static std::thread *s_t = nullptr;
-
 //----------------------------------------------------------------------//
 JoyStick::JoyStick(JoyStickOwner* o, const char *dev_name)
   : d_owner(o),
@@ -71,7 +69,7 @@ void JoyStick::run()
   std::thread t(threadFunc,
 		d_thread_shutdown.get_future(),
 		this);
-  s_t = &t;
+  t.detach();
 }
 
 //----------------------------------------------------------------------//
@@ -91,10 +89,6 @@ void JoyStick::stopThread()
 
   d_running = false;
   d_thread_shutdown.set_value(true);
-  
-  assert(s_t!=nullptr);
-  if (s_t->joinable()) 
-    s_t->join();
 }
 
 //----------------------------------------------------------------------//

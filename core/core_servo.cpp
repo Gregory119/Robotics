@@ -8,8 +8,6 @@ static const unsigned s_min_8bit = 0;
 
 using namespace CORE;
 
-static std::thread *s_t = nullptr;
-
 //----------------------------------------------------------------------//
 Servo::Servo(unsigned control_pin)
   : d_pin(control_pin),
@@ -124,7 +122,7 @@ void Servo::run()
   std::thread t(&threadFunc,
 		d_thread_shutdown.get_future(),
 		this);
-  s_t = &t;
+  t.detach();
 }
 
 //----------------------------------------------------------------------//
@@ -134,10 +132,6 @@ void Servo::stop()
     return;
     
   d_thread_shutdown.set_value(true); //stop the thread
-
-  assert(s_t!=nullptr);
-  if (s_t->joinable()) 
-    s_t->join();
 }
 
 //----------------------------------------------------------------------//
