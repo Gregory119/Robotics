@@ -2,9 +2,9 @@ BASE_DIR = ../../..
 
 include $(BASE_DIR)/makedef/makefile.set
 
-#IS_TESTPROG=1
+IS_TESTPROG=1
 #creating test program name with cpp file in this directory
-#TEST_NAME = basestation
+TEST_NAME = basestation
 
 USES_LIBCOMS=1
 
