@@ -13,7 +13,7 @@ endif
 ifdef USES_LIBCORE
       LIBCOREPATH = $(BASE_DIR)/core
       INCLUDES += -I$(LIBCOREPATH)
-      LIBS += -lpthread
+      LIBS += -lpthread -lwiringPi
       LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
       USES_LIBUTILS=1
 endif
