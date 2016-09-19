@@ -2,7 +2,11 @@
 This code is used for the camera based robot that I have created.
 
 # CROSS-COMPILING
-reference: http://hackaday.com/2016/02/03/code-craft-cross-compiling-for-the-raspberry-pi/
+References: 
+- core guide: http://hackaday.com/2016/02/03/code-craft-cross-compiling-for-the-raspberry-pi/
+- arm optimization flags: 
+  - https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
+  - http://raspberrypi.stackexchange.com/questions/2046/which-cpu-flags-are-suitable-for-gcc-on-raspberry-pi
 
 on the host:
 # install compiling utilities such as g++, gcc etc
