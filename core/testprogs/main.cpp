@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   d_steering.run();
   d_steering.setPos(argv[1]);
 
-  while(){}
+  while(1){}
   
   return 0;
 }
