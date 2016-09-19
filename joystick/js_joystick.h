@@ -13,6 +13,7 @@ namespace JS
   
   private:
     friend class JoyStick;
+    //these functions must be thread safe
     virtual void handleEvent(const JSEvent &event) = 0;
     virtual void handleReadError() = 0;
   };
@@ -27,14 +28,22 @@ namespace JS
     //must open successfully before calling other functions
 
     void run();
+    //should be called after init().
     //runs a read thread and calls owner callback to handle event details
 
     void stop();
 
   private:
+    bool openDevice();
+    void closeDevice();
+    void stopThread();
+    //return 1 implies successful, otherwise an error
+
     bool readEvent() const;
+    //return 1 implies successful, otherwise an error
+
     static void threadFunc(std::future<bool> shutdown,
-			   const JoyStick* js);
+			   const JoyStick *const js);
     
   private:
     static const int s_error = -1;
