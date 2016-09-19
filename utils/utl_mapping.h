@@ -13,6 +13,8 @@ namespace UTIL
       d_new_max(n_max),
       d_new_min(n_min)
     {}
+    Map(const Map &copy) = default;
+    Map& operator=(const Map &copy) = default;
 
     int d_orig_max;
     int d_orig_min;
