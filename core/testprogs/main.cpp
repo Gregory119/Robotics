@@ -1,6 +1,6 @@
 #include "core_servo.h"
 
-int main()
+int main(int argc, char* argv[])
 {
   using namespace CORE;
 
@@ -8,6 +8,9 @@ int main()
   Servo d_steering(pin);
 
   d_steering.run();
+  d_steering.setPos(argv[1]);
+
+  while(){}
   
   return 0;
 }
