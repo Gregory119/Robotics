@@ -5,6 +5,8 @@
 #include "js_common.h"
 #include "kn_basic.h"
 
+#include <thread>
+
 namespace UTIL
 {
   struct Map;
@@ -13,7 +15,7 @@ namespace UTIL
 namespace COMS
 {
   class JoystickReceiver;
-
+  
   class JoystickTransmitter : public JS::JoyStickOwner,
     public KERN::KernBasicComponent
   {
@@ -69,6 +71,7 @@ namespace COMS
       }
 
   private:
+    std::mutex m;
     std::unique_ptr<JS::JoyStick> d_js = nullptr;
     int d_desc = -1;
     std::string d_serial_cmd = "";
