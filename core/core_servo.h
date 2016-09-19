@@ -12,10 +12,10 @@ namespace CORE
   class Servo final
   {
   public:
-    Servo(unsigned control_pin);
+    explicit Servo(unsigned control_pin);
     ~Servo();
-    Servo(const Servo&)=delete;
-    Servo& operator=(const Servo&)=delete;
+    Servo(const Servo&); //uses the same settings
+    Servo& operator=(const Servo&); //uses the same settings
     
     void setTiming(unsigned min_us,
 		   unsigned max_us,
@@ -29,7 +29,7 @@ namespace CORE
     bool decrementPos(uint8_t pos);
     
   private:
-    typedef void (*callbackFunction)(void);
+    void initPins();
     void updatePos();
     static void threadFunc(std::future<bool> shutdown,
 			   Servo *const servo);
@@ -40,8 +40,8 @@ namespace CORE
     unsigned d_max_us = 2000;
     unsigned d_delay_us = 40000;
     unsigned d_pos = 0;
-
-UTIL::Map d_pos_8bit_to_us;
+    
+    UTIL::Map d_pos_8bit_to_us;
 
     bool d_running = false;
     std::promise<bool> d_thread_shutdown;
