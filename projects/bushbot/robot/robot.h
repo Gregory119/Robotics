@@ -33,6 +33,9 @@ class Robot final : public KERN::KernBasicComponent
   Robot(const Robot&) = default;
   Robot& operator=(const Robot&) = default;
 
+  // call this function only once before using this class, if wiringPiSetup() from libwiringPi has not been called before.
+  static void setup(); 
+
   bool init(const char* serial_port, int baud=9600);
 
  private:
