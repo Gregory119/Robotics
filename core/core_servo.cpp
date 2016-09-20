@@ -38,9 +38,14 @@ Servo& Servo::operator=(const Servo& copy)
 }
 
 //----------------------------------------------------------------------//
-void Servo::initPins()
+void Servo::setup()
 {
   wiringPiSetup();
+}
+
+//----------------------------------------------------------------------//
+void Servo::initPins()
+{
   pinMode(d_pin, OUTPUT);
   digitalWrite(d_pin, LOW);
 }

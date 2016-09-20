@@ -12,11 +12,15 @@ namespace CORE
   class Servo final
   {
   public:
+    //The function wiringPiSetup() from libwiringPi in wiringPi.h must be called only once before using instances of this class. 
+    //The function setup() calls wiringPiSetup() if you would prefer to call it that way.
     explicit Servo(unsigned control_pin);
     ~Servo();
     Servo(const Servo&); //uses the same settings
     Servo& operator=(const Servo&); //uses the same settings
     
+    static void setup();
+
     void setTiming(unsigned min_us,
 		   unsigned max_us,
 		   unsigned delay_us); //this must be optionally set before running
