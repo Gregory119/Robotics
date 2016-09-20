@@ -3,7 +3,7 @@ all:
 	$(MAKE) testprogs
 	$(MAKE) projects
 
-.PHONY=clean libs testprogs projects
+.PHONY:clean libs testprogs projects
 libs:
 	$(MAKE) -C coms
 	$(MAKE) -C kern
