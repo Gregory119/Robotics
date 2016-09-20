@@ -4,6 +4,7 @@ int main(int argc, char* argv[])
 {
   using namespace CORE;
 
+  Servo::setup();
   unsigned pin = 1;
   Servo d_steering(pin);
 
