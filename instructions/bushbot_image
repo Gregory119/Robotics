@@ -1,0 +1,30 @@
+- download the raspbian lite image and load it onto the 8 GB sd card
+- setup wifi by following: - https://thepihut.com/blogs/raspberry-pi-tutorials/83502916-how-to-setup-wifi-on-raspbian-jessie-lite
+
+  -- install packages--
+- update
+ - $ apt-get update
+- install ssh
+ - $ apt-get install openssh-server
+- install github
+ - $ apt-get install git
+- install xboxdrv driver for the xbox controller
+ - $ apt-get install xboxdrv
+- install wiringPi
+ - $ apt-get install wiringPi
+ - or use the files in arm_pkgs if there are any problems experienced with compiling/runtime
+
+ -- build code --
+- download repository
+ - $ cd /
+ - $ git clone https://github.com/Gregory119/Robotics.git
+ - $ cd Robotics
+- switch to branch if necessary (this step will not be necessary after first version is made)
+ - $ git checkout <branch>
+- build the project software
+ - $ make projects
+
+ -- start scripts --
+STILL TO DO
+start_bushbot.sh
+use a variable in the script to define whether it is the base station or the robot
