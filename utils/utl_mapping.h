@@ -26,11 +26,11 @@ namespace UTIL
   //flip axis will make the new max value correspond to the original min value and make the new min value correspond to the original max value.
   //make sure the original value is in range of its original max and min values
   template <typename T>
-    T mapFromTo(const Map &map, T orig_val, bool flip_axis=false)
+    double mapFromTo(const Map &map, T orig_val, bool flip_axis=false)
     {
-      T new_val = static_cast<T>((static_cast<double>(orig_val) - map.d_orig_min)/
-				 (map.d_orig_max - map.d_orig_min)*
-				 (map.d_new_max - map.d_new_min) + map.d_new_min);
+      double new_val = (static_cast<double>(orig_val) - map.d_orig_min)/
+	(map.d_orig_max - map.d_orig_min)*
+	(map.d_new_max - map.d_new_min) + map.d_new_min;
 
       if (flip_axis)
 	{
