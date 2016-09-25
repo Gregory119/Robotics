@@ -59,12 +59,12 @@ namespace JS
 
   namespace EventMinimal
   {//declarations
-    extern const char lever_max_out;
-    extern const char lever_max_in;
-    extern const char axis_max_left;
-    extern const char axis_max_up;
-    extern const char axis_max_right;
-    extern const char axis_max_down;
+    extern const int8_t lever_max_out;
+    extern const int8_t lever_max_in;
+    extern const int8_t axis_max_left;
+    extern const int8_t axis_max_up;
+    extern const int8_t axis_max_right;
+    extern const int8_t axis_max_down;
   };
 };
 #endif
