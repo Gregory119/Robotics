@@ -75,11 +75,18 @@ void JoystickTransmitter::handleEvent(const JS::JSEvent &event)
   d_serial_cmd += convertValueTo8Bits(event.number, s_u8_max_digits);
   d_serial_cmd += "#";
   
+  std::cout << "=========================================" << std::endl;
   std::cout<<"serial: " << d_serial_cmd << std::endl;
   std::cout << "time [ms]: " << (int)event.time << std::endl;
   std::cout << "value: " << (int)event.value << std::endl;
   std::cout << "type: " << (int)event.type << std::endl;
   std::cout << "number: " << (int)event.number << std::endl;
+
+  std::cout << "time [8bits]: " << (int)convertValueTo8Bits(event.time, s_u32_max_digits) << std::endl;
+  std::cout << "value [8bits]: " << (int)convertValueTo8Bits(event.value, s_s16_max_digits) << std::endl;
+  std::cout << "type [8bits]: " << (int)convertValueTo8Bits(event.type, s_u8_max_digits) << std::endl;
+  std::cout << "number [8bits]: " << (int)convertValueTo8Bits(event.number, s_u8_max_digits) << std::endl;
+
   serialPuts(d_desc, d_serial_cmd.c_str());
 }
 
