@@ -56,5 +56,15 @@ namespace JS
     uint8_t type = 0;
     uint8_t number = 0;
   };
+
+  namespace EventMinimal
+  {//declarations
+    extern const char lever_max_out;
+    extern const char lever_max_in;
+    extern const char axis_max_left;
+    extern const char axis_max_up;
+    extern const char axis_max_right;
+    extern const char axis_max_down;
+  };
 };
 #endif
