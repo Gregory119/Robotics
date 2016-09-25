@@ -70,7 +70,7 @@ void Servo::setTiming(unsigned min_us,
 //----------------------------------------------------------------------//
 void Servo::setPos(uint8_t pos)
 {
-  std::lock_guard<std::mutex> lock(m);
+  std::lock_guard<std::mutex> lock(d_m);
   d_pos = pos;
 }
 
@@ -78,8 +78,10 @@ void Servo::setPos(uint8_t pos)
 //----------------------------------------------------------------------//
 void Servo::updatePos()
 {
-  std::lock_guard<std::mutex> lock(m);
-  unsigned pos_us = mapFromTo(d_pos_8bit_to_us, d_pos);
+  d_m.lock();
+  unsigned pos = d_pos;
+  d_m.unlock();
+  unsigned pos_us = mapFromTo(d_pos_8bit_to_us, pos);
 
   digitalWrite(d_pin, HIGH);
   delayMicroseconds(pos_us);
@@ -90,7 +92,7 @@ void Servo::updatePos()
 //----------------------------------------------------------------------//
 bool Servo::incrementPos(uint8_t pos)
 {
-  std::lock_guard<std::mutex> lock(m);
+  std::lock_guard<std::mutex> lock(d_m);
   if ((pos + d_pos) > s_max_8bit)
     {
       d_pos = s_max_8bit;
@@ -106,7 +108,7 @@ bool Servo::incrementPos(uint8_t pos)
 //----------------------------------------------------------------------//
 bool Servo::decrementPos(uint8_t pos)
 {
-  std::lock_guard<std::mutex> lock(m);
+  std::lock_guard<std::mutex> lock(d_m);
   if (pos > d_pos)
     {
       d_pos = s_min_8bit;
