@@ -4,8 +4,7 @@
 
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
-  : d_js_receiver(COMS::JoystickReceiver(params.wait_error_time_ms)),
-    d_steer_pin(params.steering_pin),
+  : d_steer_pin(params.steering_pin),
     d_motor_pin(params.motor_pin),
     d_steering(CORE::Servo(d_steer_pin)),
     d_motor(CORE::Servo(d_motor_pin))
