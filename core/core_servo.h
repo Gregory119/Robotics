@@ -31,7 +31,11 @@ namespace CORE
     void setPos(uint8_t pos); //0 < pos < 255
     bool incrementPos(uint8_t pos); //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
     bool decrementPos(uint8_t pos);
-    
+   
+  public:
+    static const unsigned char max_pos = 255;
+    static const unsigned char min_pos = 0;
+ 
   private:
     void initPins();
     void updatePos();
