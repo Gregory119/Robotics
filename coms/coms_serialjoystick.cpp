@@ -68,15 +68,14 @@ JoystickTransmitter::~JoystickTransmitter()
 void JoystickTransmitter::handleEvent(const JS::JSEvent &event) 
 {
   std::lock_guard<std::mutex> lock(m);
-  serialPutChar(d_desc, 'J');
-  serialPutChar(d_desc, convertValueTo8Bits(event.time, s_u32_max_digits));
-  serialPutChar(d_desc, convertValueTo8Bits(event.value, s_s16_max_digits));
-  serialPutChar(d_desc, convertValueTo8Bits(event.type, s_u8_max_digits));
-  serialPutChar(d_desc, convertValueTo8Bits(event.number, s_u8_max_digits));
-  serialPutChar(d_desc, '#');
+  serialPutchar(d_desc, 'J');
+  serialPutchar(d_desc, convertValueTo8Bits(event.time, s_u32_max_digits));
+  serialPutchar(d_desc, convertValueTo8Bits(event.value, s_s16_max_digits));
+  serialPutchar(d_desc, convertValueTo8Bits(event.type, s_u8_max_digits));
+  serialPutchar(d_desc, convertValueTo8Bits(event.number, s_u8_max_digits));
+  serialPutchar(d_desc, '#');
   
   std::cout << "=========================================" << std::endl;
-  std::cout<<"serial: " << d_serial_cmd << std::endl;
   std::cout << "time [ms]: " << (int)event.time << std::endl;
   std::cout << "value: " << (int)event.value << std::endl;
   std::cout << "type: " << (int)event.type << std::endl;
