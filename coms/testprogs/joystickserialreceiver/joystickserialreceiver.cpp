@@ -6,8 +6,7 @@ int main()
 {
   int baud = 9600;
 
-  unsigned wait_time_error_ms = 500;
-  COMS::JoystickReceiver js_receiver(wait_time_error_ms);
+  COMS::JoystickReceiver js_receiver;
   JS::JSEventMinimal js_event;
   
   if (js_receiver.init("/dev/ttyAMA0",
