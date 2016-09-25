@@ -68,12 +68,12 @@ JoystickTransmitter::~JoystickTransmitter()
 void JoystickTransmitter::handleEvent(const JS::JSEvent &event) 
 {
   std::lock_guard<std::mutex> lock(m);
-  d_serial_cmd = "J";
-  d_serial_cmd += convertValueTo8Bits(event.time, s_u32_max_digits);
-  d_serial_cmd += convertValueTo8Bits(event.value, s_s16_max_digits);
-  d_serial_cmd += convertValueTo8Bits(event.type, s_u8_max_digits);
-  d_serial_cmd += convertValueTo8Bits(event.number, s_u8_max_digits);
-  d_serial_cmd += "#";
+  serialPutChar(d_desc, 'J');
+  serialPutChar(d_desc, convertValueTo8Bits(event.time, s_u32_max_digits));
+  serialPutChar(d_desc, convertValueTo8Bits(event.value, s_s16_max_digits));
+  serialPutChar(d_desc, convertValueTo8Bits(event.type, s_u8_max_digits));
+  serialPutChar(d_desc, convertValueTo8Bits(event.number, s_u8_max_digits));
+  serialPutChar(d_desc, '#');
   
   std::cout << "=========================================" << std::endl;
   std::cout<<"serial: " << d_serial_cmd << std::endl;
@@ -86,8 +86,6 @@ void JoystickTransmitter::handleEvent(const JS::JSEvent &event)
   std::cout << "value [8bits]: " << (int)convertValueTo8Bits(event.value, s_s16_max_digits) << std::endl;
   std::cout << "type [8bits]: " << (int)convertValueTo8Bits(event.type, s_u8_max_digits) << std::endl;
   std::cout << "number [8bits]: " << (int)convertValueTo8Bits(event.number, s_u8_max_digits) << std::endl;
-
-  serialPuts(d_desc, d_serial_cmd.c_str());
 }
 
 //----------------------------------------------------------------------//

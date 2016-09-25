@@ -74,7 +74,6 @@ namespace COMS
     std::mutex m;
     std::unique_ptr<JS::JoyStick> d_js = nullptr;
     int d_desc = -1;
-    std::string d_serial_cmd = "";
     bool d_stay_running = true;
   };
 
