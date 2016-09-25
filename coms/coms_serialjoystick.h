@@ -81,7 +81,7 @@ namespace COMS
   class JoystickReceiver
   {
   public:
-    JoystickReceiver(unsigned wait_error_ms);
+    JoystickReceiver();
     //if there is a serial event read error,  the read will wait for a time of wait_error_ms, followed by cleaning the received serial events in an attempt to avoid further read errors
     JoystickReceiver(const JoystickReceiver&) = default;
     JoystickReceiver& operator=(const JoystickReceiver &copy) = default;

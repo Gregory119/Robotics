@@ -76,6 +76,10 @@ void JoystickTransmitter::handleEvent(const JS::JSEvent &event)
   d_serial_cmd += "#";
   
   std::cout<<"serial: " << d_serial_cmd << std::endl;
+  std::cout << "time [ms]: " << (int)event.time << std::endl;
+  std::cout << "value: " << (int)event.value << std::endl;
+  std::cout << "type: " << (int)event.type << std::endl;
+  std::cout << "number: " << (int)event.number << std::endl;
   serialPuts(d_desc, d_serial_cmd.c_str());
 }
 
@@ -97,8 +101,7 @@ void JoystickTransmitter::handleReadError()
 // JoystickReceiver
 //----------------------------------------------------------------------//
 
-JoystickReceiver::JoystickReceiver(unsigned wait_error_ms)
-  : d_wait_error_ms(wait_error_ms)
+JoystickReceiver::JoystickReceiver()
 {}
 
 //----------------------------------------------------------------------//
@@ -127,6 +130,7 @@ bool JoystickReceiver::init(const char* serial_port,
 //----------------------------------------------------------------------//
 bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
 {
+  //this algorithm will go through every character received to check for an event
   if (serialDataAvail(d_desc) < s_js_serial_chars)
     {
       return false;
@@ -137,13 +141,11 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
   if (next_char != 'J')
     {
       std::cout<<"no serial joystick start character"<<std::endl;
-      serialFlush(d_desc);
       return false;
     }
 
-  next_char = serialGetchar(d_desc);
   //need to decompress the time value from a compressed uint8_t to a uint16_t
-  d_js_event.time_ms = mapFromTo(s_uchar_time_to_uint16_map, next_char);
+  d_js_event.time_ms = mapFromTo(s_uchar_time_to_uint16_map, serialGetchar(d_desc));
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
   d_js_event.number = serialGetchar(d_desc);
@@ -151,14 +153,9 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
   if (serialGetchar(d_desc) != '#')
     {
       std::cout<<"no serial joystick end character"<<std::endl;
-      usleep(d_wait_error_ms*1000);
-
-      serialFlush(d_desc);
       return false;
     }
   js_event = d_js_event;
-
-  serialFlush(d_desc);
 
   return true;
 }
