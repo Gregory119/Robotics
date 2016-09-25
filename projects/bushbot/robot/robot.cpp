@@ -2,6 +2,16 @@
 
 #include <iostream>
 
+static const UTIL::Map s_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
+					    JS::EventMinimal::lever_max_out, 
+					    CORE::Servo::max_pos, 
+					    CORE::Servo::min_pos);
+
+static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_right, 
+					    JS::EventMinimal::axis_max_left, 
+					    CORE::Servo::max_pos, 
+					    CORE::Servo::min_pos);
+
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
   : d_steer_pin(params.steering_pin),
@@ -79,12 +89,14 @@ void Robot::processButton(const JS::JSEventMinimal &event)
     {
     case A:
       //take a picture
-      std::cout << "take a picture" << std::endl;
+      if (event.value==1)
+	std::cout << "take a picture" << std::endl;
       break;
 	
     case B:
       //start/stop video recording
-      std::cout << "start/stop video recording" << std::endl;
+      if (event.value==1)
+	std::cout << "start/stop video recording" << std::endl;
       break;
 
     default:
@@ -100,8 +112,12 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
   switch (event.number)
     {
     case X1:
-      std::cout << "turn left/right" << std::endl;
-      std::cout << "value = " << (int)event.value << std::endl;
+      {
+	std::cout << "turn left/right" << std::endl;
+	int servo_sig = static_cast<int>(event.value);
+	std::cout << "servo signal = " << servo_sig << std::endl;
+	d_steering.setPos(UTIL::mapFromTo(s_stick_to_steer_servo_pos, servo_sig));
+      }
       break;
 	
     case X2:
@@ -115,13 +131,21 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
       break;
 
     case RT:
-      std::cout << "move forward" << std::endl;
-      std::cout << "value = " << (int)event.value << std::endl;
+      {
+	std::cout << "move forward" << std::endl;
+	int motor_sig = static_cast<int>(event.value);
+	std::cout << "motor signal = " << motor_sig << std::endl;
+	d_motor.setPos(UTIL::mapFromTo(s_lever_to_servo_pos, motor_sig));
+      }
       break;
 
     case LT:
-      std::cout << "move backward" << std::endl;
-      std::cout << "value = " << (int)event.value << std::endl;
+      {
+	std::cout << "move backward" << std::endl;
+	int motor_sig = static_cast<int>(event.value);
+	std::cout << "motor signal = " << motor_sig << std::endl;
+	d_motor.setPos(UTIL::mapFromTo(s_lever_to_servo_pos, motor_sig));
+      }
       break;
 
     default:
