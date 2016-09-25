@@ -53,7 +53,7 @@ namespace CORE
 
     bool d_running = false;
     std::promise<bool> d_thread_shutdown;
-    std::mutex m;
+    std::mutex d_m;
   };
 };
 
