@@ -1,5 +1,8 @@
 - download the raspbian lite image and load it onto the 8 GB sd card
 - setup wifi by following: - https://thepihut.com/blogs/raspberry-pi-tutorials/83502916-how-to-setup-wifi-on-raspbian-jessie-lite
+- create root password
+ - $ sudo passwd
+ - follow instructions
 
   -- install packages--
 - update
