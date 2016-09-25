@@ -5,11 +5,8 @@
 
 int main()
 {
-  unsigned wait_error_time_ms = 500;
-
   Robot::setup();
-  Robot::Params params(wait_error_time_ms,
-		       PIN::steering,
+  Robot::Params params(PIN::steering,
 		       PIN::motor);
   Robot r(params);
 

@@ -10,15 +10,12 @@ class Robot final : public KERN::KernBasicComponent
  public:
   struct Params
   {
-  Params(unsigned time,
-	 unsigned s_pin,
+  Params(unsigned s_pin,
 	 unsigned m_pin)
-  : wait_error_time_ms(time),
-      steering_pin(s_pin),
+  : steering_pin(s_pin),
       motor_pin(m_pin)
     {}
 
-    unsigned wait_error_time_ms;
     unsigned steering_pin;
     unsigned motor_pin;
     //unsigned roll_pin;
