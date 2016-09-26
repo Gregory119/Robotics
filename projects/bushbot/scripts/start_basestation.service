@@ -1,0 +1,10 @@
+[Unit]
+Description=Basestation Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/start_scripts/start_basestation.sh
+
+[Install]
+WantedBy=multi-user.target
