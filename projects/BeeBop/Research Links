@@ -1,0 +1,36 @@
+---review of different option---
+1) http://raspberrypi.stackexchange.com/questions/7446/how-can-i-stream-h-264-video-from-the-raspberry-pi-camera-module-via-a-web-serve
+
+2)http://pnetherwood.blogspot.co.za/2015/04/raspberry-pi-video-streaming-to-android.html
+
+--tutorial using python, node.js, html--
+http://reddocode.blogspot.co.za/2015/05/stream-raspberry-pi-camera-module-from.html
+
+
+--tutorial with gstreamer and node.js to stream WebM video to webpage--
+https://delog.wordpress.com/2011/04/26/stream-live-webm-video-to-browser-using-node-js-and-gstreamer/
+
+
+--tutorial on MJPEG streamer with simple browser usage--
+http://iqjar.com/jar/live-stream-from-your-raspberry-pi/
+
+--github repository JRPiCam---
+Java package to use Pi stream in webpage
+https://github.com/Hopding/JRPiCam
+
+
+
+---tutorial on h264 stream with WebRTC (low latency) to feed to browser---
+http://www.rs-online.com/designspark/electronics/blog/building-a-raspberry-pi-2-webrtc-camera
+
+---installing gstreamer 1.2---
+http://www.onepitwopi.com/raspberry-pi/gstreamer-1-2-on-the-raspberry-pi/
+
+
+---tutorial on streaming webcam with jpgstreamer---
+http://jacobsalmela.com/raspberry-pi-webcam-using-mjpg-streamer-over-internet/
+
+------Programming Tutorials-------
+---JAVA---
+http://www.wikihow.com/Create-Your-First-Java-Program-on-Ubuntu-Linux
+

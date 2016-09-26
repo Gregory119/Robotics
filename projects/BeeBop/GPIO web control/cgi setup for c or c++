@@ -1,0 +1,97 @@
+The Common Gateway Interface, or CGI, is a set of standards that define how information is exchanged between the web server and a custom script.
+
+References:
+http://www.acmesystems.it/foxg20_cgi
+http://www.cyberciti.biz/tips/configure-lighttpd-alias-mod_alias.html
+https://www.cs.cf.ac.uk/Dave/PERL/node193.html (calling your cgi program)
+http://www.cyberciti.biz/faq/stop-lighttpd-server/
+http://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm
+
+Setup
+1) Change lighttpd settings to use cgi 
+
+Change the server.modules list inside /etc/lighttpd/lighttpd.conf in:
+
+server.modules              = (
+            "mod_access",
+            "mod_cgi",
+            "mod_alias",
+            "mod_accesslog",
+            "mod_compress",
+)
+
+and add these lines:
+
+$HTTP["url"] =~ "/cgi-bin/" {
+        cgi.assign = ( "" => "" )
+}
+
+cgi.assign      = (
+        ".cgi"  => ""
+)
+
+2) Create a custom cgi directory
+
+Create the directory /var/www/cgi-bin for your cgi scripts.
+
+The default cgi directory is /usr/lib/cgi-bin. To add an alias
+directory, add the following to the lighttpd.conf file:
+
+alias.url += ( "/cgi-bin/" => "/var/www/cgi-bin/" )
+
+4) create a c code cgi script
+
+- Go to the custom cgi directory /var/www/cgi-bin/.
+- Create the file test.c with the following c code:
+
+#include "stdio.h"
+ 
+int main(void) {
+  printf( "Content-Type: text/plain\n\n" );
+  printf("Hello world !\n");
+  return 0;
+}
+
+- Compile it:
+gcc -o test.cgi test.c
+
+- give the script executable rights
+chmod 755 test.cgi
+
+5) OR you create a c++ script
+
+- As before create a file test.cpp with the following c++ code:
+
+#include <iostream>
+using namespace std;
+ 
+int main ()
+{
+    
+   cout << "Content-type:text/html\r\n\r\n";
+   cout << "<html>\n";
+   cout << "<head>\n";
+   cout << "<title>Hello World - First CGI Program</title>\n";
+   cout << "</head>\n";
+   cout << "<body>\n";
+   cout << "<h2>Hello World! This is my first CGI program</h2>\n";
+   cout << "</body>\n";
+   cout << "</html>\n";
+   
+   return 0;
+}
+
+- compile it:
+g++ -o test.cgi test.cpp
+
+- give the script executable rights
+chmod 755 test.cgi
+
+6) add a link to the script in the webpage html
+
+<a href="http://<pi ip>:<webpage port>/cgi-bin/test.cgi">test.cgi</a>
+
+eg.
+<a href="http://raspberrypi.local:8085/cgi-bin/test.cgi">test.cgi</a>
+
+7) clicking the link in the web page will run the script
