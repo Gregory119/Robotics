@@ -1,0 +1,10 @@
+======================================================================
+Systemd Start Scripts
+======================================================================
+basic overview:
+http://www.raspberrypi-spy.co.uk/2015/10/how-to-autorun-a-python-script-on-boot-using-systemd/
+https://linuxconfig.org/how-to-automatically-execute-shell-script-at-startup-boot-on-systemd-linux
+
+more detail:
+https://fedoramagazine.org/systemd-converting-sysvinit-scripts/
+https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sect-Managing_Services_with_systemd-Targets.html (look at the run level comparisons)
