@@ -12,18 +12,12 @@ binary="basestation"
 
 while true; do
     if [ "$binary"=="basestation" ]; then
-	if [ -z $(pidof xboxdrv) ]; then
-	    echo "Xbox controller driver not running."
-	    echo "Stopping binary $(binary)."
-	    pkill $binary
+	if [ -z $(pidof $binary) ]; then
+	    pkill xboxdrv
 	    echo "Starting xbox controller driver."
 	    xboxdrv -d -s --quiet -l 2 > /dev/null 2>&1 #do not care about output
 	    cd $dir
 	    echo "Starting binary $(binary)."
-	    ./$(binary) > /dev/null 2>&1
-	elif [ -z $(pidof $binary) ]; then
-	    echo "Binary $(binary) not running. Restarting.."
-	    cd $dir
 	    ./$(binary) > /dev/null 2>&1
 	fi
     elif [ "$binary"=="robot" ]; then
