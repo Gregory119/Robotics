@@ -3,5 +3,7 @@ Scripts to Run Software From Startup
 ======================================================================
 
 - copy the service file to /lib/systemd/system/
-- copy the bash script to /usr/start_scripts/
-- copy the project binary files to /BushBot/
+- copy the bash script to /usr/startscripts/
+- $ systemctl daemon-reload
+- $ systemctl enable start_bushbot.service
+- copy the project binary files to /Bushbot/
