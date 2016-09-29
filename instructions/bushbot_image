@@ -28,6 +28,4 @@
  - $ make projects
 
  -- start scripts --
-STILL TO DO
-start_bushbot.sh
-use a variable in the script to define whether it is the base station or the robot
+- set up the start up script as described in Robotics/projects/bushbot/scripts/readme
