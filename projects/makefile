@@ -1,7 +1,7 @@
 projects:
 	$(MAKE) -C bushbot
 
-.PHONY=clean
+.PHONY:clean
 clean:
 	$(RM) *~ *.d* *.o* *# *.core
 	$(MAKE) clean -C bushbot
