@@ -2,7 +2,7 @@ testprogs:
 	$(MAKE) -C joystickserialreceiver
 	$(MAKE) -C joystickserialtransmitter
 
-.PHONY=clean
+.PHONY:clean
 clean:
 	$(RM) *~ *.d* *.o* *# *.core
 	$(MAKE) clean -C joystickserialreceiver
