@@ -1,3 +1,3 @@
-.PHONY=clean
+.PHONY:clean
 clean:
 	$(RM) *~ *.d* *.o* *# *.core
