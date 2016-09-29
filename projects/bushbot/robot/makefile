@@ -4,7 +4,7 @@ include $(BASE_DIR)/makedef/makefile.set
 
 IS_TESTPROG=1
 #creating test program name with cpp file in this directory
-TEST_NAME = robot_controller
+TEST_NAME = robot
 
 USES_LIBCOMS=1
 USES_LIBCORE=1
