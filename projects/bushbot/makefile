@@ -2,7 +2,8 @@ bushbot:
 	$(MAKE) -C robot
 	$(MAKE) -C basestation
 
-.PHONY=clean
+.PHONY:clean 
+
 clean:
 	$(RM) *~ *.d* *.o* *# *.core
 	$(MAKE) clean -C robot
