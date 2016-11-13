@@ -46,7 +46,7 @@ namespace CORE
     unsigned d_pin;
     unsigned d_min_us = 1000;
     unsigned d_max_us = 2000;
-    unsigned d_delay_us = 40000;
+    unsigned d_delay_us = 5000;
     unsigned d_pos = 0;
     
     UTIL::Map d_pos_8bit_to_us;
