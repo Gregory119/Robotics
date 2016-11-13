@@ -10,12 +10,10 @@ int main(int argc, char* argv[])
 
   d_steering.run();
 
-  //'0' => 0, '1' => 255
-  if (*argv[1] == '0')
-    d_steering.setPos(0); 
-  
-  if (*argv[1] == '1')
-    d_steering.setPos(255);
+  //'0' => 0, '255' => 255
+  unsigned char pos = 0;
+  pos = atoi(argv[1]);
+  d_steering.setPos(pos); 
   
   while(1){}
   
