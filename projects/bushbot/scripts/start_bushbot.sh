@@ -15,7 +15,7 @@ while true; do
 	if [ -z $(pidof $binary) ]; then
 	    pkill xboxdrv
 	    echo "Starting xbox controller driver."
-	    xboxdrv -d -s --quiet -l 2 > /dev/null 2>&1 #do not care about output
+	    xboxdrv -d -s --quiet -l 2 > /dev/null 2>&1 & #do not care about output
 	    cd $dir
 	    echo "Starting $binary."
 	    ./$binary > /dev/null 2>&1
