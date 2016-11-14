@@ -68,7 +68,7 @@ void Servo::setTimingUs(unsigned min_us,
 }
 
 //----------------------------------------------------------------------//
-void setDelayTimeUs(unsigned delay_us)
+void Servo::setDelayTimeUs(unsigned delay_us)
 {
   d_delay_us = delay_us;
 }
