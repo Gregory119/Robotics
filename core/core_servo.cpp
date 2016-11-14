@@ -74,7 +74,6 @@ void Servo::setPos(uint8_t pos)
   d_pos = pos;
 }
 
-//This needs to be placed in a thread in some way
 //----------------------------------------------------------------------//
 void Servo::updatePos()
 {
@@ -83,8 +82,9 @@ void Servo::updatePos()
   d_m.unlock();
   unsigned pos_us = mapFromTo(d_pos_8bit_to_us, pos);
 
+  unsigned time_us = micros();
   digitalWrite(d_pin, HIGH);
-  delayMicroseconds(pos_us);
+  while((micros()-time_us)<pos_us){}
   digitalWrite(d_pin, LOW);
   delayMicroseconds(d_delay_us);
 }
