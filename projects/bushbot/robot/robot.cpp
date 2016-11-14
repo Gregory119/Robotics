@@ -11,19 +11,23 @@ static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_rig
 						  CORE::Servo::max_pos, 
 						  CORE::Servo::min_pos);
 
+static const unsigned s_motor_delay_us = 20000;
+
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
   : d_steer_pin(params.steering_pin),
     d_motor_pin(params.motor_pin),
-    d_steering(CORE::Servo(d_steer_pin)),
-    d_motor(CORE::Servo(d_motor_pin))
-{}
+    d_steering(new CORE::Servo(d_steer_pin)),
+    d_motor(new CORE::Servo(d_motor_pin))
+{
+  d_motor->setDelayTimeUs(s_motor_delay_us);
+}
 
 //----------------------------------------------------------------------//
 Robot::~Robot()
 {
-  d_steering.stop();
-  d_motor.stop();
+  d_steering->stop();
+  d_motor->stop();
 }
 
 //----------------------------------------------------------------------//
@@ -40,8 +44,8 @@ bool Robot::init(const char* serial_port,
 
   if (ret)
     {
-      d_steering.run();
-      d_motor.run();
+      d_steering->run();
+      d_motor->run();
     }
 
   return ret;
@@ -115,7 +119,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
 	std::cout << "turn left/right" << std::endl;
 	int servo_sig = UTIL::mapFromTo(s_stick_to_steer_servo_pos, static_cast<int>(event.value));
 	std::cout << "servo signal = " << servo_sig << std::endl;
-	d_steering.setPos(servo_sig);
+	d_steering->setPos(servo_sig);
       }
       break;
 	
@@ -134,16 +138,16 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
 	std::cout << "move forward" << std::endl;
 	int motor_sig = UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
-	d_motor.setPos(motor_sig);
+	d_motor->setPos(motor_sig);
       }
       break;
 
     case LT:
       {
 	std::cout << "move backward" << std::endl;
-	int motor_sig = UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
+	int motor_sig = -UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
-	d_motor.setPos(motor_sig);
+	d_motor->setPos(motor_sig);
       }
       break;
 
