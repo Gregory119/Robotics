@@ -4,6 +4,7 @@
 #include "kn_basic.h"
 #include "coms_serialjoystick.h"
 #include "core_servo.h"
+#include <memory>
 
 class Robot final : public KERN::KernBasicComponent
 {
@@ -48,8 +49,8 @@ class Robot final : public KERN::KernBasicComponent
 
   unsigned d_steer_pin = 1;
   unsigned d_motor_pin = 7;
-  CORE::Servo d_steering;
-  CORE::Servo d_motor;
+  std::unique_ptr<CORE::Servo> d_steering;
+  std::unique_ptr<CORE::Servo> d_motor;
 };
 
 #endif
