@@ -21,9 +21,10 @@ namespace CORE
     
     static void setup();
 
-    void setTiming(unsigned min_us,
-		   unsigned max_us,
-		   unsigned delay_us); //this must be optionally set before running
+    void setTimingUs(unsigned min_us,
+		     unsigned max_us,
+		     unsigned delay_us); //this must be optionally set before running
+    void setDelayTimeUs(unsigned delay_us);
     
     void run();
     void stop();

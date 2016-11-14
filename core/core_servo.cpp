@@ -57,14 +57,20 @@ Servo::~Servo()
 }
 
 //----------------------------------------------------------------------//
-void Servo::setTiming(unsigned min_us,
-		      unsigned max_us,
-		      unsigned delay_us)
+void Servo::setTimingUs(unsigned min_us,
+			unsigned max_us,
+			unsigned delay_us)
 {
   d_min_us = min_us;
   d_max_us = max_us;
   d_delay_us = delay_us;
   d_pos_8bit_to_us = UTIL::Map(s_max_8bit, s_min_8bit, d_max_us, d_min_us);
+}
+
+//----------------------------------------------------------------------//
+void setDelayTimeUs(unsigned delay_us)
+{
+  d_delay_us = delay_us;
 }
 
 //----------------------------------------------------------------------//
