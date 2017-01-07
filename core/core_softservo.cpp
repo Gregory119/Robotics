@@ -1,36 +1,31 @@
-#include "core_servo.h"
+#include "core_softservo.h"
 #include "utl_mapping.h"
 #include <wiringPi.h>
 #include <assert.h>
 
-static const unsigned s_max_8bit = 255;
-static const unsigned s_min_8bit = 0;
-
 using namespace CORE;
 
 //----------------------------------------------------------------------//
-Servo::Servo(unsigned control_pin)
-  : d_pin(control_pin),
-    d_pos_8bit_to_us(UTIL::Map(s_max_8bit, s_min_8bit, d_max_us, d_min_us))
+SoftServo::SoftServo(unsigned control_pin)
+  : d_pin(control_pin)
 {
   initPins();
 }
 
 //----------------------------------------------------------------------//
-Servo::Servo(const Servo& copy)
-  : d_pos_8bit_to_us(UTIL::Map(s_max_8bit, s_min_8bit, d_max_us, d_min_us))
+SoftServo::SoftServo(const SoftServo& copy)
+  : Servo(copy)
 {
   operator=(copy);
   initPins();
 }
 
 //----------------------------------------------------------------------//
-Servo& Servo::operator=(const Servo& copy)
+SoftServo& SoftServo::operator=(const SoftServo& copy)
 {
+  Servo::operator=(copy);
   //the same settings
   d_pin = copy.d_pin;
-  d_min_us = copy.d_min_us;
-  d_max_us = copy.d_max_us;
   d_delay_us = copy.d_delay_us;
   //not the same position
 
@@ -38,55 +33,44 @@ Servo& Servo::operator=(const Servo& copy)
 }
 
 //----------------------------------------------------------------------//
-void Servo::setup()
+void SoftServo::setup()
 {
   wiringPiSetup();
 }
 
 //----------------------------------------------------------------------//
-void Servo::initPins()
+void SoftServo::initPins()
 {
   pinMode(d_pin, OUTPUT);
   digitalWrite(d_pin, LOW);
 }
 
 //----------------------------------------------------------------------//
-Servo::~Servo()
+SoftServo::~SoftServo()
 {
   stop();
 }
 
 //----------------------------------------------------------------------//
-void Servo::setTimingUs(unsigned min_us,
-			unsigned max_us,
-			unsigned delay_us)
-{
-  d_min_us = min_us;
-  d_max_us = max_us;
-  d_delay_us = delay_us;
-  d_pos_8bit_to_us = UTIL::Map(s_max_8bit, s_min_8bit, d_max_us, d_min_us);
-}
-
-//----------------------------------------------------------------------//
-void Servo::setDelayTimeUs(unsigned delay_us)
+void SoftServo::setDelayTimeUs(unsigned delay_us)
 {
   d_delay_us = delay_us;
 }
 
 //----------------------------------------------------------------------//
-void Servo::setPos(uint8_t pos)
+void SoftServo::moveToPos(uint8_t pos)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  d_pos = pos;
+  setPosValue(pos);
 }
 
 //----------------------------------------------------------------------//
-void Servo::updatePos()
+void SoftServo::updatePos()
 {
   d_m.lock();
-  unsigned pos = d_pos;
+  unsigned pos = getPos();
   d_m.unlock();
-  unsigned pos_us = mapFromTo(d_pos_8bit_to_us, pos);
+  unsigned pos_us = mapFromTo(getPosMap(), pos);
 
   unsigned time_us = micros();
   digitalWrite(d_pin, HIGH);
@@ -96,39 +80,41 @@ void Servo::updatePos()
 }
 
 //----------------------------------------------------------------------//
-bool Servo::incrementPos(uint8_t pos)
+bool SoftServo::incrementMove(uint8_t pos)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  if ((pos + d_pos) > s_max_8bit)
+  if (!isPosInRange(pos + getPos()))
     {
-      d_pos = s_max_8bit;
+      //print a warning here
+      setPosValue(s_max_8bit);
       return false;
     }
   else
     {
-      d_pos += pos;
+      setPosValue(getPos()+pos);
     }
   return true;
 }
 
 //----------------------------------------------------------------------//
-bool Servo::decrementPos(uint8_t pos)
+bool SoftServo::decrementMove(uint8_t pos)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  if (pos > d_pos)
+  if (!isPosInRange(getPos()-pos))
     {
-      d_pos = s_min_8bit;
+      //print a warning here
+      setPosValue(s_min_8bit);
       return false;
     }
   else
     {
-      d_pos -= pos;
+      setPosValue(getPos()-pos);
     }
   return true;  
 }
 
 //----------------------------------------------------------------------//
-void Servo::run()
+void SoftServo::run()
 {
   assert(!d_running);
   
@@ -140,7 +126,7 @@ void Servo::run()
 }
 
 //----------------------------------------------------------------------//
-void Servo::stop()
+void SoftServo::stop()
 {
   if (!d_running)
     return;
@@ -149,8 +135,8 @@ void Servo::stop()
 }
 
 //----------------------------------------------------------------------//
-void Servo::threadFunc(std::future<bool> shutdown,
-		       Servo *const servo)
+void SoftServo::threadFunc(std::future<bool> shutdown,
+		       SoftServo *const servo)
 {
   while (shutdown.wait_for(std::chrono::nanoseconds(0)) != 
 	 std::future_status::ready)
@@ -159,4 +145,4 @@ void Servo::threadFunc(std::future<bool> shutdown,
     }
 }
 //----------------------------------------------------------------------//
-//Servo::
+//SoftServo::
