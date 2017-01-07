@@ -1,12 +1,9 @@
 #ifndef CORE_HARDERVO_H
 #define CORE_HARDSERVO_H
 
-//#include "utl_mapping.h"
-
 #include "core_servo.h"
 
-//#include <cstdint>
-//#include <future>
+#include <cstdint>
 
 namespace CORE
 {

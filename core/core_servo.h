@@ -1,10 +1,12 @@
 #ifndef CORE_SERVO_H
 #define CORE_SERVO_H
 
-//#include "utl_mapping.h"
+#include <cstdint>
 
-//#include <cstdint>
-//#include <future>
+namespace UTIL
+{
+  class Map;
+};
 
 namespace CORE
 {

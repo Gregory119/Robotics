@@ -1,5 +1,7 @@
 #include "core_servo.h"
 
+#include "utl_mapping.h"
+
 static const unsigned s_max_8bit = 255;
 static const unsigned s_min_8bit = 0;
 
