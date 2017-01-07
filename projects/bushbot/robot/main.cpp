@@ -1,13 +1,12 @@
-#include "pins.h"
+#include "servonums.h"
 #include "robot.h"
 
 #include <iostream>
 
 int main()
 {
-  Robot::setup();
-  Robot::Params params(PIN::steering,
-		       PIN::motor);
+  Robot::Params params(SERVONUM::steering,
+		       SERVONUM::motor);
   Robot r(params);
 
   std::string serial_port = "/dev/ttyAMA0";

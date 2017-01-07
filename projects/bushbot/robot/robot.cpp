@@ -1,54 +1,34 @@
 #include "robot.h"
+#include "core_hardservo.h"
 #include <iostream>
 
 static const UTIL::Map s_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
 					    JS::EventMinimal::lever_max_out, 
-					    CORE::Servo::max_pos, 
-					    CORE::Servo::min_pos);
+					    CORE::Servo::getMaxPos(), 
+					    CORE::Servo::getMinPos());
 
 static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_right, 
 						  JS::EventMinimal::axis_max_left, 
-						  CORE::Servo::max_pos, 
-						  CORE::Servo::min_pos);
-
-static const unsigned s_motor_delay_us = 20000;
+						  CORE::Servo::getMaxPos(), 
+						  CORE::Servo::getMinPos());
 
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
-  : d_steer_pin(params.steering_pin),
-    d_motor_pin(params.motor_pin),
-    d_steering(new CORE::Servo(d_steer_pin)),
-    d_motor(new CORE::Servo(d_motor_pin))
-{
-  d_motor->setDelayTimeUs(s_motor_delay_us);
-}
+  : d_steer_num(params.steering_num),
+    d_motor_num(params.motor_num),
+    d_steering(new CORE::HardServo(d_steer_num)),
+    d_motor(new CORE::HardServo(d_motor_num))
+{}
 
 //----------------------------------------------------------------------//
 Robot::~Robot()
-{
-  d_steering->stop();
-  d_motor->stop();
-}
-
-//----------------------------------------------------------------------//
-void Robot::setup()
-{
-  CORE::Servo::setup();
-}
+{}
 
 //----------------------------------------------------------------------//
 bool Robot::init(const char* serial_port, 
 		 int baud)
 {
-  bool ret = d_js_receiver.init(serial_port, baud);
-
-  if (ret)
-    {
-      d_steering->run();
-      d_motor->run();
-    }
-
-  return ret;
+  return d_js_receiver.init(serial_port, baud);
 }
 
 //----------------------------------------------------------------------//
@@ -56,6 +36,7 @@ bool Robot::stayRunning()
 {
   if (d_js_receiver.readSerialEvent(d_js_event))
     {
+      std::cout << "received event" << std::endl;
       processEvent(d_js_event);
     }
   else
