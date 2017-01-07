@@ -5,7 +5,7 @@
 
 namespace UTIL
 {
-  class Map;
+  struct Map;
 };
 
 namespace CORE
@@ -23,15 +23,15 @@ namespace CORE
     virtual bool incrementMove(uint8_t pos) = 0; //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
     virtual bool decrementMove(uint8_t pos) = 0;
 
-    void setPosValue(uint8_t pos) { return d_pos = pos; } //does not move the servo. It only sets the value
+    void setPosValue(uint8_t pos) { d_pos = pos; } //does not move the servo. It only sets the value
     void setTiming(unsigned min_pulse,
 		   unsigned max_pulse); //use your own units to conform to. The default values are in microseconds.
     
     unsigned getPos() { return d_pos; }
     static uint8_t getMaxPos();
     static uint8_t getMinPos();
-    unsigned getPulseMinTimeUs() { return d_min_us; }
-    unsigned getPulseMaxTimeUs() { return d_max_us; }
+    unsigned getPulseMinTimeUs() { return d_min_pulse; }
+    unsigned getPulseMaxTimeUs() { return d_max_pulse; }
     const UTIL::Map& getPosMap() { return d_pos_8bit_to_us; }
     bool isPosInRange(uint8_t pos);
 

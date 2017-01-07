@@ -87,7 +87,7 @@ bool SoftServo::incrementMove(uint8_t pos)
   if (!isPosInRange(pos + getPos()))
     {
       //print a warning here
-      setPosValue(s_max_8bit);
+      setPosValue(getMaxPos());
       return false;
     }
   else
@@ -104,7 +104,7 @@ bool SoftServo::decrementMove(uint8_t pos)
   if (!isPosInRange(getPos()-pos))
     {
       //print a warning here
-      setPosValue(s_min_8bit);
+      setPosValue(getMinPos());
       return false;
     }
   else
