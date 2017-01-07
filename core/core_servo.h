@@ -1,12 +1,9 @@
 #ifndef CORE_SERVO_H
 #define CORE_SERVO_H
 
-#include <cstdint>
+#include "utl_mapping.h"
 
-namespace UTIL
-{
-  struct Map;
-};
+#include <cstdint>
 
 namespace CORE
 {
@@ -32,7 +29,7 @@ namespace CORE
     static uint8_t getMinPos();
     unsigned getPulseMinTimeUs() { return d_min_pulse; }
     unsigned getPulseMaxTimeUs() { return d_max_pulse; }
-    const UTIL::Map& getPosMap() { return d_pos_8bit_to_us; }
+    const UTIL::Map& getPosMap() { return d_pos_8bit_to_pulse; }
     bool isPosInRange(uint8_t pos);
 
   private:
