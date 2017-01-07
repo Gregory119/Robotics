@@ -1,12 +1,12 @@
-#ifndef PINS_H
-#define PINS_H
+#ifndef SERVONUMS_H
+#define SERVONUMS_H
 
-namespace PIN
+namespace SERVONUM
 {
-  // the wiring pi pin numbering is used according to
-  // http://wiringpi.com/pins/
-  unsigned steering = 1;
-  unsigned motor = 7;
+  // numbers are according to the servoblaster naming convention
+  // https://github.com/richardghirst/PiBits/tree/master/ServoBlaster
+  unsigned steering = 2;
+  unsigned motor = 0;
   //unsigned roll = ??;
   //unsigned pitch = ??;
   //unsigned yaw = ??;
