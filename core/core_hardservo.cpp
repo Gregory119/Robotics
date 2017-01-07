@@ -6,6 +6,8 @@
 #include <fstream>
 
 #include <assert.h>
+
+using namespace CORE;
  
 static const std::string s_driver_dir = "/dev/servoblaster";
 static const unsigned s_max_servo_pin = 7;
@@ -46,7 +48,7 @@ bool HardServo::incrementMove(uint8_t pos)
   if (!isPosInRange(pos+getPos()))
     {
       //print a warning here
-      moveToPos(s_max_8bit);
+      moveToPos(getMaxPos());
       return false;
     }
   else
@@ -62,7 +64,7 @@ bool HardServo::decrementMove(uint8_t pos)
   if (!isPosInRange(getPos()-pos))
     {
       //print a warning here
-      moveToPos(s_min_8bit);
+      moveToPos(getMinPos());
       return false;
     }
   else

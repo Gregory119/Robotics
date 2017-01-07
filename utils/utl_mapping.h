@@ -7,6 +7,7 @@ namespace UTIL
 {
   struct Map
   {
+    Map();
   Map(int o_max, int o_min, int n_max, int n_min)
   : d_orig_max(o_max),
       d_orig_min(o_min),
@@ -16,10 +17,10 @@ namespace UTIL
     Map(const Map &copy) = default;
     Map& operator=(const Map &copy) = default;
 
-    int d_orig_max;
-    int d_orig_min;
-    int d_new_max;
-    int d_new_min;
+    int d_orig_max = 0;
+    int d_orig_min = 0;
+    int d_new_max = 0;
+    int d_new_min = 0;
   };
   
   //----------------------------------------------------------------------//
