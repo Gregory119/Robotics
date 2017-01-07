@@ -1,6 +1,6 @@
 #include "core_servo.h"
 
-#include "utl_mapping.h"
+using namespace CORE;
 
 static const unsigned s_max_8bit = 255;
 static const unsigned s_min_8bit = 0;
@@ -19,18 +19,18 @@ Servo::Servo(const Servo& copy)
 //----------------------------------------------------------------------//
 Servo& Servo::operator=(const Servo& copy)
 {
-  d_min_us = copy.d_min_us;
-  d_max_us = copy.d_max_us;
+  d_min_pulse = copy.d_min_pulse;
+  d_max_pulse = copy.d_max_pulse;
 
   return *this;
 }
 
 //----------------------------------------------------------------------//
-void Servo::setTimingUs(unsigned min_us,
-			unsigned max_us)
+void Servo::setTimingUs(unsigned min_pulse,
+			unsigned max_pulse)
 {
-  d_min_us = min_us;
-  d_max_us = max_us;
+  d_min_pulse = min_pulse;
+  d_max_pulse = max_pulse;
   d_pos_8bit_to_pulse = UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse);
 }
 
