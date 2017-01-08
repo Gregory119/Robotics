@@ -29,10 +29,10 @@ HardServo::HardServo(unsigned servo_num)
 void HardServo::moveToPos(uint8_t pos)
 {
   setPosValue(pos);
-  unsigned pos_conv = mapFromTo(getPosMap(), pos);
+  unsigned pos_conv = UTIL::mapFromTo(getPosMap(), pos);
   //write to driver directory
   servo_file.open(s_driver_dir);
-  if (servo_file.fail)
+  if (servo_file.fail())
     {
       //log
       std::cout << "Failed to open servoblaster driver file. Ensure that servoblaster is running." << std::endl;
