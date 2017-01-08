@@ -14,6 +14,12 @@ SoftServo::SoftServo(unsigned control_pin)
 }
 
 //----------------------------------------------------------------------//
+SoftServo::~SoftServo()
+{
+  stop();
+}
+
+//----------------------------------------------------------------------//
 SoftServo::SoftServo(const SoftServo& copy)
   : Servo(copy)
 {
@@ -47,12 +53,6 @@ void SoftServo::initPins()
 }
 
 //----------------------------------------------------------------------//
-SoftServo::~SoftServo()
-{
-  stop();
-}
-
-//----------------------------------------------------------------------//
 void SoftServo::setDelayTimeUs(unsigned delay_us)
 {
   d_delay_us = delay_us;
@@ -71,7 +71,7 @@ void SoftServo::updatePos()
   d_m.lock();
   unsigned pos = getPos();
   d_m.unlock();
-  unsigned pos_us = mapFromTo(getPosMap(), pos);
+  unsigned pos_us = UTIL::mapFromTo(getPosMap(), pos);
 
   unsigned time_us = micros();
   digitalWrite(d_pin, HIGH);
