@@ -12,6 +12,7 @@ Servo::Servo()
 
 //----------------------------------------------------------------------//
 Servo::Servo(const Servo& copy)
+  : Servo()
 {
   operator=(copy);
 }

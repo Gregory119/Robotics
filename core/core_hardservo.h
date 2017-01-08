@@ -13,7 +13,7 @@ namespace CORE
   public:
     //see https://github.com/richardghirst/PiBits/tree/master/ServoBlaster for available servo numbers and their respective pin connections
     explicit HardServo(unsigned servo_num);
-    ~HardServo();
+    ~HardServo() {};
     HardServo(const HardServo&) = delete;
     HardServo& operator=(const HardServo&) = delete; //uses the same settings
     
