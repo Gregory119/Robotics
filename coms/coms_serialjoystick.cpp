@@ -16,7 +16,7 @@ const unsigned JoystickTransmitter::s_u8_max_digits = 3;
 
 const unsigned JoystickTransmitter::s_max_time_ms = 3000;
 const UTIL::Map JoystickTransmitter::s_time_to_uchar_map(s_max_time_ms,0,255,0);
-const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,127,-127);
+const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,255,0);
 
 const UTIL::Map JoystickReceiver::s_uchar_time_to_uint16_map(255,0,JoystickTransmitter::s_max_time_ms,0);
 
@@ -135,16 +135,31 @@ bool JoystickReceiver::init(const char* serial_port,
 bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
 {
   //this algorithm will go through every character received to check for an event
-  if (serialDataAvail(d_desc) < s_js_serial_chars)
+  /*
+  int num_chars = serialDataAvail(d_desc);
+  if (num_chars < 0)
     {
+      std::cout<<"Error with checking the number of available serial characters"<<std::endl;
+    }
+  else if (num_chars < s_js_serial_chars)
+    {
+      std::cout<<num_chars<< " available serial characters, but " <<s_js_serial_chars<<" are needed"<<std::endl;
+      return false;
+    }*/
+ 
+  int next_char = serialGetchar(d_desc);
+
+  if (next_char < 0)
+    {
+      //std::cout<<"no serial character available"<<std::endl;
+      serialFlush(d_desc);
       return false;
     }
- 
-    int next_char = serialGetchar(d_desc);
 
   if (next_char != 'J')
     {
       std::cout<<"no serial joystick start character"<<std::endl;
+      serialFlush(d_desc);
       return false;
     }
 
@@ -157,6 +172,7 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
   if (serialGetchar(d_desc) != '#')
     {
       std::cout<<"no serial joystick end character"<<std::endl;
+      serialFlush(d_desc);
       return false;
     }
   js_event = d_js_event;

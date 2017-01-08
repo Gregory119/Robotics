@@ -7,10 +7,18 @@ static const UTIL::Map s_lever_to_servo_pos(JS::EventMinimal::lever_max_in,
 					    CORE::Servo::getMaxPos(), 
 					    CORE::Servo::getMinPos());
 
+static const unsigned s_steer_servo_range_deg = 180;
+static const unsigned s_steer_start_pos_deg = 90;
+static const unsigned s_steer_end_pos_deg = 120;
+static const unsigned s_steer_start_pos_servo = CORE::Servo::getMinPos()+
+  CORE::Servo::getRangePos()*s_start_pos_deg/s_servo_range_deg;
+static const unsigned s_steer_end_pos_servo = CORE::Servo::getMinPos()+
+  CORE::Servo::getRangePos()*s_end_pos_deg/s_servo_range_deg;
+
 static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_right, 
 						  JS::EventMinimal::axis_max_left, 
-						  CORE::Servo::getMaxPos(), 
-						  CORE::Servo::getMinPos());
+						  s_steer_end_pos_servo, 
+						  s_steer_start_pos_servo);
 
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
@@ -18,7 +26,9 @@ Robot::Robot(Params& params)
     d_motor_num(params.motor_num),
     d_steering(new CORE::HardServo(d_steer_num)),
     d_motor(new CORE::HardServo(d_motor_num))
-{}
+{
+  d_steering
+}
 
 //----------------------------------------------------------------------//
 Robot::~Robot()
@@ -98,7 +108,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
     case X1:
       {
 	std::cout << "turn left/right" << std::endl;
-	int servo_sig = UTIL::mapFromTo(s_stick_to_steer_servo_pos, static_cast<int>(event.value));
+	unsigned servo_sig = UTIL::mapFromTo(s_stick_to_steer_servo_pos, static_cast<unsigned>(event.value));
 	std::cout << "servo signal = " << servo_sig << std::endl;
 	d_steering->moveToPos(servo_sig);
       }
@@ -117,7 +127,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
     case RT:
       {
 	std::cout << "move forward" << std::endl;
-	int motor_sig = UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
+	unsigned motor_sig = UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<unsigned>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
@@ -126,7 +136,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
     case LT:
       {
 	std::cout << "move backward" << std::endl;
-	int motor_sig = -UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
+        unsigned motor_sig = -UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<unsigned>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }

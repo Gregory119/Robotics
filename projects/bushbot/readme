@@ -68,3 +68,17 @@ Project Compilation
 Start Scipts
 =================================================
 - set up the start up script as described in ./scripts/readme
+
+=================================================
+Serial Port Configuration
+=================================================
+Disable the OS from using the serial port as a login interface:
+- $ sudo raspi-config
+- select "Advanced Options"
+- select "Serial"
+- select "No"
+- select "Ok"
+- select "finish" and then reboot
+This process has been known to disable the serial port. To enable it for external device use:
+- open the file /boot/config.txt
+- change "enable_uart=0" to "enable_uart=1"

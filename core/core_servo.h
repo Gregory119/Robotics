@@ -25,6 +25,7 @@ namespace CORE
 		   unsigned max_pulse); //use your own units to conform to. The default values are in microseconds.
     
     unsigned getPos() { return d_pos; }
+    static uint8_t getRangePos();
     static uint8_t getMaxPos();
     static uint8_t getMinPos();
     unsigned getPulseMinTimeUs() { return d_min_pulse; }
