@@ -2,8 +2,8 @@
 Scripts to Run Software From Startup
 ======================================================================
 
-- copy the service file to /lib/systemd/system/
-- copy the bash script to /usr/startscripts/
+- copy the service file, start_bushbot.service, to /lib/systemd/system/
+- copy the bash script, start_bushbot.sh, to /usr/startscripts/
 - edit the "binary" variable in the script to either run the "robot" or "basestation" software. Note that the basestation software will continue to fail and restart if the joystick is not plugged in.
 - $ systemctl daemon-reload
 - $ systemctl enable start_bushbot.service
