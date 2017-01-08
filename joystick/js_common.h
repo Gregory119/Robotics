@@ -52,19 +52,19 @@ namespace JS
   struct JSEventMinimal
   {
     uint16_t time_ms = 0;
-    int8_t value = 0;
+    uint8_t value = 0;
     uint8_t type = 0;
     uint8_t number = 0;
   };
 
   namespace EventMinimal
   {//declarations
-    extern const int8_t lever_max_out;
-    extern const int8_t lever_max_in;
-    extern const int8_t axis_max_left;
-    extern const int8_t axis_max_up;
-    extern const int8_t axis_max_right;
-    extern const int8_t axis_max_down;
+    extern const uint8_t lever_max_out;
+    extern const uint8_t lever_max_in;
+    extern const uint8_t axis_max_left;
+    extern const uint8_t axis_max_up;
+    extern const uint8_t axis_max_right;
+    extern const uint8_t axis_max_down;
   };
 };
 #endif

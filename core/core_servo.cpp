@@ -50,6 +50,12 @@ bool Servo::isPosInRange(uint8_t pos)
 }
 
 //----------------------------------------------------------------------//
+static uint8_t Servo::getRangePos()
+{
+  return s_max_8bit - s_min_8bit;
+}
+
+//----------------------------------------------------------------------//
 uint8_t Servo::getMaxPos()
 {
   return s_max_8bit;
