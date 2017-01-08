@@ -5,7 +5,10 @@
 #include "coms_serialjoystick.h"
 #include <memory>
 
-class HardServo;
+namespace CORE
+{
+  class Servo;
+};
 
 class Robot final : public KERN::KernBasicComponent
 {
@@ -47,8 +50,8 @@ class Robot final : public KERN::KernBasicComponent
 
   unsigned d_steer_num = 2;
   unsigned d_motor_num = 0;
-  std::unique_ptr<Servo> d_steering;
-  std::unique_ptr<Servo> d_motor;
+  std::unique_ptr<CORE::Servo> d_steering;
+  std::unique_ptr<CORE::Servo> d_motor;
 };
 
 #endif

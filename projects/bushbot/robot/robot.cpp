@@ -100,7 +100,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
 	std::cout << "turn left/right" << std::endl;
 	int servo_sig = UTIL::mapFromTo(s_stick_to_steer_servo_pos, static_cast<int>(event.value));
 	std::cout << "servo signal = " << servo_sig << std::endl;
-	d_steering->setPos(servo_sig);
+	d_steering->moveToPos(servo_sig);
       }
       break;
 	
@@ -119,7 +119,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
 	std::cout << "move forward" << std::endl;
 	int motor_sig = UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
-	d_motor->setPos(motor_sig);
+	d_motor->moveToPos(motor_sig);
       }
       break;
 
@@ -128,7 +128,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
 	std::cout << "move backward" << std::endl;
 	int motor_sig = -UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<int>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
-	d_motor->setPos(motor_sig);
+	d_motor->moveToPos(motor_sig);
       }
       break;
 
