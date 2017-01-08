@@ -1,5 +1,7 @@
 #include "core_hardservo.h"
 
+#include <cstdlib>
+
 int main(int argc, char* argv[])
 {
   using namespace CORE;
