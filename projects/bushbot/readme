@@ -47,6 +47,8 @@ SD card
  - $ git clone https://github.com/richardghirst/PiBits.git
  - $ cd PiBits/ServoBlaster/user/
  - $ make
+ - the following command will install the driver so that it can be called from any directory. It also sets up a start script to start it from power up of the pi.
+ - $ make install
  - For more info: $ ./servod
 
 =================================================
