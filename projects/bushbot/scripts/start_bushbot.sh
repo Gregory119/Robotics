@@ -13,10 +13,10 @@ binary="basestation"
 while true; do
     if [ "$binary" == "basestation" ]; then
 	if [ -z $(pidof $binary) ]; then
-	    if [ -z $(pidof xboxdrv) ]; then
-		echo "Starting xbox controller driver."
-		xboxdrv -d -s --quiet -l 2 > /dev/null 2>&1 & #do not care about output
-	    fi
+	    #if [ -z $(pidof xboxdrv) ]; then
+		#echo "Starting xbox controller driver."
+		#xboxdrv -d -s --quiet -l 2 > /dev/null 2>&1 & #do not care about output
+	    #fi
 	    cd $project_dir
 	    echo "Starting $binary."
 	    ./$binary > /dev/null 2>&1
