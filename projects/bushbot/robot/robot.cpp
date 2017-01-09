@@ -11,9 +11,9 @@ static const unsigned s_steer_servo_range_deg = 180;
 static const unsigned s_steer_start_pos_deg = 90;
 static const unsigned s_steer_end_pos_deg = 120;
 static const unsigned s_steer_start_pos_servo = CORE::Servo::getMinPos()+
-  CORE::Servo::getRangePos()*s_start_pos_deg/s_servo_range_deg;
+  CORE::Servo::getRangePos()*s_steer_start_pos_deg/s_steer_servo_range_deg;
 static const unsigned s_steer_end_pos_servo = CORE::Servo::getMinPos()+
-  CORE::Servo::getRangePos()*s_end_pos_deg/s_servo_range_deg;
+  CORE::Servo::getRangePos()*s_steer_end_pos_deg/s_steer_servo_range_deg;
 
 static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_right, 
 						  JS::EventMinimal::axis_max_left, 
@@ -26,9 +26,7 @@ Robot::Robot(Params& params)
     d_motor_num(params.motor_num),
     d_steering(new CORE::HardServo(d_steer_num)),
     d_motor(new CORE::HardServo(d_motor_num))
-{
-  d_steering
-}
+{}
 
 //----------------------------------------------------------------------//
 Robot::~Robot()
