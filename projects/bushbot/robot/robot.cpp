@@ -26,7 +26,9 @@ Robot::Robot(Params& params)
     d_motor_num(params.motor_num),
     d_steering(new CORE::HardServo(d_steer_num)),
     d_motor(new CORE::HardServo(d_motor_num))
-{}
+{
+  d_steering->moveToPos(s_steer_start_pos_servo + CORE::Servo::getRangePos()/2); //start servo in the middle of the set range of motion
+}
 
 //----------------------------------------------------------------------//
 Robot::~Robot()
