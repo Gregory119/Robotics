@@ -6,6 +6,8 @@
 
 namespace JS
 {
+  //xboxdrv
+  /*
   enum ButtonID
   {
     A,
@@ -21,7 +23,7 @@ namespace JS
     TR,
     BUTTON_UNKNOWN
   };
-
+  //xboxdrv
   enum AxisID
   {
     X1,
@@ -30,6 +32,34 @@ namespace JS
     Y2,
     RT,
     LT,
+    AXIS_UNKOWN
+    };*/
+
+  //xpad
+  enum ButtonID
+  {
+    A,
+    B,
+    X,
+    Y,
+    LB,
+    RB,
+    BACK,
+    START,
+    GUIDE,
+    TL,
+    TR,
+    BUTTON_UNKNOWN
+  };
+  //xpad
+  enum AxisID
+  {
+    X1,
+    Y1,
+    LT,
+    X2,
+    Y2,
+    RT,
     AXIS_UNKOWN
   };
 
