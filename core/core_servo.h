@@ -17,14 +17,15 @@ namespace CORE
     Servo(const Servo&); //uses the same settings
     Servo& operator=(const Servo&); //uses the same settings
     
+    void run();
+    void stop();
+
     void moveToPos(uint8_t pos); //0 < pos < 255
     bool incrementMove(uint8_t pos); //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
     bool decrementMove(uint8_t pos);
 
     void setDelayTimeUs(unsigned delay_us);    
     unsigned getDelayTimeUs() { return d_delay_us; }
-    void run();
-    void stop();
 
     void setPosValue(uint8_t pos); //does not move the servo. It only sets the value
     void setTiming(unsigned min_pulse,
