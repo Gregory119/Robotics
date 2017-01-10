@@ -63,7 +63,7 @@ void SoftServo::updatePos()
   digitalWrite(d_pin, HIGH);
   while((micros()-time_us)<pos_us){}
   digitalWrite(d_pin, LOW);
-  delayMicroseconds(d_delay_us);
+  delayMicroseconds(getDelayTimeUs);
 }
 
 //----------------------------------------------------------------------//

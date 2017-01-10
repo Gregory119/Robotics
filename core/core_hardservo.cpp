@@ -2,6 +2,8 @@
 
 #include "utl_mapping.h"
 
+#include <wiringPi.h>
+
 #include <iostream>
 #include <fstream>
 
@@ -42,6 +44,7 @@ void HardServo::updatePos()
     }
   servo_file << d_servo_num << "=" << pos_conv << std::endl;
   servo_file.close();
+  delayMicroseconds(getDelayTimeUs);
 }
 
 //----------------------------------------------------------------------//
