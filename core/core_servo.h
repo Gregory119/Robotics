@@ -22,6 +22,7 @@ namespace CORE
     bool decrementMove(uint8_t pos);
 
     void setDelayTimeUs(unsigned delay_us);    
+    unsigned getDelayTimeUs() { return d_delay_us; }
     void run();
     void stop();
 
