@@ -52,9 +52,7 @@ void SoftServo::initPins()
 //----------------------------------------------------------------------//
 void SoftServo::updatePos()
 {
-  getMutex().lock();
   unsigned pos = getPos();
-  getMutex().unlock();
   unsigned pos_us = UTIL::mapFromTo(getPosMap(), pos);
 
   unsigned time_us = micros();

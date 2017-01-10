@@ -26,11 +26,11 @@ namespace CORE
     void run();
     void stop();
 
-    void setPosValue(uint8_t pos) { d_pos = pos; } //does not move the servo. It only sets the value
+    void setPosValue(uint8_t pos); //does not move the servo. It only sets the value
     void setTiming(unsigned min_pulse,
 		   unsigned max_pulse); //use your own units to conform to. The default values are in microseconds.
     
-    unsigned getPos() { return d_pos; }
+    unsigned getPos();
     static uint8_t getRangePos();
     static uint8_t getMaxPos();
     static uint8_t getMinPos();
@@ -40,7 +40,6 @@ namespace CORE
     bool isPosInRange(uint8_t pos);
 
   protected:
-    std::mutex& getMutex() { return d_m; }
     virtual void updatePos() = 0;
 
   private:
