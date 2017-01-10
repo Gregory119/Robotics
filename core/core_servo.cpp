@@ -116,10 +116,26 @@ void Servo::stop()
 }
 
 //----------------------------------------------------------------------//
+unsigned Servo::getPos()
+{ 
+  unsigned pos;
+  d_m.lock();
+  pos = d_pos; 
+  d_m.unlock();
+  return pos;
+}
+
+//----------------------------------------------------------------------//
 void Servo::moveToPos(uint8_t pos)
 {
-  std::lock_guard<std::mutex> lock(d_m);
   setPosValue(pos);
+}
+
+//----------------------------------------------------------------------//
+void Servo::setPosValue(uint8_t pos)
+{ 
+  std::lock_guard<std::mutex> lock(d_m);
+  d_pos = pos; 
 }
 
 //----------------------------------------------------------------------//

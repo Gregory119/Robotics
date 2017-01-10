@@ -30,9 +30,7 @@ HardServo::HardServo(unsigned servo_num)
 //----------------------------------------------------------------------//
 void HardServo::updatePos()
 {
-  getMutex().lock();
   unsigned pos = getPos();
-  getMutex().unlock();
   unsigned pos_conv = UTIL::mapFromTo(getPosMap(), pos);
 
   servo_file.open(s_driver_dir);
