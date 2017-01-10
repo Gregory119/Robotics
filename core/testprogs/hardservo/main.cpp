@@ -6,6 +6,7 @@ int main(int argc, char* argv[])
 {
   using namespace CORE;
 
+  Servo::setup();
   unsigned servo_num = 2;
   HardServo d_steering(servo_num);
 

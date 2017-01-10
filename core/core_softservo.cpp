@@ -3,6 +3,8 @@
 
 #include <wiringPi.h>
 
+#include <usleep.h>
+
 using namespace CORE;
 
 //----------------------------------------------------------------------//
@@ -10,12 +12,6 @@ SoftServo::SoftServo(unsigned control_pin)
   : d_pin(control_pin)
 {
   initPins();
-}
-
-//----------------------------------------------------------------------//
-SoftServo::~SoftServo()
-{
-  stop();
 }
 
 //----------------------------------------------------------------------//
@@ -59,7 +55,7 @@ void SoftServo::updatePos()
   digitalWrite(d_pin, HIGH);
   while((micros()-time_us)<pos_us){}
   digitalWrite(d_pin, LOW);
-  delayMicroseconds(getDelayTimeUs());
+  usleep(getDelayTimeUs());
 }
 
 //----------------------------------------------------------------------//
