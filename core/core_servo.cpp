@@ -13,6 +13,12 @@ Servo::Servo()
 {}
 
 //----------------------------------------------------------------------//
+Servo::~Servo()
+{
+ stop()
+}
+
+//----------------------------------------------------------------------//
 Servo::Servo(const Servo& copy)
   : Servo()
 {
@@ -119,15 +125,16 @@ void Servo::moveToPos(uint8_t pos)
 //----------------------------------------------------------------------//
 bool Servo::incrementMove(uint8_t pos)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   if (!isPosInRange(pos + getPos()))
     {
       //print a warning here
-      moveToPos(getMaxPos());
+      setPosValue(getMaxPos());
       return false;
     }
   else
     {
-      moveToPos(getPos()+pos);
+      setPosValue(getPos()+pos);
     }
   return true;
 }
@@ -135,15 +142,16 @@ bool Servo::incrementMove(uint8_t pos)
 //----------------------------------------------------------------------//
 bool Servo::decrementMove(uint8_t pos)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   if (!isPosInRange(getPos()-pos))
     {
       //print a warning here
-      moveToPos(getMinPos());
+      setPosValue(getMinPos());
       return false;
     }
   else
     {
-      moveToPos(getPos()-pos);
+      setPosValue(getPos()-pos);
     }
   return true;  
 }

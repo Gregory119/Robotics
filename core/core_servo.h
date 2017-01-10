@@ -13,7 +13,7 @@ namespace CORE
   {
   public:
     Servo();
-    virtual ~Servo() {};
+    virtual ~Servo();
     Servo(const Servo&); //uses the same settings
     Servo& operator=(const Servo&); //uses the same settings
     
