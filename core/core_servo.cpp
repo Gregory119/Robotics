@@ -24,6 +24,8 @@ Servo& Servo::operator=(const Servo& copy)
 {
   d_min_pulse = copy.d_min_pulse;
   d_max_pulse = copy.d_max_pulse;
+  d_delay_us = copy.d_delay_us;
+  //not the same position
 
   return *this;
 }

@@ -32,8 +32,6 @@ SoftServo& SoftServo::operator=(const SoftServo& copy)
   Servo::operator=(copy);
   //the same settings
   d_pin = copy.d_pin;
-  d_delay_us = copy.d_delay_us;
-  //not the same position
 
   return *this;
 }
@@ -63,7 +61,7 @@ void SoftServo::updatePos()
   digitalWrite(d_pin, HIGH);
   while((micros()-time_us)<pos_us){}
   digitalWrite(d_pin, LOW);
-  delayMicroseconds(getDelayTimeUs);
+  delayMicroseconds(getDelayTimeUs());
 }
 
 //----------------------------------------------------------------------//
