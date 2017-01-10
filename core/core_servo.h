@@ -3,6 +3,7 @@
 
 #include "utl_mapping.h"
 
+#include <future>
 #include <cstdint>
 
 namespace CORE
@@ -16,9 +17,13 @@ namespace CORE
     Servo(const Servo&); //uses the same settings
     Servo& operator=(const Servo&); //uses the same settings
     
-    virtual void moveToPos(uint8_t pos) = 0; //0 < pos < 255
-    virtual bool incrementMove(uint8_t pos) = 0; //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
-    virtual bool decrementMove(uint8_t pos) = 0;
+    void moveToPos(uint8_t pos); //0 < pos < 255
+    bool incrementMove(uint8_t pos); //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
+    bool decrementMove(uint8_t pos);
+
+    void setDelayTimeUs(unsigned delay_us);    
+    void run();
+    void stop();
 
     void setPosValue(uint8_t pos) { d_pos = pos; } //does not move the servo. It only sets the value
     void setTiming(unsigned min_pulse,
@@ -33,12 +38,25 @@ namespace CORE
     const UTIL::Map& getPosMap() { return d_pos_8bit_to_pulse; }
     bool isPosInRange(uint8_t pos);
 
+  protected:
+    std::mutex& getMutex() { return d_m; }
+    virtual void updatePos() = 0;
+
+  private:
+    static void threadFunc(std::future<bool> shutdown,
+			   Servo *const servo);
+
   private:
     unsigned d_min_pulse = 500; //default values in us
     unsigned d_max_pulse = 2500;
+    unsigned d_delay_us = 20000;
     unsigned d_pos = 0; //is in the 0-255 range
         
     UTIL::Map d_pos_8bit_to_pulse;
+
+    bool d_running = false;
+    std::promise<bool> d_thread_shutdown;
+    std::mutex d_m;
   };
 };
 

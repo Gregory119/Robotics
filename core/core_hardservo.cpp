@@ -25,12 +25,14 @@ HardServo::HardServo(unsigned servo_num)
   setTiming(s_min_pulse, s_max_pulse);
 }
 
-//----------------------------------------------------------------------//   
-void HardServo::moveToPos(uint8_t pos)
+//----------------------------------------------------------------------//
+void HardServo::updatePos()
 {
-  setPosValue(pos);
+  getMutex().lock();
+  unsigned pos = getPos();
+  getMutex().unlock();
   unsigned pos_conv = UTIL::mapFromTo(getPosMap(), pos);
-  //write to driver directory
+
   servo_file.open(s_driver_dir);
   if (servo_file.fail())
     {
@@ -40,38 +42,6 @@ void HardServo::moveToPos(uint8_t pos)
     }
   servo_file << d_servo_num << "=" << pos_conv << std::endl;
   servo_file.close();
-}
-
-//----------------------------------------------------------------------//
-bool HardServo::incrementMove(uint8_t pos)
-{
-  if (!isPosInRange(pos+getPos()))
-    {
-      //print a warning here
-      moveToPos(getMaxPos());
-      return false;
-    }
-  else
-    {
-      moveToPos(getPos()+pos);
-    }
-  return true;
-}
-
-//----------------------------------------------------------------------//
-bool HardServo::decrementMove(uint8_t pos)
-{
-  if (!isPosInRange(getPos()-pos))
-    {
-      //print a warning here
-      moveToPos(getMinPos());
-      return false;
-    }
-  else
-    {
-      moveToPos(getPos()-pos);
-    }
-  return true;
 }
 
 //----------------------------------------------------------------------//
