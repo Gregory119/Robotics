@@ -42,6 +42,7 @@ Servo& Servo::operator=(const Servo& copy)
 void Servo::setTiming(unsigned min_pulse,
 		      unsigned max_pulse)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   d_min_pulse = min_pulse;
   d_max_pulse = max_pulse;
   d_pos_8bit_to_pulse = UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse);
@@ -50,6 +51,7 @@ void Servo::setTiming(unsigned min_pulse,
 //----------------------------------------------------------------------//
 void Servo::setDelayTimeUs(unsigned delay_us)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   d_delay_us = delay_us;
 }
 
@@ -99,7 +101,7 @@ void Servo::run()
 
 //----------------------------------------------------------------------//
 void Servo::threadFunc(std::future<bool> shutdown,
-			   Servo *const servo)
+		       Servo *const servo)
 {
   while (shutdown.wait_for(std::chrono::nanoseconds(0)) != 
 	 std::future_status::ready)
@@ -114,6 +116,7 @@ void Servo::stop()
   if (!d_running)
     return;
     
+  d_running=false;
   d_thread_shutdown.set_value(true); //stop the thread
 }
 

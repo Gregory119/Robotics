@@ -14,11 +14,11 @@ namespace CORE
     ~SoftServo();
     SoftServo(const SoftServo&); //uses the same settings
     SoftServo& operator=(const SoftServo&); //uses the same settings
-    
+   
     //The function wiringPiSetup() from libwiringPi in wiringPi.h must be called only once before using instances of this class. 
     //The function setup() calls wiringPiSetup() if you would prefer to call it that way.
     static void setup();
-   
+
   private:
     void initPins();
     virtual void updatePos() override;
