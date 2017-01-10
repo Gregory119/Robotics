@@ -44,7 +44,7 @@ void HardServo::updatePos()
     }
   servo_file << d_servo_num << "=" << pos_conv << std::endl;
   servo_file.close();
-  delayMicroseconds(getDelayTimeUs);
+  delayMicroseconds(getDelayTimeUs());
 }
 
 //----------------------------------------------------------------------//
