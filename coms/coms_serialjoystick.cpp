@@ -135,31 +135,22 @@ bool JoystickReceiver::init(const char* serial_port,
 bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
 {
   //this algorithm will go through every character received to check for an event
-  /*
+  
   int num_chars = serialDataAvail(d_desc);
-  if (num_chars < 0)
+  if (num_chars < s_js_serial_chars)
     {
-      std::cout<<"Error with checking the number of available serial characters"<<std::endl;
-    }
-  else if (num_chars < s_js_serial_chars)
-    {
-      std::cout<<num_chars<< " available serial characters, but " <<s_js_serial_chars<<" are needed"<<std::endl;
       return false;
-    }*/
+    }
  
   int next_char = serialGetchar(d_desc);
-
   if (next_char < 0)
     {
-      //std::cout<<"no serial character available"<<std::endl;
-      serialFlush(d_desc);
       return false;
     }
 
   if (next_char != 'J')
     {
       std::cout<<"no serial joystick start character"<<std::endl;
-      serialFlush(d_desc);
       return false;
     }
 
