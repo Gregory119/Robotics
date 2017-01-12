@@ -74,7 +74,7 @@ void SoftServo::threadFunc(std::future<bool> shutdown,
 }
 
 //----------------------------------------------------------------------//
-unsigned SoftServo::getPos() const
+unsigned SoftServo::getPos()
 { 
   std::lock_guard<std::mutex> lock(d_m);
   return Servo::getPos();
@@ -101,21 +101,21 @@ void SoftServo::moveToPos(uint8_t pos)
 }
 
 //----------------------------------------------------------------------//
-const UTIL::Map& SoftServo::getPosMap() const
+const UTIL::Map& SoftServo::getPosMap()
 {
   std::lock_guard<std::mutex> lock(d_m);
   return Servo::getPosMap();
 }
 
 //----------------------------------------------------------------------//
-unsigned SoftServo::getPulseMinTimeUs() const
+unsigned SoftServo::getPulseMinTimeUs()
 {
   std::lock_guard<std::mutex> lock(d_m);
   return Servo::getPulseMinTimeUs();
 }
 
 //----------------------------------------------------------------------//
-unsigned SoftServo::getPulseMaxTimeUs() const
+unsigned SoftServo::getPulseMaxTimeUs()
 {
   std::lock_guard<std::mutex> lock(d_m);
   return Servo::getPulseMaxTimeUs();
@@ -126,7 +126,7 @@ void SoftServo::setTiming(unsigned min_pulse,
 			  unsigned max_pulse)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  Servo::setTiming(min_pulse, max_pulse)
+  Servo::setTiming(min_pulse, max_pulse);
 }
 
 //----------------------------------------------------------------------//
