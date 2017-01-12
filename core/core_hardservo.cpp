@@ -28,7 +28,7 @@ HardServo::HardServo(unsigned servo_num)
 //----------------------------------------------------------------------//
 void HardServo::moveToPos(uint8_t pos)
 {
-  unsigned pos = getPos();
+  setPosValue(pos);
   unsigned pos_conv = UTIL::mapFromTo(getPosMap(), pos);
 
   servo_file.open(s_driver_dir);
