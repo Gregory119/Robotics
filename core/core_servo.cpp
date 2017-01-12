@@ -10,15 +10,7 @@ static const unsigned s_min_8bit = 0;
 //----------------------------------------------------------------------//
 Servo::Servo()
   : d_pos_8bit_to_pulse(UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse))
-{
-  run();
-}
-
-//----------------------------------------------------------------------//
-Servo::~Servo()
-{
-  stop();
-}
+{}
 
 //----------------------------------------------------------------------//
 void Servo::setTiming(unsigned min_pulse,
