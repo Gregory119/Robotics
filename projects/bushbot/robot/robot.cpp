@@ -2,23 +2,30 @@
 #include "core_hardservo.h"
 #include <iostream>
 
-static const UTIL::Map s_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
-					    JS::EventMinimal::lever_max_out, 
-					    CORE::Servo::getMaxPos(), 
-					    CORE::Servo::getMinPos());
-
 static const unsigned s_steer_servo_range_deg = 180;
-static const unsigned s_steer_start_pos_deg = 90;
-static const unsigned s_steer_end_pos_deg = 120;
-static const unsigned s_steer_start_pos_servo = CORE::Servo::getMinPos()+
-  CORE::Servo::getRangePos()*s_steer_start_pos_deg/s_steer_servo_range_deg;
-static const unsigned s_steer_end_pos_servo = CORE::Servo::getMinPos()+
-  CORE::Servo::getRangePos()*s_steer_end_pos_deg/s_steer_servo_range_deg;
+static const unsigned s_steer_min_pos_deg = 0;
+static const unsigned s_steer_max_pos_deg = 180;
+static const unsigned s_steer_min_pos_servo = CORE::Servo::getMinPos()+
+  CORE::Servo::getRangePos()*s_steer_min_pos_deg/s_steer_servo_range_deg;
+static const unsigned s_steer_max_pos_servo = CORE::Servo::getMinPos()+
+  CORE::Servo::getRangePos()*s_steer_max_pos_deg/s_steer_servo_range_deg;
+static const unsigned s_steer_mid_pos_servo = 
+  s_steer_min_pos_servo + CORE::Servo::getRangePos()/2;
+
+static const UTIL::Map s_rt_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
+					       JS::EventMinimal::lever_max_out, 
+					       CORE::Servo::getMaxPos(), 
+					       s_steer_mid_pos_servo);
+
+static const UTIL::Map s_lt_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
+					       JS::EventMinimal::lever_max_out, 
+					       s_steer_mid_pos_servo, 
+					       CORE::Servo::getMinPos());
 
 static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_right, 
 						  JS::EventMinimal::axis_max_left, 
-						  s_steer_end_pos_servo, 
-						  s_steer_start_pos_servo);
+						  s_steer_max_pos_servo, 
+						  s_steer_min_pos_servo);
 
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
@@ -27,7 +34,7 @@ Robot::Robot(Params& params)
     d_steering(new CORE::HardServo(d_steer_num)),
     d_motor(new CORE::HardServo(d_motor_num))
 {
-  d_steering->moveToPos(s_steer_start_pos_servo + CORE::Servo::getRangePos()/2); //start servo in the middle of the set range of motion
+  d_steering->moveToPos(s_steer_mid_pos_servo); //start servo in the middle of the set range of motion
 }
 
 //----------------------------------------------------------------------//
@@ -71,6 +78,10 @@ void Robot::processEvent(const JS::JSEventMinimal &event)
     case JS::AXIS:
       processAxis(event);
       break;
+      
+    default:
+      std::cout << "Event type not found." << std::endl;
+      break;
     }
 }
 
@@ -94,6 +105,7 @@ void Robot::processButton(const JS::JSEventMinimal &event)
       break;
 
     default:
+      std::cout << "Button not found." << std::endl;
       break;
     }
 }
@@ -127,7 +139,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
     case RT:
       {
 	std::cout << "move forward" << std::endl;
-	unsigned motor_sig = UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<unsigned>(event.value));
+	unsigned motor_sig = UTIL::mapFromTo(s_rt_lever_to_servo_pos, static_cast<unsigned>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
@@ -136,7 +148,7 @@ void Robot::processAxis(const JS::JSEventMinimal &event)
     case LT:
       {
 	std::cout << "move backward" << std::endl;
-        unsigned motor_sig = -UTIL::mapFromTo(s_lever_to_servo_pos, static_cast<unsigned>(event.value));
+        unsigned motor_sig = UTIL::mapFromTo(s_lt_lever_to_servo_pos, static_cast<unsigned>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
