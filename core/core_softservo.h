@@ -15,7 +15,7 @@ namespace CORE
   {
   public:
     explicit SoftServo(unsigned control_pin);
-    ~SoftServo() {}
+    ~SoftServo() { stop(); }
     SoftServo(const SoftServo&) = delete;
     SoftServo& operator=(const SoftServo&) = delete;
 

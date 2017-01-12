@@ -14,7 +14,7 @@ namespace CORE
   {
   public:
     Servo();
-    virtual ~Servo();
+    virtual ~Servo() {}
     Servo(const Servo&) = delete;
     Servo& operator=(const Servo&) = delete;
     
