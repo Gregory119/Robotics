@@ -26,10 +26,10 @@ namespace CORE
     virtual void setTiming(unsigned min_pulse,
 			   unsigned max_pulse); //use your own units to conform to. The default values are in microseconds.
     
-    virtual unsigned getPos() const { return d_pos; }
-    virtual unsigned getPulseMinTimeUs() const { return d_min_pulse; }
-    virtual unsigned getPulseMaxTimeUs() const { return d_max_pulse; }
-    virtual const UTIL::Map& getPosMap() const { return d_pos_8bit_to_pulse; }
+    virtual unsigned getPos() { return d_pos; }
+    virtual unsigned getPulseMinTimeUs() { return d_min_pulse; }
+    virtual unsigned getPulseMaxTimeUs() { return d_max_pulse; }
+    virtual const UTIL::Map& getPosMap() { return d_pos_8bit_to_pulse; }
     static uint8_t getRangePos();
     static uint8_t getMaxPos();
     static uint8_t getMinPos();

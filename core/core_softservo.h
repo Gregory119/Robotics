@@ -4,6 +4,8 @@
 #include "core_servo.h"
 
 #include <future>
+//#include <thread>
+//#inlcude <mutex>
 
 namespace CORE
 {
@@ -33,10 +35,10 @@ namespace CORE
     virtual void setTiming(unsigned min_pulse,
 			   unsigned max_pulse) override; //use your own units to conform to. The default values are in microseconds.
     
-    virtual unsigned getPos() const override;
-    virtual unsigned getPulseMinTimeUs() const override;
-    virtual unsigned getPulseMaxTimeUs() const override;
-    virtual const UTIL::Map& getPosMap() const override;
+    virtual unsigned getPos() override;
+    virtual unsigned getPulseMinTimeUs() override;
+    virtual unsigned getPulseMaxTimeUs() override;
+    virtual const UTIL::Map& getPosMap() override;
 
   private:
     void initPins();
