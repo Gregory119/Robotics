@@ -2,8 +2,6 @@
 
 #include "utl_mapping.h"
 
-#include <usleep.h>
-
 #include <iostream>
 #include <fstream>
 
@@ -28,7 +26,7 @@ HardServo::HardServo(unsigned servo_num)
 }
 
 //----------------------------------------------------------------------//
-void HardServo::updatePos()
+void HardServo::moveToPos(uint8_t pos)
 {
   unsigned pos = getPos();
   unsigned pos_conv = UTIL::mapFromTo(getPosMap(), pos);
@@ -36,13 +34,11 @@ void HardServo::updatePos()
   servo_file.open(s_driver_dir);
   if (servo_file.fail())
     {
-      //log
       std::cout << "Failed to open servoblaster driver file. Ensure that servoblaster is running." << std::endl;
       assert(false);
     }
   servo_file << d_servo_num << "=" << pos_conv << std::endl;
   servo_file.close();
-  usleep(getDelayTimeUs());
 }
 
 //----------------------------------------------------------------------//
