@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   SoftServo::setup();
   unsigned pin = atoi(argv[1]);
   SoftServo d_steering(pin);
-  d_steering->run();
+  d_steering.run();
 
   unsigned char pos = 0;
   pos = atoi(argv[2]);
