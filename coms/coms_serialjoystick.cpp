@@ -168,10 +168,10 @@ bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
     }
   js_event = d_js_event;
 
-  std::cout << "time [ms]: " << (int)d_js_event.time_ms << std::endl;
+  //std::cout << "time [ms]: " << (int)d_js_event.time_ms << std::endl;
   std::cout << "value: " << (int)d_js_event.value << std::endl;
-  std::cout << "type: " << (int)d_js_event.type << std::endl;
-  std::cout << "number: " << (int)d_js_event.number << std::endl;
+  //std::cout << "type: " << (int)d_js_event.type << std::endl;
+  //std::cout << "number: " << (int)d_js_event.number << std::endl;
 
   return true;
 }
