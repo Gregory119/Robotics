@@ -11,8 +11,8 @@ using namespace CORE;
  
 static const std::string s_driver_dir = "/dev/servoblaster";
 static const unsigned s_max_servo_pin = 7;
-static const unsigned s_min_pulse = 50; //each unit is 10 us
-static const unsigned s_max_pulse = 250; //each unit is 10 us
+static const unsigned s_min_pulse = 100; //each unit is 10 us
+static const unsigned s_max_pulse = 200; //each unit is 10 us
 
 static std::ofstream servo_file;
 
