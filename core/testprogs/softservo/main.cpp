@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
   if (argc < 3)
     {
       std::cout << "parameters: [pin] [position: 0-255]" << std::endl;
+      return 0;
     }
 
   SoftServo::setup();
