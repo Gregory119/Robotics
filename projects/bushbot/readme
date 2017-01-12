@@ -49,7 +49,8 @@ SD card
  - $ make
  - the following command will install the driver so that it can be called from any directory. It also sets up a start script to start it from power up of the pi.
  - $ make install
- - For more info: $ ./servod
+ - change the start script such that the driver continuously provides a pulse signal:
+  - open up the start script /etc/init.d/servoblaster and change the line "OPTS="--idle-timeout=2000"" to "OPTS="""
 
 =================================================
 Project Compilation
