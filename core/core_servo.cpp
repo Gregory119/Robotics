@@ -21,38 +21,12 @@ Servo::~Servo()
 }
 
 //----------------------------------------------------------------------//
-Servo::Servo(const Servo& copy)
-  : Servo()
-{
-  operator=(copy);
-}
-
-//----------------------------------------------------------------------//
-Servo& Servo::operator=(const Servo& copy)
-{
-  d_min_pulse = copy.d_min_pulse;
-  d_max_pulse = copy.d_max_pulse;
-  d_delay_us = copy.d_delay_us;
-  //not the same position
-
-  return *this;
-}
-
-//----------------------------------------------------------------------//
 void Servo::setTiming(unsigned min_pulse,
 		      unsigned max_pulse)
 {
-  std::lock_guard<std::mutex> lock(d_m);
   d_min_pulse = min_pulse;
   d_max_pulse = max_pulse;
   d_pos_8bit_to_pulse = UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse);
-}
-
-//----------------------------------------------------------------------//
-void Servo::setDelayTimeUs(unsigned delay_us)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  d_delay_us = delay_us;
 }
 
 //----------------------------------------------------------------------//
@@ -88,65 +62,14 @@ uint8_t Servo::getMinPos()
 }
 
 //----------------------------------------------------------------------//
-void Servo::run()
-{
-  assert(!d_running);
-  
-  d_running = true;
-  std::thread t(&threadFunc,
-		d_thread_shutdown.get_future(),
-		this);
-  t.detach();
-}
-
-//----------------------------------------------------------------------//
-void Servo::threadFunc(std::future<bool> shutdown,
-		       Servo *const servo)
-{
-  while (shutdown.wait_for(std::chrono::nanoseconds(0)) != 
-	 std::future_status::ready)
-    {
-      servo->updatePos();
-    }
-}
-
-//----------------------------------------------------------------------//
-void Servo::stop()
-{
-  if (!d_running)
-    return;
-    
-  d_running=false;
-  d_thread_shutdown.set_value(true); //stop the thread
-}
-
-//----------------------------------------------------------------------//
-unsigned Servo::getPos()
-{ 
-  unsigned pos;
-  d_m.lock();
-  pos = d_pos; 
-  d_m.unlock();
-  return pos;
-}
-
-//----------------------------------------------------------------------//
-void Servo::moveToPos(uint8_t pos)
-{
-  setPosValue(pos);
-}
-
-//----------------------------------------------------------------------//
 void Servo::setPosValue(uint8_t pos)
 { 
-  std::lock_guard<std::mutex> lock(d_m);
   d_pos = pos; 
 }
 
 //----------------------------------------------------------------------//
 bool Servo::incrementMove(uint8_t pos)
 {
-  std::lock_guard<std::mutex> lock(d_m);
   if (!isPosInRange(pos + getPos()))
     {
       //print a warning here
@@ -163,7 +86,6 @@ bool Servo::incrementMove(uint8_t pos)
 //----------------------------------------------------------------------//
 bool Servo::decrementMove(uint8_t pos)
 {
-  std::lock_guard<std::mutex> lock(d_m);
   if (!isPosInRange(getPos()-pos))
     {
       //print a warning here

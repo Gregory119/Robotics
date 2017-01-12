@@ -11,12 +11,11 @@ namespace CORE
   public:
     //see https://github.com/richardghirst/PiBits/tree/master/ServoBlaster for available servo numbers and their respective pin connections
     explicit HardServo(unsigned servo_num);
-    ~HardServo() {};
+    ~HardServo() {}
     HardServo(const HardServo&) = delete;
     HardServo& operator=(const HardServo&) = delete; //uses the same settings
     
-  private:
-    virtual void updatePos() override;
+    virtual void moveToPos(uint8_t pos) override; //0 < pos < 255
     
   private:
     unsigned d_servo_num = 0;

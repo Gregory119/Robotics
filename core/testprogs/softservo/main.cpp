@@ -2,17 +2,23 @@
 
 #include <cstdlib>
 
+#include <iostream>
+
 int main(int argc, char* argv[])
 {
   using namespace CORE;
 
-  Servo::setup();
-  unsigned pin = 1;
+  if (argc < 3)
+    {
+      std::cout << "parameters: [pin] [position: 0-255]" << std::endl;
+    }
+
+  SoftServo::setup();
+  unsigned pin = atoi(argv[1]);
   SoftServo d_steering(pin);
 
-  //'0' => 0, '255' => 255
   unsigned char pos = 0;
-  pos = atoi(argv[1]);
+  pos = atoi(argv[2]);
   d_steering.moveToPos(pos); 
   
   while(1){}
