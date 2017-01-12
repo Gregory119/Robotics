@@ -42,7 +42,7 @@ namespace CORE
     void initPins();
     virtual void updatePos();
     static void threadFunc(std::future<bool> shutdown,
-			   Servo *const servo);
+			   SoftServo *const servo);
 
   private:
     unsigned d_pin;
