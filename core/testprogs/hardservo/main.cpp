@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   if (servo_num < 0 ||
       servo_num > 7)
     {
-      std::cout << "servo number out of range" std::endl;
+      std::cout << "servo number out of range" << std::endl;
       return -1;
     }
   HardServo d_steering(servo_num);
