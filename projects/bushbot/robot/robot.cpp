@@ -17,8 +17,8 @@ static const UTIL::Map s_rt_lever_to_servo_pos(JS::EventMinimal::lever_max_in,
 					       CORE::Servo::getMaxPos(), 
 					       s_steer_mid_pos_servo);
 
-static const UTIL::Map s_lt_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
-					       JS::EventMinimal::lever_max_out, 
+static const UTIL::Map s_lt_lever_to_servo_pos(JS::EventMinimal::lever_max_out, 
+					       JS::EventMinimal::lever_max_in, 
 					       s_steer_mid_pos_servo, 
 					       CORE::Servo::getMinPos());
 
