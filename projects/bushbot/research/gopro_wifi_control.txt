@@ -1,3 +1,23 @@
+======================================================================
+Important Commands
+======================================================================
+The following sequence of commands are needed to pair with the gopro:
+http://10.5.5.9/bacpac/cv
+http://10.5.5.9/gp/gpControl/command/wireless/pair/complete?success=1&deviceName=Nexus+4
+where "Nexus+4" can be replaced by the client device name.
+
+To change modes:
+Video: http://10.5.5.9/gp/gpControl/command/mode?p=0
+Photo: http://10.5.5.9/gp/gpControl/command/mode?p=1
+MultiShot: http://10.5.5.9/gp/gpControl/command/mode?p=2
+
+To trigger the shutter:
+Start (all that is needed for Photo): http://10.5.5.9/gp/gpControl/command/shutter?p=1
+Stop (Video/Timelapse): http://10.5.5.9/gp/gpControl/command/shutter?p=0
+
+======================================================================
+Research on Pairing Commands
+======================================================================
 The open source gopro api: 
 https://github.com/KonradIT/goprowifihack
 
