@@ -37,7 +37,7 @@ SD card
  - $ apt-get install openssh-server
 - install github
  - $ apt-get install git
-- install xboxdrv driver for the xbox controller
+- install xboxdrv driver for the xbox controller (NOT NEEDED ANYMORE)
  - $ apt-get install xboxdrv
 - install wiringPi
  - $ apt-get install wiringPi
