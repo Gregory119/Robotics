@@ -45,27 +45,13 @@ apt-get install build-essential
 - mount the image
   - $ mount -o loop,offset=70254592 2016-05-27-raspbian-jessie-lite.img /rasppi_xcompile/sysroot/
 
-# compile extra libraries 
-- servo blaster [4], [6], and respective Makefile
-  - $ cd extra_libs_scrs
-  - $ git clone https://github.com/richardghirst/PiBits.git
-  - $ cd PiBits/ServoBlaster/user/
-  - edit Makefile line which has "gcc -Wall -g -O2 -o servod servod.c mailbox.c -lm" to:
-  arm-linux-gnueabihf-gcc -Wall -g -O2 --sysroot=/rasppi_xcompile/sysroot -I./include -I/usr/local/include -o servod servod.c mailbox.c -lm
-  - copy the servod binary to the desired location on the mounted image directory
-  - add systemd start-up script for servoblaster on the sd card image once booted
-- wiringPi
-  - compile this on the pi 
-  - $ git clone git://git.drogon.net/wiringPi
-  - $ make
-  - $ make install
-  - copy the library and header files to /rasppi_xcompile/extra_libs_install/
+# get extra libraries/binaries
+Either use precompiled files with instructions in Robotics/arm_pkgs
+OR compile on the pi and copy across,
+OR cross compile [4], [6],
+OR apt-get install on the Pi and copy across (if other options fail)
 
 !!TO DO: create systemd startup script for servoblaster
-!!TO DO: copy the wiringPi header and library files to the host machine
-!!TO DO: add cross compile compatibility in project makefiles
-!!TO DO: cross compile project makefiles
-!!TO DO: test on the pi
 !!TO DO: add libcurl for cross compile and basic testing
 # 
 
