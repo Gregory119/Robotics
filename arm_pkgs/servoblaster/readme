@@ -1,0 +1,8 @@
+Cross compile and install:
+  - $ git clone https://github.com/richardghirst/PiBits.git
+  - $ cd PiBits/ServoBlaster/user/
+  - setup cross compile environment as described in INSTALL.md
+  - edit Makefile line which has "gcc -Wall -g -O2 -o servod servod.c mailbox.c -lm" to:
+  arm-linux-gnueabihf-gcc -Wall -g -O2 --sysroot=/rasppi_xcompile/sysroot -I./include -I/usr/local/include -o servod servod.c mailbox.c -lm
+  - copy the servod binary to the desired location on the mounted image directory
+  - add the start-up script in this directory to the desired directory on the sd card image, and initialize once booted
