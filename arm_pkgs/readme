@@ -1,3 +1,5 @@
-Extract these packages into the default include and lib directories on the raspberry pi and host. 
-lib*.tgz => /usr/lib/arm-linux-gnueabihf/*
-inc*.tgz => /usr/include/arm-linux-gnueabihf/*
+For most of the following packages:
+- Extract them into the cross-compile environment in the directory /rasppi_xcompile/extra_libs_install. 
+- Update the sdcard image of the cross-compile environment by copying the same files as follows: 
+  headers -> /rasppi_xcompile/sysroot/usr/local/include
+  libraries -> /rasppi_xcompile/sysroot/usr/local/lib
