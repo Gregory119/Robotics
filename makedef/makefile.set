@@ -1,7 +1,15 @@
 #MAKESETTINGS - identifier variable of this makefile
 MAKESETTINGS=1
+
 CXX = arm-linux-gnueabihf-g++
-CXXFLAGS = -std=c++11 -Wall -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm
+
+UNAME_S := $(shell uname -s)
+ifneq ($(filter arm%,$(UNAME_P)),)
+      CXXFLAGS = -std=c++11 -Wall -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm
+else
+	CXXFLAGS = -std=c++11 -Wall --sysroot=/rasppi_xcompile/sysroot -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm -I/rasppi_xcompile/extra_libs_install/ -L/rasppi_xcompile/extra_libs_install/ 
+endif
+
 SRC = $(wildcard *.cpp)
 
 #avoid repetition of library object files in this directory for a library
