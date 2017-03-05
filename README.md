@@ -51,8 +51,15 @@ OR compile on the pi and copy across,
 OR cross compile [4], [6],
 OR apt-get install on the Pi and copy across (if other options fail)
 
-!!TO DO: create systemd startup script for servoblaster
-!!TO DO: add libcurl for cross compile and basic testing
+!!TO DO: connect to pi over ethernet
+!!TO DO: create pi wifi settings to connect to gopro wifi
+!!TO DO: create libcurl HTTP GET program
+!!TO DO: create HTTP GET libcurl wrapper
+!!TO DO: create gopro api class with libcurl and test
+!!TO DO: add gopro api into bushbot project and test
+!!TO DO: update startscripts on robot and basestation and test
+     (start_bushbot.sh and start_servoblaster.sh)
+     uninstall the previous startscript setup for servoblaster
 # 
 
 
