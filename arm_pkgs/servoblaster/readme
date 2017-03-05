@@ -4,5 +4,13 @@ Cross compile and install:
   - setup cross compile environment as described in INSTALL.md
   - edit Makefile line which has "gcc -Wall -g -O2 -o servod servod.c mailbox.c -lm" to:
   arm-linux-gnueabihf-gcc -Wall -g -O2 --sysroot=/rasppi_xcompile/sysroot -I./include -I/usr/local/include -o servod servod.c mailbox.c -lm
-  - copy the servod binary to the desired location on the mounted image directory
-  - add the start-up script in this directory to the desired directory on the sd card image, and initialize once booted
+  - copy the servod binary to /usr/local/bin on the mounted image directory or pi
+  - copy the servo blaster bash script to /usr/startscripts
+  - give the file permissions
+    - chmod 755 start_servoblaster.sh
+  
+  The following steps are necessary if no other script has been configured to start the servo blaster binary (servod)
+  - copy the servo blaster service file to /lib/systemd/system/ on the mounted image or pi
+  - once booted
+    - $ systemctl daemon-reload
+    - $ systemctl enable start_servoblaster.service
