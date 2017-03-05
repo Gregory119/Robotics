@@ -1,8 +1,0 @@
-some example commands:
-https://gethypoxic.com/blogs/technical/gopro-hero5-interfaces
-
-description of monitoring bluetooth information flow:
-https://www.nowsecure.com/blog/2014/02/07/bluetooth-packet-capture-on-android-4-4/
-
-description of how to enable bluetooth sniffing in android:
-http://stackoverflow.com/questions/23877761/sniffing-logging-your-own-android-bluetooth-traffic
