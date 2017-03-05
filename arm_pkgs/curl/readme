@@ -1,0 +1,15 @@
+Cross compile and install:
+  - setup cross compile environment as described in INSTALL.md
+  - downloads can be found at https://curl.haxx.se/download.html
+  - $ wget https://curl.haxx.se/download/curl-7.52.1.zip
+  - extract files
+  - configure the cross compile, build, and install
+    - $ cd curl-7.52.1
+    - $ ./configure --prefix=/rasppi_xcompile/extra_libs_install/curl --host=arm-linux-gnueabihf --with-sysroot=/rasppi_xcompile/sysroot --enable-static=no
+    - $ make
+    - $ make install => this installs files to /rasppi_xcompile/extra_libs_install/
+    - move the header and library files out of any sub-directories
+    - copy headers and library files to the root sd card directory
+
+  - copy the servod binary to the desired location on the mounted image directory
+  - add the start-up script in this directory to the desired directory on the sd card image, and initialize once booted
