@@ -1,0 +1,5 @@
+For most of the following packages:
+- Extract them into the cross-compile environment in the directory /rasppi_xcompile/extra_libs_install. 
+- Update the sdcard image of the cross-compile environment by copying the same files as follows: 
+  headers -> /rasppi_xcompile/sysroot/usr/local/include
+  libraries -> /rasppi_xcompile/sysroot/usr/local/lib

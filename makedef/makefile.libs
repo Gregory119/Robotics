@@ -1,0 +1,96 @@
+# BASE_DIR - the relative top most directory of the repository
+# INCLUDES - holds internal and third party library paths
+# LIBS - holds external library names
+# IS_TESTPROG - define this in the makefile of a test program
+# TEST_NAME - list of test program names
+
+MAKELIBS=1
+
+ifndef MAKESETTINGS
+      $(error makefile.set must be included before this makefile)
+endif
+
+ifdef USES_LIBCORE
+      LIBCOREPATH = $(BASE_DIR)/core
+      INCLUDES += -I$(LIBCOREPATH)
+      LIBS += -lpthread -lwiringPi
+      LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
+      USES_LIBUTILS=1
+endif
+
+ifdef USES_LIBCOMS
+      LIBCOMSPATH = $(BASE_DIR)/coms
+      INCLUDES += -I$(LIBCOMSPATH)
+      LIBS += -lwiringPi
+      LIBSRC += $(wildcard $(LIBCOMSPATH)/*.cpp)
+      USES_LIBJOYSTICK=1
+      USES_LIBKERN=1
+      USES_LIBUTILS=1
+endif
+
+ifdef USES_LIBJOYSTICK
+      LIBJOYSTICKPATH = $(BASE_DIR)/joystick
+      INCLUDES += -I$(LIBJOYSTICKPATH)
+      LIBS += -lpthread
+      LIBSRC += $(wildcard $(LIBJOYSTICKPATH)/*.cpp)
+      USES_LIBUTILS=1
+endif
+
+ifdef USES_LIBKERN
+      LIBKERNPATH = $(BASE_DIR)/kern
+      INCLUDES += -I$(LIBKERNPATH)
+      LIBS += 
+      LIBSRC += $(wildcard $(LIBKERNPATH)/*.cpp)
+endif
+
+ifdef USES_LIBUTILS
+      LIBUTILSPATH = $(BASE_DIR)/utils
+      INCLUDES += -I$(LIBUTILSPATH)
+      LIBS += 
+      LIBSRC += $(wildcard $(LIBUTILSPATH)/*.cpp)
+endif
+
+OBJ += $(LIBSRC:.cpp=.o)
+
+.PHONY: thisdir $(TEST_NAME)
+
+makelibs:
+#make prerequisite libraries
+ifdef USES_LIBCORE
+ifneq "$(LIBNAME)" "CORE"
+	$(MAKE) -C $(LIBCOREPATH)
+endif
+endif
+ifdef USES_LIBJOYSTICK
+ifneq "$(LIBNAME)" "JOYSTICK"
+	$(MAKE) -C $(LIBJOYSTICKPATH)
+endif
+endif
+ifdef USES_LIBKERN
+ifneq "$(LIBNAME)" "KERN"
+	$(MAKE) -C $(LIBKERNPATH)
+endif
+endif
+ifdef USES_LIBUTILS
+ifneq "$(LIBNAME)" "UTILS"
+	$(MAKE) -C $(LIBUTILSPATH)
+endif
+endif
+ifdef USES_LIBCOMS
+ifneq "$(LIBNAME)" "COMS"
+	$(MAKE) -C $(LIBCOMSPATH)
+endif
+endif
+	$(MAKE) thisdir	
+
+ifndef IS_TESTPROG
+thisdir: $(OBJ) 
+else ifndef TEST_NAME
+$(error please define the test program name by TEST_NAME=<name> in the makefile of the test program)
+else
+thisdir: $(OBJ)
+	 $(MAKE) $(TEST_NAME)
+
+$(TEST_NAME):
+	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ) $(LIBS) -o $@
+endif

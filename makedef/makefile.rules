@@ -1,0 +1,49 @@
+ifndef MAKELIBS
+       $(error makefile.libs must be included before this makefile)
+endif
+
+ifndef MAKESETTINGS
+       $(error makefile.set must be included before this makefile)
+endif
+
+#----------------------------------------------------------------------
+# to use this file you need to have the following defined:
+# INCLUDES => this holds the directories to be included in the build
+
+#- compile and generate dependency info
+#- the touch command will create the file if it does not exist already
+#- the sed command adds the .d file as a target so that it is built at the same time as the 
+#.o file so that it is up to date in the calling makefile, thus
+# the calling makefile will not need to re-exec to get an up to 
+#date .d file
+%.d : %.cpp
+	@set -e; rm -f $@; \
+	touch $@; \
+	$(CXX) -MM $(CXXFLAGS) $(INCLUDES) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+#overwriting the default implicit rule to create a .o file if either the .cpp or .d file are not up to date
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<
+# $< is an implicit variable for the first prerequisite. Because it is an implicit rule, 
+# in this case there is only one prerequisite (source file) for each required object file
+
+#----------------------------------------------------------------------
+# pull in dependency info for *existing* .o files and remake if necessary
+# the "-" gets rid of the "no existing file" error 
+-include $(SRC:.cpp=.d)
+
+ifdef HAS_TESTPROGS
+.PHONY: testprogs
+testprogs:
+	$(MAKE) -C testprogs
+endif
+
+#----------------------------------------------------------------------
+.PHONY: clean
+clean:
+	$(RM) *~ *.o* *.d* *# core *.core $(TEST_NAME)
+ifdef HAS_TESTPROGS
+	$(MAKE) clean -C testprogs
+endif

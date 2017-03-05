@@ -1,0 +1,52 @@
+STEP:
+1) ---INSTALL RaspiMJPEG ---
+RaspiMJPEG is used to retrieve jpg snapshots at a high rate from the raspberry pi camera using the RAM.
+
+Follow instructions to install RaspiMJPEG at https://www.raspberrypi.org/forums/viewtopic.php?f=43&t=61771
+They are:
+	- either download and build the source files:
+		- sudo apt-get install cmake
+		- git clone https://github.com/silvanmelchior/userland.git
+		(these files are included under the userland folder in this directory)
+		- cd userland
+		- ./buildme
+	- OR download an executable binary
+		- wget https://www.dropbox.com/s/3f47cyh902l4dto/raspimjpeg
+		(included in this directory under raspimjpeg)
+		- chmod a+x raspimjpeg
+		- mv raspimjpeg /opt/vc/bin/.
+		- sudo ln -s /opt/vc/bin/raspimjpeg /usr/bin/raspimjpeg
+
+2) ---INSTALL MJPEG STREAMER---
+mjpeg streamer is used to create a jpg stream accessible on a port (default 8080).
+ 
+Follow steps to install mjpeg streamer for the raspberry pi camera module from: http://jacobsalmela.com/raspberry-pi-webcam-using-mjpg-streamer-over-internet/
+
+Only copy www files into /usr/local/www to use the webpage template from mjpeg streamer
+
+3) ---BASIC STREAMING---
+Run RaspiMJPEG
+- Create a directory to save the jpg images: mkdir /tmp/stream
+- Create jpgs with set resolution and fps (for more info read https://www.raspberrypi.org/forums/viewtopic.php?f=43&t=61771):
+	- raspimjpeg -w 320 -h 240 -d 5 -of /tmp/stream/pic.jpg  
+	- can run up to 1080p with 30 fps	
+	- the 5 parameter is used to divide the 30 fps rate => 30/5 = 6 fps
+
+Run mjpeg streamer using built-in webserver
+- /usr/local/bin/mjpg_streamer -i "/usr/local/lib/input_file.so -f /tmp/stream -n pic.jpg" -o "/usr/local/lib/output_http.so -w /usr/local/www"
+(this is a modified command for the pi camera module described at: http://blog.miguelgrinberg.com/post/how-to-build-and-run-mjpg-streamer-on-the-raspberry-pi)
+
+Access the web page with the stream:
+- in a web browser type: <raspberry-pi ip>:8080
+
+4) ---CREATE a CUSTOM WEBSERVER FOR STREAMING---
+Install lightpd webserver by following the instructions here: http://jacobsalmela.com/raspberry-pi-webserver-using-lighttpd/
+(you do not need to install php if you don't  plan on using it)
+- make sure that the port is different to the one being used for the actual stream from mjpeg streamer (eg. use 8085 for the web page and 8080 for mjpeg streamer)
+- create an index.html file in /var/www with standard html code
+- add the stream using the following code: <img src="http://raspberrypi.local:8080/?action=stream">
+(raspberrypi is the name of the device. If you changed it, use that name) 
+- run RaspiMJPEG as before
+- only create a stream available on an html port with mjpeg streamer (the built-in webserver is not used - lighttpd is now the webserver): 
+	/usr/local/bin/mjpg_streamer -i "/usr/local/lib/input_file.so -f /tmp/stream -n pic.jpg" -o "/usr/local/lib/output_http.so -p 8080"
+- access the web page in a browser with the address: http://raspberrypi.local:8085

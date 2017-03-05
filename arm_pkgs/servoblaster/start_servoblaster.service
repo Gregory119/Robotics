@@ -1,0 +1,10 @@
+[Unit]
+Description=Servoblaster Service
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/startscripts/start_servoblaster.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+ -- Manually Running the Base Station Binary --
+- connect xbox controller via usb
+- run xboxdrv driver
+ - $ xboxdrv
+- run the basestation binary
+ - $ basestation

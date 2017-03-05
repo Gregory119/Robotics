@@ -1,0 +1,19 @@
+--Possible method---
+using tomcat java server and some gui framework with Pi4j
+http://iqjar.com/jar/controlling-the-raspberry-pis-gpio-pins-from-a-web-browser/
+
+using light weight java server no gui framework with Pi4J
+http://devilqube.blogspot.co.za/2013/02/controlling-berry-clipraspberry-pi-from.html
+
+CGI architecture in webservers to call C++ programs
+(make sure webserver supports CGI)
+http://www.tutorialspoint.com/cplusplus/cpp_web_programming.htm
+
+Calling CGI programs
+https://www.cs.cf.ac.uk/Dave/PERL/node193.html
+
+Wiring Pi can be used in C/C++ to access GPIOs
+http://wiringpi.com/
+
+--PWM control---
+http://pi4j.com/apidocs/com/pi4j/wiringpi/SoftPwm.html

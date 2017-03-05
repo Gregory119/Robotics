@@ -1,0 +1,84 @@
+=================================================
+Introduction
+=================================================
+Bushbot is a wildlife based photography robot.
+Raspberry pis are used for the robot and for a
+ground station. A single sd card image needs to be created,
+which is then slightly modified to be used as either
+the robot or base station. This document describes 
+the process of creating these sd card images.
+
+=================================================
+Requirements
+=================================================
+- Raspberry Pi B+ (with power source)
+- 8 GB sd card
+- network connection to the pi (eg. wifi, ethernet) 
+for ssh control from another computer, or connect
+the pi to an HDMI tv and connect a keyboard and 
+mouse to the pi.
+
+=================================================
+Installing Raspbian on the SD Card
+=================================================
+- download the raspbian lite image and load it onto the 8 GB sd card
+- setup wifi by following: - https://thepihut.com/blogs/raspberry-pi-tutorials/83502916-how-to-setup-wifi-on-raspbian-jessie-lite
+- create root password
+ - $ sudo passwd
+ - follow instructions
+
+=================================================
+Install Pre-requisite Software Packages on the 
+SD card
+=================================================
+- update
+ - $ apt-get update
+- install ssh
+ - $ apt-get install openssh-server
+- install github
+ - $ apt-get install git
+- install xboxdrv driver for the xbox controller (NOT NEEDED ANYMORE)
+ - $ apt-get install xboxdrv
+- install wiringPi
+ - $ apt-get install wiringPi
+ - or use the files in Robotics/arm_pkgs if there are any problems experienced with compiling/runtime
+- compile and install servoblaster
+ - $ cd /
+ - $ git clone https://github.com/richardghirst/PiBits.git
+ - $ cd PiBits/ServoBlaster/user/
+ - $ make
+ - the following command will install the driver so that it can be called from any directory. It also sets up a start script to start it from power up of the pi.
+ - $ make install
+ - change the start script such that the driver continuously provides a pulse signal:
+  - open up the start script /etc/init.d/servoblaster and change the line "OPTS="--idle-timeout=2000"" to "OPTS="""
+
+=================================================
+Project Compilation
+=================================================
+- download repository
+ - $ cd /
+ - $ git clone https://github.com/Gregory119/Robotics.git
+ - $ cd Robotics
+- switch to branch if necessary (this step will not be necessary after first version is made)
+ - $ git checkout <branch>
+- build the bushbot project software
+ - $ cd projects/bushbot
+ - $ make
+
+=================================================
+Start Scipts
+=================================================
+- set up the start up script as described in ./scripts/readme
+=================================================
+Serial Port Configuration
+=================================================
+Disable the OS from using the serial port as a login interface:
+- $ sudo raspi-config
+- select "Advanced Options"
+- select "Serial"
+- select "No"
+- select "Ok"
+- select "finish" and then reboot
+This process has been known to disable the serial port. To enable it for external device use:
+- open the file /boot/config.txt
+- change "enable_uart=0" to "enable_uart=1"

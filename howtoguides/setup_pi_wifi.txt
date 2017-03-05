@@ -1,0 +1,95 @@
+%%%%%% INSTRUCTIONS %%%%%%
+The first instructions are for the new systemd method.
+The instructions after that are for the older method.
+
+%%%%%% SYSTEMD INSTRUCTIONS: WIFI DONGLE AND DIRECT ETHERNET %%%%%%
+References:
+[1] http://raspberrypi.stackexchange.com/questions/37920/how-do-i-set-up-networking-wifi-static-ip-address/37921#37921
+
+==wifi==
+- edit /etc/
+- ensure that the contents of the file is as follows:
+  country=GB
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+  update_config=1
+
+  network={
+           ssid="HUAWEI-E5330-469A"
+           psk="fta43ea9"
+  }
+
+==ethernet==
+static ip for direct ethernet connection between laptop and pi [1]
+- edit /etc/dhcpcd.conf
+- at the end of the file add:
+  interface eth0
+  static ip_address=192.168.1.164/22 
+- 22 in the last line corresponds to the mask 255.255.252.0
+- set the laptop ethernet to the same mask and a different ip to connect
+
+%%%%%% FOLLOWING METHODS ARE FOR NON-SYSTEMD (OLD) %%%%%%
+%%%%%% SETTING UP PI WIFI IN PMB %%%%%%
+- connect the pi to the router via ethernet
+- find the pi IP address by logging into the router
+- ssh to the pi (user=pi, password=raspberry)
+- check that the wifi drivers are installed and the usb wifi dongle recognised on the pi
+- edit the network settings by opening the interface file:
+sudo nano /etc/network/interfaces
+
+- overwrite the information with the following:
+auto lo
+iface lo inet loopback
+iface eth0 inet static
+address 192.168.1.164
+netmask 255.255.252.0
+gateway 192.168.1.1
+
+auto wlan0
+iface wlan0 inet static
+wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+address 192.168.1.174	
+netmask 255.255.255.0
+gateway 192.168.1.1
+
+- set the configuration settings by opening wpa_supplicant.conf:
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+- overwrite the information with the following:
+ctrl_interface=DIR=/var/run/wpa_supplicant
+ctrl_interface_group=0
+update_config=1
+
+network={
+ssid="wifi ID"
+psk="wifi key"
+proto=WPA
+key_mgmt=WPA-PSK
+pairwise=TKIP
+group=TKIP
+id_str="wifi ID"
+}
+
+- restart the network service with the command: 
+	sudo service networking reload
+- OR turn off the pi and disconnect power and ethernet cable. Wait for at least 10 seconds before turning it back on and trying to ping the pi.
+
+%%%%% SETTING UP PI WIFI WITH TELKOM DONGLE %%%%%% 
+- change the settings in the /etc/network/interface file to the following:
+
+auto lo
+iface lo inet loopback
+iface eth0 inet static
+address 192.168.1.164
+netmask 255.255.252.0
+#gateway removed to aloow internet through wifi
+
+allow-hotplug wlan0
+auto wlan0
+
+iface wlan0 inet dhcp
+	wpa-ssid "HUAWEI-E5330-469A"
+	wpa-psk "fta43ea9"
+
+- restart the network service with the command: 
+	sudo service networking reload
+- check assigned ip address with ifconfig => wifi connection
