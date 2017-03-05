@@ -1,0 +1,52 @@
+======================================================================
+Important Commands
+======================================================================
+The following sequence of commands are needed to pair with the gopro:
+http://10.5.5.9/bacpac/cv
+http://10.5.5.9/gp/gpControl/command/wireless/pair/complete?success=1&deviceName=Nexus+4
+where "Nexus+4" can be replaced by the client device name.
+
+To change modes:
+Video: http://10.5.5.9/gp/gpControl/command/mode?p=0
+Photo: http://10.5.5.9/gp/gpControl/command/mode?p=1
+MultiShot: http://10.5.5.9/gp/gpControl/command/mode?p=2
+
+To trigger the shutter:
+Start (all that is needed for Photo): http://10.5.5.9/gp/gpControl/command/shutter?p=1
+Stop (Video/Timelapse): http://10.5.5.9/gp/gpControl/command/shutter?p=0
+
+======================================================================
+Research on Pairing Commands
+======================================================================
+The open source gopro api: 
+https://github.com/KonradIT/goprowifihack
+
+The commands above did not work on my gopro hero 5, firmware version HD5.02.01.05.00 . I had to view the http messages between the gopro app and the gopro by using tcpdump and wireshark. tcpdump was used on the phone to capture the data, while wireshark on the pc was used to view the data after capture (from file). 
+
+Where to download tcpdump:
+http://www.androidtcpdump.com/
+
+Android debugger (adb) was used to mv tcpdump to a system file location on the phone so that it would run from any directory. First install adb on the pc and get it connecting to the phone:
+
+How to install android debug tools:
+http://www.howtogeek.com/125769/how-to-install-and-use-abd-the-android-debug-bridge-utility/
+
+How to install tcpdump on phone using android debug tools:
+https://josetrochecoder.wordpress.com/2013/11/04/installing-tcpdump-for-android/
+
+tcpdump was then run remotely from a shell on the pc. The Batch mode capture option described in the following link was used:
+https://wladimir-tm4pda.github.io/porting/tcpdump.html
+
+HTTP wireshark methods were filtered for to view the pairing process:
+send: http://10.5.5.9/bacpac/cv
+receive: HTTP/1.1 200 OK
+send: http://10.5.5.9/gp/gpControl/command/wireless/pair/complete?success=1&deviceName=Nexus+4
+send: http://10.5.5.9/gp/gpControl/command/wireless/pair/complete?success=1&deviceName=Nexus+4 (probably sent again until an OK was received - may be built in to the tcp protocol)
+receive: HTTP/1.1 200 OK
+	 and empty json object
+send: http://10.5.5.9/gp/gpControl/info
+receive: HTTP/1.1 200 OK
+	 and json object with product info
+send: http://10.5.5.9/gp/gpControl/info
+receive: HTTP/1.1 200 OK
+	 and json object with status data
