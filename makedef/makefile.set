@@ -7,7 +7,7 @@ UNAME_S := $(shell uname -s)
 ifneq ($(filter arm%,$(UNAME_P)),)
       CXXFLAGS = -std=c++11 -Wall -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm
 else
-	CXXFLAGS = -std=c++11 -Wall --sysroot=/rasppi_xcompile/sysroot -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm -I/rasppi_xcompile/extra_libs_install/ -L/rasppi_xcompile/extra_libs_install/ 
+	CXXFLAGS = -std=c++11 -Wall --sysroot=/home/rasppi_xcompile/sysroot -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm -I/home/rasppi_xcompile/extra_libs_install/ -L/home/rasppi_xcompile/extra_libs_install/ 
 endif
 
 SRC = $(wildcard *.cpp)
