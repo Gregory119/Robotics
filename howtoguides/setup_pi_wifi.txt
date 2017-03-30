@@ -7,7 +7,7 @@ References:
 [1] http://raspberrypi.stackexchange.com/questions/37920/how-do-i-set-up-networking-wifi-static-ip-address/37921#37921
 
 ==wifi==
-- edit /etc/
+- edit /etc/wpa_supplicant/wpa_supplicant.conf
 - ensure that the contents of the file is as follows:
   country=GB
   ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
