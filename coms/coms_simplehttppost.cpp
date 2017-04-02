@@ -31,6 +31,9 @@ CURLcode SimpleHttpPost::postWithParams(const std::string& params)
 {
   assert(d_curl != nullptr);
 
-  curl_easy_setopt(d_curl, CURLOPT_POSTFIELDS, params.c_str());
+  if (!params.empty())
+    {
+      curl_easy_setopt(d_curl, CURLOPT_POSTFIELDS, params.c_str());
+    }
   return curl_easy_perform(d_curl);
 }
