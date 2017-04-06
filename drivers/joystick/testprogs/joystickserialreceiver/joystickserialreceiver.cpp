@@ -1,4 +1,4 @@
-#include "coms_serialjoystick.h"
+#include "djs_serialjoystick.h"
 
 #include <iostream>
 
@@ -6,8 +6,8 @@ int main()
 {
   int baud = 9600;
 
-  COMS::JoystickReceiver js_receiver;
-  JS::JSEventMinimal js_event;
+  D_JS::JoystickReceiver js_receiver;
+  D_JS::JSEventMinimal js_event;
   
   if (js_receiver.init("/dev/ttyAMA0",
 		       baud))

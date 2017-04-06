@@ -1,10 +1,10 @@
-#ifndef COMS_SIMPLEHTTPPOST_H
-#define COMS_SIMPLEHTTPPOST_H
+#ifndef CHTTP_SIMPLEHTTPPOST_H
+#define CHTTP_SIMPLEHTTPPOST_H
 
 #include <curl/curl.h>
 #include <string>
 
-namespace COMS
+namespace C_HTTP
 {
   class SimpleHttpPost final
   {
@@ -15,7 +15,7 @@ namespace COMS
     SimpleHttpPost& operator=(const SimpleHttpPost&) = delete;
     SimpleHttpPost(const SimpleHttpPost&) = delete;
 
-    void setUrlNoParams(const std::string& url) { d_url = url; }
+    void setUrlNoParams(const std::string& url);
     CURLcode postWithParams(const std::string& params); //example params = "name=daniel&project=curl"
     
   private:

@@ -1,5 +1,5 @@
-#include "js_joystick.h"
-#include "js_common.h"
+#include "djs_joystick.h"
+#include "djs_common.h"
 
 //#include <stdint.h>
 //#include <stdio.h>
@@ -9,7 +9,7 @@
 #include <cstdlib> //exit success/failure
 #include <memory> //std pointers
 
-class Test : public JS::JoyStickOwner
+class Test : public D_JS::JoyStickOwner
 {
 private:
   std::mutex m;
@@ -19,7 +19,7 @@ public:
 
   Test()
   {
-    d_js.reset(new JS::JoyStick(this,"/dev/input/js0"));
+    d_js.reset(new D_JS::JoyStick(this,"/dev/input/js0"));
   }
 
   void init()
@@ -37,7 +37,7 @@ private:
     d_js->stop();
   }
 
-  virtual void handleEvent(const JS::JSEvent &event) override
+  virtual void handleEvent(const D_JS::JSEvent &event) override
   {
     std::lock_guard<std::mutex> lock(m);
     std::cout << "time: " << event.time << std::endl;
@@ -47,7 +47,7 @@ private:
   }
 
 private:
-  std::unique_ptr<JS::JoyStick> d_js = nullptr;
+  std::unique_ptr<D_JS::JoyStick> d_js = nullptr;
 };
 
 int main(int argc, char *argv[])

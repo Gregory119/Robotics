@@ -1,0 +1,5 @@
+Wiring Pi is used for the serial communication: http://wiringpi.com/reference/serial-library/
+
+Follow instructions on setting up serial port: http://elinux.org/RPi_Serial_Connection
+group "tty" used for write access
+group "root" used for crw access

@@ -1,10 +1,10 @@
-#include "coms_simplehttppost.h"
+#include "chttp_simplehttppost.h"
 
 #include <iostream>
 
 int main(int argc, char* argv[])
 {
-  using namespace COMS;
+  using namespace C_HTTP;
   
   if (argc < 2)
     {
@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
       return 0;
     }
 
-  COMS::SimpleHttpPost poster(argv[1]);
+  SimpleHttpPost poster(argv[1]);
   
   if (argc < 3)
     {

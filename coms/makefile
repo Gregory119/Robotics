@@ -1,10 +1,11 @@
-BASE_DIR = ..
-LIBNAME = COMS
+all: 
+	$(MAKE) http
 
-include $(BASE_DIR)/makedef/makefile.set
+.PHONY:clean testprogs
 
-USES_LIBCOMS=1
-HAS_TESTPROGS=1
+testprogs:
+	$(MAKE) testprogs -C http
 
-include $(BASE_DIR)/makedef/makefile.libs
-include $(BASE_DIR)/makedef/makefile.rules
+clean:
+	$(MAKE) clean -C http
+	$(RM) *~ *.d* *.o* *# *.core
