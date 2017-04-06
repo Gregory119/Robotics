@@ -12,18 +12,18 @@ static const unsigned s_steer_max_pos_servo = CORE::Servo::getMinPos()+
 static const unsigned s_steer_mid_pos_servo = 
   s_steer_min_pos_servo + CORE::Servo::getRangePos()/2;
 
-static const UTIL::Map s_rt_lever_to_servo_pos(JS::EventMinimal::lever_max_in, 
-					       JS::EventMinimal::lever_max_out, 
+static const UTIL::Map s_rt_lever_to_servo_pos(D_JS::EventMinimal::lever_max_in, 
+					       D_JS::EventMinimal::lever_max_out, 
 					       CORE::Servo::getMaxPos(), 
 					       s_steer_mid_pos_servo);
 
-static const UTIL::Map s_lt_lever_to_servo_pos(JS::EventMinimal::lever_max_out, 
-					       JS::EventMinimal::lever_max_in, 
+static const UTIL::Map s_lt_lever_to_servo_pos(D_JS::EventMinimal::lever_max_out, 
+					       D_JS::EventMinimal::lever_max_in, 
 					       s_steer_mid_pos_servo, 
 					       CORE::Servo::getMinPos());
 
-static const UTIL::Map s_stick_to_steer_servo_pos(JS::EventMinimal::axis_max_right, 
-						  JS::EventMinimal::axis_max_left, 
+static const UTIL::Map s_stick_to_steer_servo_pos(D_JS::EventMinimal::axis_max_right, 
+						  D_JS::EventMinimal::axis_max_left, 
 						  s_steer_max_pos_servo, 
 						  s_steer_min_pos_servo);
 
@@ -67,15 +67,15 @@ bool Robot::stayRunning()
 }
 
 //----------------------------------------------------------------------//
-void Robot::processEvent(const JS::JSEventMinimal &event)
+void Robot::processEvent(const D_JS::JSEventMinimal &event)
 {
   switch (event.type)
     {
-    case JS::BUTTON:
+    case D_JS::BUTTON:
       processButton(event);
       break;
 
-    case JS::AXIS:
+    case D_JS::AXIS:
       processAxis(event);
       break;
       
@@ -86,9 +86,9 @@ void Robot::processEvent(const JS::JSEventMinimal &event)
 }
 
 //----------------------------------------------------------------------//
-void Robot::processButton(const JS::JSEventMinimal &event)
+void Robot::processButton(const D_JS::JSEventMinimal &event)
 {    
-  using namespace JS;
+  using namespace D_JS;
     
   switch (event.number)
     {
@@ -111,9 +111,9 @@ void Robot::processButton(const JS::JSEventMinimal &event)
 }
 
 //----------------------------------------------------------------------//
-void Robot::processAxis(const JS::JSEventMinimal &event)
+void Robot::processAxis(const D_JS::JSEventMinimal &event)
 {
-  using namespace JS;
+  using namespace D_JS;
     
   switch (event.number)
     {

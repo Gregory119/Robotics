@@ -1,10 +1,10 @@
-#ifndef JS_JOYSTICK_H
-#define JS_JOYSTICK_H
+#ifndef DJS_JOYSTICK_H
+#define DJS_JOYSTICK_H
 
 #include <future>
-#include "js_common.h"
+#include "djs_common.h"
 
-namespace JS
+namespace D_JS
 {
   class JoyStickOwner
   {

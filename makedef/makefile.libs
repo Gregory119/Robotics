@@ -18,21 +18,19 @@ ifdef USES_LIBCORE
       USES_LIBUTILS=1
 endif
 
-ifdef USES_LIBCOMS
-      LIBCOMSPATH = $(BASE_DIR)/coms
-      INCLUDES += -I$(LIBCOMSPATH)
-      LIBS += -lwiringPi -lcurl
-      LIBSRC += $(wildcard $(LIBCOMSPATH)/*.cpp)
-      USES_LIBJOYSTICK=1
-      USES_LIBKERN=1
-      USES_LIBUTILS=1
+ifdef USES_LIBCHTTP
+      LIBCHTTPPATH = $(BASE_DIR)/coms/http
+      INCLUDES += -I$(LIBCHTTPPATH)
+      LIBS += -lcurl
+      LIBSRC += $(wildcard $(LIBCHTTPPATH)/*.cpp)
 endif
 
-ifdef USES_LIBJOYSTICK
-      LIBJOYSTICKPATH = $(BASE_DIR)/joystick
-      INCLUDES += -I$(LIBJOYSTICKPATH)
-      LIBS += -lpthread
-      LIBSRC += $(wildcard $(LIBJOYSTICKPATH)/*.cpp)
+ifdef USES_LIBDJS
+      LIBDJSPATH = $(BASE_DIR)/drivers/joystick
+      INCLUDES += -I$(LIBDJSPATH)
+      LIBS += -lwiringPi -lpthread
+      LIBSRC += $(wildcard $(LIBDJSPATH)/*.cpp)
+      USES_LIBKERN=1
       USES_LIBUTILS=1
 endif
 
@@ -61,9 +59,9 @@ ifneq "$(LIBNAME)" "CORE"
 	$(MAKE) -C $(LIBCOREPATH)
 endif
 endif
-ifdef USES_LIBJOYSTICK
-ifneq "$(LIBNAME)" "JOYSTICK"
-	$(MAKE) -C $(LIBJOYSTICKPATH)
+ifdef USES_LIBDJS
+ifneq "$(LIBNAME)" "DJS"
+	$(MAKE) -C $(LIBDJSPATH)
 endif
 endif
 ifdef USES_LIBKERN
@@ -76,9 +74,9 @@ ifneq "$(LIBNAME)" "UTILS"
 	$(MAKE) -C $(LIBUTILSPATH)
 endif
 endif
-ifdef USES_LIBCOMS
-ifneq "$(LIBNAME)" "COMS"
-	$(MAKE) -C $(LIBCOMSPATH)
+ifdef USES_LIBCHTTP
+ifneq "$(LIBNAME)" "CHTTP"
+	$(MAKE) -C $(LIBCHTTPPATH)
 endif
 endif
 	$(MAKE) thisdir	

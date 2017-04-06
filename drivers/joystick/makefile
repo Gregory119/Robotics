@@ -1,9 +1,9 @@
-BASE_DIR = ..
-LIBNAME = JOYSTICK
+BASE_DIR = ../..
+LIBNAME = DJS
 
 include $(BASE_DIR)/makedef/makefile.set
 
-USES_LIBJOYSTICK=1
+USES_LIBDJS=1
 HAS_TESTPROGS=1
 
 include $(BASE_DIR)/makedef/makefile.libs

@@ -1,6 +1,6 @@
-#include "js_common.h"
+#include "djs_common.h"
 
-namespace JS
+namespace D_JS
 {
   namespace EventMinimal
   {

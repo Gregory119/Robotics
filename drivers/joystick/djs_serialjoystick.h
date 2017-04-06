@@ -1,8 +1,8 @@
-#ifndef COMS_SERIALJOYSTICK_H
-#define COMS_SERIALJOYSTICK_H
+#ifndef DJS_SERIALJOYSTICK_H
+#define DJS_SERIALJOYSTICK_H
 
-#include "js_joystick.h"
-#include "js_common.h"
+#include "djs_joystick.h"
+#include "djs_common.h"
 #include "kn_basic.h"
 
 #include <thread>
@@ -12,11 +12,11 @@ namespace UTIL
   struct Map;
 }
 
-namespace COMS
+namespace D_JS
 {
   class JoystickReceiver;
   
-  class JoystickTransmitter : public JS::JoyStickOwner,
+  class JoystickTransmitter : public D_JS::JoyStickOwner,
     public KERN::KernBasicComponent
   {
     friend JoystickReceiver; //allow access to the static private constants
@@ -33,7 +33,7 @@ namespace COMS
     //must return true before calling other functions
 
   private:
-    virtual void handleEvent(const JS::JSEvent &event) override; 
+    virtual void handleEvent(const D_JS::JSEvent &event) override; 
     virtual void handleReadError() override;
     virtual bool stayRunning() override;
 
@@ -72,7 +72,7 @@ namespace COMS
 
   private:
     std::mutex m;
-    std::unique_ptr<JS::JoyStick> d_js = nullptr;
+    std::unique_ptr<D_JS::JoyStick> d_js = nullptr;
     int d_desc = -1;
     bool d_stay_running = true;
   };
@@ -90,11 +90,11 @@ namespace COMS
 	      int baud);
     //must return true before calling other functions
 
-    bool readSerialEvent(JS::JSEventMinimal &js_event);
+    bool readSerialEvent(D_JS::JSEventMinimal &js_event);
     
   private:
     int d_desc = -1;
-    JS::JSEventMinimal d_js_event; //values auto initialised to zero
+    D_JS::JSEventMinimal d_js_event; //values auto initialised to zero
 
     static const UTIL::Map s_uchar_time_to_uint16_map;
 

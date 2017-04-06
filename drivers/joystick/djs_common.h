@@ -1,10 +1,10 @@
-#ifndef JS_COMMON_H
-#define JS_COMMON_H
+#ifndef DJS_COMMON_H
+#define DJS_COMMON_H
 
 #include <linux/joystick.h>
 #include <cstdint>
 
-namespace JS
+namespace D_JS
 {
   //xboxdrv
   /*

@@ -2,7 +2,7 @@
 #define ROBOT_H
 
 #include "kn_basic.h"
-#include "coms_serialjoystick.h"
+#include "djs_serialjoystick.h"
 #include <memory>
 
 namespace CORE
@@ -40,13 +40,13 @@ class Robot final : public KERN::KernBasicComponent
  private:
   virtual bool stayRunning();
 
-  void processEvent(const JS::JSEventMinimal &event);
-  void processButton(const JS::JSEventMinimal &event);
-  void processAxis(const JS::JSEventMinimal &event);
+  void processEvent(const D_JS::JSEventMinimal &event);
+  void processButton(const D_JS::JSEventMinimal &event);
+  void processAxis(const D_JS::JSEventMinimal &event);
 
  private:
-  COMS::JoystickReceiver d_js_receiver;
-  JS::JSEventMinimal d_js_event;
+  D_JS::JoystickReceiver d_js_receiver;
+  D_JS::JSEventMinimal d_js_event;
 
   unsigned d_steer_num = 2;
   unsigned d_motor_num = 0;

@@ -1,4 +1,4 @@
-#include "coms_serialjoystick.h"
+#include "djs_serialjoystick.h"
 #include "utl_mapping.h"
 
 #include <wiringSerial.h>
@@ -6,7 +6,7 @@
 #include <cmath>
 #include <unistd.h>
 
-using namespace COMS;
+using namespace D_JS;
 
 const unsigned char s_js_serial_chars = 6;
 
@@ -32,7 +32,7 @@ bool JoystickTransmitter::init(const char* serial_port,
 			       int baud,
 			       const char* js_source)
 {
-  d_js.reset(new JS::JoyStick(this,js_source));
+  d_js.reset(new JoyStick(this,js_source));
 
   if (!d_js->init())
     {
@@ -65,7 +65,7 @@ JoystickTransmitter::~JoystickTransmitter()
 }
 
 //----------------------------------------------------------------------//
-void JoystickTransmitter::handleEvent(const JS::JSEvent &event) 
+void JoystickTransmitter::handleEvent(const JSEvent &event) 
 {
   std::lock_guard<std::mutex> lock(m);
   serialPutchar(d_desc, 'J');
@@ -132,7 +132,7 @@ bool JoystickReceiver::init(const char* serial_port,
 }
 
 //----------------------------------------------------------------------//
-bool JoystickReceiver::readSerialEvent(JS::JSEventMinimal &js_event)
+bool JoystickReceiver::readSerialEvent(JSEventMinimal &js_event)
 {
   //this algorithm will go through every character received to check for an event
   

@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "coms_serialjoystick.h"
+#include "djs_serialjoystick.h"
 
 //make sure that xboxdrv is running before running this
 
@@ -8,7 +8,7 @@ int main()
 {
   int baud = 9600;
 
-  COMS::JoystickTransmitter js_tran;
+  D_JS::JoystickTransmitter js_tran;
   
   if (!js_tran.init("/dev/ttyAMA0",
 		    baud,

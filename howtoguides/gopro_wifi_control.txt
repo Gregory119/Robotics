@@ -2,8 +2,9 @@
 Important Commands
 ======================================================================
 The following sequence of commands are needed to pair with the gopro:
-http://10.5.5.9/bacpac/cv
-http://10.5.5.9/gp/gpControl/command/wireless/pair/complete?success=1&deviceName=Nexus+4
+- first connect to gopro wifi
+- http://10.5.5.9/bacpac/cv
+- http://10.5.5.9/gp/gpControl/command/wireless/pair/complete?success=1&deviceName=Nexus+4
 where "Nexus+4" can be replaced by the client device name.
 
 To change modes:

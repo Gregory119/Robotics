@@ -1,6 +1,6 @@
-#include "js_joystick.h"
+#include "djs_joystick.h"
 
-#include "js_common.h"
+#include "djs_common.h"
 
 #include <fcntl.h> //open
 #include <unistd.h> //close
@@ -9,7 +9,7 @@
 
 #include <iostream> //std::cout
 
-using namespace JS;
+using namespace D_JS;
 
 //----------------------------------------------------------------------//
 JoyStick::JoyStick(JoyStickOwner* o, const char *dev_name)
