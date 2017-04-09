@@ -4,6 +4,9 @@
 # IS_TESTPROG - define this in the makefile of a test program
 # TEST_NAME - list of test program names
 
+# When adding a new library:
+# - add it before any of the dependent libraries
+
 MAKELIBS=1
 
 ifndef MAKESETTINGS
@@ -16,6 +19,14 @@ ifdef USES_LIBCORE
       LIBS += -lpthread -lwiringPi
       LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
       USES_LIBUTILS=1
+endif
+
+ifdef USES_LIBDGP
+      LIBDGPPATH = $(BASE_DIR)/drivers/gopro
+      INCLUDES += -I$(LIBDGPPATH)
+      LIBS += -lwiringPi -lpthread
+      LIBSRC += $(wildcard $(LIBDGPPATH)/*.cpp)
+      USES_LIBCHTTP=1
 endif
 
 ifdef USES_LIBCHTTP
@@ -54,6 +65,11 @@ OBJ += $(LIBSRC:.cpp=.o)
 
 makelibs:
 #make prerequisite libraries
+ifdef USES_LIBDGP
+ifneq "$(LIBNAME)" "DGP"
+	$(MAKE) -C $(LIBDGPPATH)
+endif
+endif
 ifdef USES_LIBCORE
 ifneq "$(LIBNAME)" "CORE"
 	$(MAKE) -C $(LIBCOREPATH)

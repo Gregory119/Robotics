@@ -1,8 +1,6 @@
 #ifndef UTIL_MAPPPING_H
 #define UTIL_MAPPPING_H
 
-#include "assert.h"
-
 namespace UTIL
 {
   struct Map

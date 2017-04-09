@@ -5,7 +5,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <assert.h>
+#include <cassert>
 
 using namespace CORE;
  

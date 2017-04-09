@@ -1,16 +1,6 @@
-#include "chttp_simplehttppost.h"
-#include <assert.h>
+#include "chttp_simplepost.h"
 
 using namespace C_HTTP;
-
-//----------------------------------------------------------------------//
-SimpleHttpPost::SimpleHttpPost(std::string url)
-  : d_url(std::move(url))
-{  
-  curl_global_init(CURL_GLOBAL_ALL);
-  d_curl = curl_easy_init();
-  setUrlNoParams(url);
-}
 
 //----------------------------------------------------------------------//
 SimpleHttpPost::~SimpleHttpPost()
@@ -23,29 +13,38 @@ SimpleHttpPost::~SimpleHttpPost()
 }
 
 //----------------------------------------------------------------------//
-void SimpleHttpPost::setUrlNoParams(const std::string& url)
+bool SimpleHttpPost::init()
 {
-  if (url.empty())
+  if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK)
     {
-      return;
+      return false;
     }
   
-  d_url = url;
-  if (d_curl != nullptr)
+  d_curl = curl_easy_init();
+  if (d_curl == nullptr)
     {
-      curl_easy_cleanup(d_curl);
+      return false;
     }
-  curl_easy_setopt(d_curl, CURLOPT_URL, d_url.c_str());
+
+  d_ready = true;
+  return true;
 }
 
 //----------------------------------------------------------------------//
-CURLcode SimpleHttpPost::postWithParams(const std::string& params)
+bool SimpleHttpPost::post(const std::string& url)
 {
-  assert(d_curl != nullptr);
-
-  if (!params.empty())
+  curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
+  
+  d_post_res = curl_easy_perform(d_curl);
+  if (d_post_res != CURLE_OK)
     {
-      curl_easy_setopt(d_curl, CURLOPT_POSTFIELDS, params.c_str());
+      return false;
     }
-  return curl_easy_perform(d_curl);
+  return true;
+}
+
+//----------------------------------------------------------------------//
+std::string SimpleHttpPost::getPostError()
+{
+  return std::string(curl_easy_strerror(d_post_res));
 }

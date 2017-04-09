@@ -4,24 +4,29 @@
 #include <curl/curl.h>
 #include <string>
 
+/*
+  SimpleHttpPost is based on synchronous http communication.
+ */
+
 namespace C_HTTP
 {
   class SimpleHttpPost final
   {
   public:
-    //do not include the post parameters in the url
-    explicit SimpleHttpPost(std::string url); //example url = "http://postit.example.com/moo.cgi"
+    SimpleHttpPost() = default;
     ~SimpleHttpPost();
     SimpleHttpPost& operator=(const SimpleHttpPost&) = delete;
     SimpleHttpPost(const SimpleHttpPost&) = delete;
 
-    void setUrlNoParams(const std::string& url);
-    CURLcode postWithParams(const std::string& params); //example params = "name=daniel&project=curl"
+    bool init(); //must be successful before using class
+    bool isReady() { return d_ready; }
+    bool post(const std::string& url); //example params = "name=daniel&project=curl"
+    std::string getPostError();
     
   private:
-    std::string d_url;
     CURL *d_curl = nullptr;
-    std::string res_desc;
+    CURLcode d_post_res = CURLE_OK;
+    bool d_ready = false;
   };
 };
 

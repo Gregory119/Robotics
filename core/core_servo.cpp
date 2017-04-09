@@ -1,6 +1,6 @@
 #include "core_servo.h"
 
-#include <assert.h>
+#include <cassert>
 
 using namespace CORE;
 
@@ -60,33 +60,15 @@ void Servo::setPosValue(uint8_t pos)
 }
 
 //----------------------------------------------------------------------//
-bool Servo::incrementMove(uint8_t pos)
+void Servo::incrementMove(uint8_t pos)
 {
-  if (!isPosInRange(pos + getPos()))
-    {
-      //print a warning here
-      setPosValue(getMaxPos());
-      return false;
-    }
-  else
-    {
-      setPosValue(getPos()+pos);
-    }
-  return true;
+  assert(isPosInRange(pos + getPos()));  
+  setPosValue(getPos()+pos);
 }
 
 //----------------------------------------------------------------------//
-bool Servo::decrementMove(uint8_t pos)
+void Servo::decrementMove(uint8_t pos)
 {
-  if (!isPosInRange(getPos()-pos))
-    {
-      //print a warning here
-      setPosValue(getMinPos());
-      return false;
-    }
-  else
-    {
-      setPosValue(getPos()-pos);
-    }
-  return true;  
+  assert(isPosInRange(getPos()-pos));
+  setPosValue(getPos()-pos);
 }

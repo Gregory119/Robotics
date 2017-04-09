@@ -1,6 +1,10 @@
 #MAKESETTINGS - identifier variable of this makefile
 MAKESETTINGS=1
 
+# to make in release mode:
+# $ make <target> RELEASE=1
+# <target> can be empty for a default make
+
 CXX = arm-linux-gnueabihf-g++
 
 UNAME_S := $(shell uname -s)
@@ -14,5 +18,11 @@ SRC = $(wildcard *.cpp)
 
 #avoid repetition of library object files in this directory for a library
 OBJ = $(SRC:.cpp=.o)
+
+ifdef RELEASE
+	DEFINES = -DNDEBUG
+else
+	DEFINES =
+endif
 
 INCLUDES =

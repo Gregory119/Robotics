@@ -19,8 +19,8 @@ namespace CORE
     Servo& operator=(const Servo&) = delete;
     
     virtual void moveToPos(uint8_t pos) = 0; //0 < pos < 255
-    virtual bool incrementMove(uint8_t pos); //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
-    virtual bool decrementMove(uint8_t pos);
+    void incrementMove(uint8_t pos); //0 < pos < 255. Returns 1 with no problems. If an attempt to increment past a limit is made, that limiting position will be set and 0 will be returned.
+    void decrementMove(uint8_t pos);
 
     virtual void setPosValue(uint8_t pos); //does not move the servo. It only sets the value
     virtual void setTiming(unsigned min_pulse,

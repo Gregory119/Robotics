@@ -1,4 +1,4 @@
-#include "chttp_simplehttppost.h"
+#include "chttp_simplepost.h"
 
 #include <iostream>
 
@@ -13,13 +13,19 @@ int main(int argc, char* argv[])
     }
 
   SimpleHttpPost poster(argv[1]);
-  
+
+  bool res = true;
   if (argc < 3)
     {
-      poster.postWithParams("");
+      res = poster.postWithParams("");
     }
   else
     {
-      poster.postWithParams(argv[2]);
+      res = poster.postWithParams(argv[2]);
+    }
+
+  if (!res)
+    {
+      std::cout << "Error: " << poster.getPostError() << std::end;
     }
 }

@@ -4,6 +4,7 @@
 #include <wiringPi.h>
 
 #include <unistd.h>
+#include <cassert>
 
 using namespace CORE;
 
@@ -31,7 +32,7 @@ void SoftServo::initPins()
 void SoftServo::run()
 {
   assert(!d_running);
-  
+      
   d_running = true;
   std::thread t(&threadFunc,
 		d_thread_shutdown.get_future(),
@@ -42,8 +43,7 @@ void SoftServo::run()
 //----------------------------------------------------------------------//
 void SoftServo::stop()
 {
-  if (!d_running)
-    return;
+  assert(!d_running);
     
   d_running=false;
   d_thread_shutdown.set_value(true); //stop the thread

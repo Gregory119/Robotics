@@ -4,7 +4,7 @@
 
 #include <fcntl.h> //open
 #include <unistd.h> //close
-#include <assert.h>
+#include <cassert>
 #include <thread>
 
 #include <iostream> //std::cout
