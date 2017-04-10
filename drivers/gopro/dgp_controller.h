@@ -12,7 +12,7 @@ namespace D_GP
   {
   public:
     GoProControllerOwner() = default;
-    virtual ~GoProControllerOwner();
+    virtual ~GoProControllerOwner() = default;
     GoProControllerOwner& operator=(const GoProControllerOwner&) = default;
     GoProControllerOwner(const GoProControllerOwner&) = default;
    

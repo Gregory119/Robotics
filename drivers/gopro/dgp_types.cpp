@@ -12,7 +12,7 @@ namespace D_GP
 };
 
 //----------------------------------------------------------------------//
-std::string CreateCmdUrl(const std::string& cmd)
+std::string D_GP::CreateCmdUrl(const std::string& cmd)
 {
   return g_ip_url + cmd;
 }

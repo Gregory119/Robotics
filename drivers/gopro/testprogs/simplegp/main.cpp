@@ -1,15 +1,15 @@
 #include "dgp_controller.h"
 
-//#include <iostream>
+#include <iostream>
 //#include <cstdlib> //exit success/failure
-//#include <memory> //std pointers
+#include <memory> //std pointers
 
 class Test : public D_GP::GoProControllerOwner
 {
 public:  
   Test()
   {
-    d_gp_cont = std::make_unique<D_GP::GoProController>(ControlType::Simple, this);
+    d_gp_cont.reset(new D_GP::GoProController(this, D_GP::ControlType::Simple));
     d_gp_cont->connectWithName("BushBot");
     d_gp_cont->takePicture();
   }

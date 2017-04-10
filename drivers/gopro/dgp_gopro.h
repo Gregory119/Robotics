@@ -17,7 +17,7 @@ namespace D_GP
   class GoProOwner
   {
   public:
-    virtual ~GoProOwner();
+    virtual ~GoProOwner() = default;
     GoProOwner& operator=(const GoProOwner&) = default;
     GoProOwner(const GoProOwner&) = default;
 

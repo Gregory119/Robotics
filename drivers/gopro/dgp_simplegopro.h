@@ -19,9 +19,6 @@ namespace D_GP
   {
   public:
     explicit SimpleGoPro(GoProOwner* o);
-    virtual ~SimpleGoPro();
-    SimpleGoPro& operator=(const SimpleGoPro&) = delete;
-    SimpleGoPro(const SimpleGoPro&) = delete;
 
     void connectWithName(std::string) override;
     void setMode(Mode) override;
