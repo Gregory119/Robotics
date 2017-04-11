@@ -14,8 +14,6 @@ static const unsigned s_max_servo_pin = 7;
 static const unsigned s_min_pulse = 100; //each unit is 10 us
 static const unsigned s_max_pulse = 200; //each unit is 10 us
 
-static std::ofstream servo_file;
-
 //----------------------------------------------------------------------//   
 HardServo::HardServo(unsigned servo_num)
 {
@@ -31,6 +29,7 @@ void HardServo::moveToPos(uint8_t pos)
   setPosValue(pos);
   unsigned pos_conv = UTIL::mapFromTo(getPosMap(), pos);
 
+  std::ofstream servo_file;
   servo_file.open(s_driver_dir);
   if (servo_file.fail())
     {
