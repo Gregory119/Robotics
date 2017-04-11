@@ -22,16 +22,19 @@ void SimpleGoPro::connectWithName(std::string name)
   
   if (!d_http_post->isReady())
     {
+      owner()->handleFailedCommand(this,Cmd::Connect);
       return;
     }
   
   if (!d_http_post->post(CreateCmdUrl(g_bacpac)))
     {
+      owner()->handleFailedCommand(this,Cmd::Connect);
       return;
     }
-  
-  if (!d_http_post->post(CreateCmdUrl(g_wifipair)))
+
+  if (!d_http_post->post(CreateCmdUrl(g_wifipair+std::string("?success=1&deviceName=")+name)))
     {
+      owner()->handleFailedCommand(this,Cmd::Connect);
       return;
     }
     
@@ -62,6 +65,7 @@ void SimpleGoPro::setMode(Mode mode)
       owner()->handleFailedCommand(this,Cmd::SetMode);
       return;
     }
+  owner()->handleModeChanged(this,mode);
 }
 
 //----------------------------------------------------------------------//
@@ -77,7 +81,7 @@ void SimpleGoPro::setShutter(bool state)
       params = "?p=0";
     }
   
-  if(d_http_post->post(CreateCmdUrl(g_shutter)+params))
+  if(!d_http_post->post(CreateCmdUrl(g_shutter)+params))
     {
       owner()->handleFailedCommand(this,Cmd::SetShutter);
       return;

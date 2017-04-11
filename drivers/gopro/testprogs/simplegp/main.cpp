@@ -4,6 +4,8 @@
 //#include <cstdlib> //exit success/failure
 #include <memory> //std pointers
 
+#include <unistd.h>
+
 class Test : public D_GP::GoProControllerOwner
 {
 public:  
@@ -11,14 +13,20 @@ public:
   {
     d_gp_cont.reset(new D_GP::GoProController(this, D_GP::ControlType::Simple));
     d_gp_cont->connectWithName("BushBot");
-    d_gp_cont->takePicture();
+    //d_gp_cont->takePicture(); //uncomment to test, but comment out multishot to see single picture taken
+    //d_gp_cont->takeMultiShot();
+
+    //recording
+    d_gp_cont->StartStopRecording();
+    sleep(5); //recording time
+    d_gp_cont->StartStopRecording();
   }
   
 private:
   //D_GP::GoProController
-  void handleFailedRequest(D_GP::GoProController*, D_GP::Request) override
+  void handleFailedRequest(D_GP::GoProController*, D_GP::Request req) override
   {
-    std::cout << "handleFailedCommand" << std::endl;
+    std::cout << "handleFailedRequest: " << D_GP::reqToString(req) << std::endl;
   }
   
 private:

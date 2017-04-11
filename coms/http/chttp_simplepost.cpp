@@ -15,6 +15,11 @@ SimpleHttpPost::~SimpleHttpPost()
 //----------------------------------------------------------------------//
 bool SimpleHttpPost::init()
 {
+  if (isReady())
+    {
+      return true;
+    }
+  
   if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK)
     {
       return false;

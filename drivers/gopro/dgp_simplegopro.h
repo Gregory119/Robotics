@@ -23,7 +23,7 @@ namespace D_GP
     void connectWithName(std::string) override;
     void setMode(Mode) override;
     void setShutter(bool) override;
-  
+
   private:
     std::unique_ptr<C_HTTP::SimpleHttpPost> d_http_post;
     bool d_cmd_failed = false;

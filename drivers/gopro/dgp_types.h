@@ -7,12 +7,14 @@ namespace D_GP
 {
   enum class Cmd
   {
+    Connect,
     SetMode,
     SetShutter
   };
 
   enum class Request
   {
+    Connect,
     Picture,
     MultiShot,
     StartStopRec
@@ -32,6 +34,8 @@ namespace D_GP
   };
   
   std::string CreateCmdUrl(const std::string& cmd);
+  std::string cmdToString(Cmd);
+  std::string reqToString(Request);
   
   extern const std::string& g_ip_url;
   extern const std::string& g_bacpac;

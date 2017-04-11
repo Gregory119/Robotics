@@ -3,7 +3,7 @@
 
 #include "dgp_gopro.h"
 #include <memory>
-#include <deque>
+#include <vector>
 
 namespace D_GP
 {
@@ -43,7 +43,7 @@ namespace D_GP
     GoProControllerOwner* d_owner;
     
     std::unique_ptr<D_GP::GoPro> d_gp = nullptr;
-    std::deque<Request> d_gp_cmd_list;
+    std::vector<Request> d_gp_cmd_list;
     bool d_is_recording = false;
   };
 };

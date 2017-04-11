@@ -3,6 +3,7 @@
 #include "dgp_factory.h"
 
 #include <cassert>
+#include <iostream>
 
 using namespace D_GP;
 
@@ -17,16 +18,17 @@ GoProController::GoProController(GoProControllerOwner* o, ControlType type)
 //----------------------------------------------------------------------//
 void GoProController::connectWithName(const std::string& name)
 {
+  d_gp_cmd_list.push_back(Request::Connect);
   d_gp->connectWithName(name);
 }
 
 //----------------------------------------------------------------------//
 void GoProController::takePicture()
 {
-  d_gp_cmd_list.emplace_back(Request::Picture);
+  d_gp_cmd_list.push_back(Request::Picture);
   if (!d_gp->isConnected())
     {
-      d_owner->handleFailedRequest(this, *d_gp_cmd_list.end());
+      d_owner->handleFailedRequest(this, Request::Picture);
       return;
     }
   d_gp->setMode(D_GP::Mode::Photo);
@@ -35,22 +37,22 @@ void GoProController::takePicture()
 //----------------------------------------------------------------------//
 void GoProController::takeMultiShot()
 {
-  d_gp_cmd_list.emplace_back(Request::MultiShot);
+  d_gp_cmd_list.push_back(Request::MultiShot);
   if (!d_gp->isConnected())
     {
-      d_owner->handleFailedRequest(this, *d_gp_cmd_list.end());
+      d_owner->handleFailedRequest(this, Request::MultiShot);
       return;
     }
-  d_gp->setMode(D_GP::Mode::Photo);
+  d_gp->setMode(D_GP::Mode::MultiShot);
 }
 
 //----------------------------------------------------------------------//
 void GoProController::StartStopRecording()
 {
-  d_gp_cmd_list.emplace_back(Request::StartStopRec);
+  d_gp_cmd_list.push_back(Request::StartStopRec);
   if (!d_gp->isConnected())
     {
-      d_owner->handleFailedRequest(this, *d_gp_cmd_list.end());
+      d_owner->handleFailedRequest(this, Request::StartStopRec);
       return;
     }
   d_gp->setMode(D_GP::Mode::Video);
@@ -70,10 +72,12 @@ void GoProController::handleModeChanged(GoPro*, Mode mode)
       if (d_is_recording)
 	{
 	  d_gp->setShutter(false);
+	  d_is_recording = false;
 	}
       else
 	{
 	  d_gp->setShutter(true);
+	  d_is_recording = true;
 	}
       break;
     };
@@ -82,16 +86,20 @@ void GoProController::handleModeChanged(GoPro*, Mode mode)
 //----------------------------------------------------------------------//
 void GoProController::handleShutterSet(GoPro*, bool state)
 {
-  if (*d_gp_cmd_list.begin() == Request::StartStopRec)
+  assert(!d_gp_cmd_list.empty());
+  if (d_gp_cmd_list.front() == Request::StartStopRec)
     {
       d_is_recording = !d_is_recording;
     }
-  d_gp_cmd_list.pop_front();
+  d_gp_cmd_list.erase(d_gp_cmd_list.begin());
 }
 
 //----------------------------------------------------------------------//
-void GoProController::handleFailedCommand(GoPro*, Cmd)
+void GoProController::handleFailedCommand(GoPro*, Cmd cmd)
 {
-  d_owner->handleFailedRequest(this, *d_gp_cmd_list.begin());
-  d_gp_cmd_list.pop_front();
+  std::cout << "handleFailedCommand: " << cmdToString(cmd) << std::endl;
+  assert(!d_gp_cmd_list.empty());
+  
+  d_owner->handleFailedRequest(this, d_gp_cmd_list.front());
+  d_gp_cmd_list.erase(d_gp_cmd_list.begin());
 }
