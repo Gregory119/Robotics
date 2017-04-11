@@ -69,10 +69,17 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
 {
   std::lock_guard<std::mutex> lock(m);
   serialPutchar(d_desc, 'J');
-  serialPutchar(d_desc, convertValueTo8Bits(event.time, s_u32_max_digits));
-  serialPutchar(d_desc, convertValueTo8Bits(event.value, s_s16_max_digits));
-  serialPutchar(d_desc, convertValueTo8Bits(event.type, s_u8_max_digits));
-  serialPutchar(d_desc, convertValueTo8Bits(event.number, s_u8_max_digits));
+  serialPutchar(d_desc, mapToChar(event.time, s_u32_max_digits));
+  if (event.type == BUTTON)
+    {
+      serialPutchar(d_desc, mapToChar(event.value, s_u8_max_digits));
+    }
+  else if (event.type == AXIS)
+    {
+      serialPutchar(d_desc, mapToChar(event.value, s_s16_max_digits));
+    }
+  serialPutchar(d_desc, mapToChar(event.type, s_u8_max_digits));
+  serialPutchar(d_desc, mapToChar(event.number, s_u8_max_digits));
   serialPutchar(d_desc, '#');
   
   std::cout << "=========================================" << std::endl;
@@ -81,10 +88,17 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
   std::cout << "type: " << (int)event.type << std::endl;
   std::cout << "number: " << (int)event.number << std::endl;
 
-  std::cout << "time [8bits]: " << (int)convertValueTo8Bits(event.time, s_u32_max_digits) << std::endl;
-  std::cout << "value [8bits]: " << (int)convertValueTo8Bits(event.value, s_s16_max_digits) << std::endl;
-  std::cout << "type [8bits]: " << (int)convertValueTo8Bits(event.type, s_u8_max_digits) << std::endl;
-  std::cout << "number [8bits]: " << (int)convertValueTo8Bits(event.number, s_u8_max_digits) << std::endl;
+  std::cout << "time [8bits]: " << (int)mapToChar(event.time, s_u32_max_digits) << std::endl;
+  if (event.type == BUTTON)
+    {
+      std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_u8_max_digits) << std::endl;
+    }
+  else if (event.type == AXIS)
+    {
+      std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_s16_max_digits) << std::endl;
+    }
+  std::cout << "type [8bits]: " << (int)mapToChar(event.type, s_u8_max_digits) << std::endl;
+  std::cout << "number [8bits]: " << (int)mapToChar(event.number, s_u8_max_digits) << std::endl;
 }
 
 //----------------------------------------------------------------------//

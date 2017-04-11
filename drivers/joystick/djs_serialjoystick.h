@@ -49,8 +49,8 @@ namespace D_JS
   private:
     //----------------------------------------------------------------------//
     template <typename T>
-      char convertValueTo8Bits(T value, 
-			       unsigned max_digits)
+      char mapToChar(T value, 
+		     unsigned max_digits)
       {
 	char ret;
 

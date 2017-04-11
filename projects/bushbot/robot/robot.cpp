@@ -1,5 +1,7 @@
 #include "robot.h"
 #include "core_hardservo.h"
+
+#include <cassert>
 #include <iostream>
 
 static const unsigned s_steer_servo_range_deg = 180;
@@ -32,7 +34,8 @@ Robot::Robot(Params& params)
   : d_steer_num(params.steering_num),
     d_motor_num(params.motor_num),
     d_steering(new CORE::HardServo(d_steer_num)),
-    d_motor(new CORE::HardServo(d_motor_num))
+    d_motor(new CORE::HardServo(d_motor_num)),
+    d_gp_cont(new D_GP::GoProController(this, D_GP::ControlType::Simple))
 {
   d_steering->moveToPos(s_steer_mid_pos_servo); //start servo in the middle of the set range of motion
 }
@@ -81,32 +84,59 @@ void Robot::processEvent(const D_JS::JSEventMinimal &event)
       
     default:
       std::cout << "Event type not found." << std::endl;
-      break;
+      assert(false);
+      return;
     }
 }
 
 //----------------------------------------------------------------------//
 void Robot::processButton(const D_JS::JSEventMinimal &event)
-{    
+{
+  std::cout << "processButton." << std::endl;
   using namespace D_JS;
     
   switch (event.number)
     {
-    case A:
-      //take a picture
+    case Y:
+      std::cout << "Y" << std::endl;
       if (event.value==1)
-	std::cout << "take a picture" << std::endl;
+	{
+	  std::cout << "Trying to connect." << std::endl;
+	  d_gp_cont->connectWithName("Mantis");
+	}
+      break;
+
+    case A:
+      std::cout << "A" << std::endl;
+      if (event.value==1)
+	{
+	  std::cout << "Taking pic." << std::endl;
+	  d_gp_cont->takePicture();
+	}
       break;
 	
     case B:
-      //start/stop video recording
+      std::cout << "B" << std::endl;
       if (event.value==1)
-	std::cout << "start/stop video recording" << std::endl;
+	{
+	  std::cout << "Start or Stop Recording" << std::endl;
+	  d_gp_cont->StartStopRecording();
+	}
       break;
 
+    case X:
+      std::cout << "X" << std::endl;
+      if (event.value==1)
+	{
+	  std::cout << "taking multishot" << std::endl;
+	  d_gp_cont->takeMultiShot();
+	}
+      break;
+      
     default:
       std::cout << "Button not found." << std::endl;
-      break;
+      assert(false);
+      return;
     }
 }
 
@@ -157,4 +187,10 @@ void Robot::processAxis(const D_JS::JSEventMinimal &event)
     default:
       break;
     }
+}
+
+//----------------------------------------------------------------------//
+void Robot::handleFailedRequest(D_GP::GoProController*, D_GP::Request req)
+{
+  std::cout << "Robot::handleFailedRequest: " << D_GP::reqToString(req) << std::endl;
 }

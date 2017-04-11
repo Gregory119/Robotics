@@ -2,7 +2,9 @@
 #define ROBOT_H
 
 #include "kn_basic.h"
+#include "dgp_controller.h"
 #include "djs_serialjoystick.h"
+
 #include <memory>
 
 namespace CORE
@@ -10,7 +12,8 @@ namespace CORE
   class Servo;
 };
 
-class Robot final : public KERN::KernBasicComponent
+class Robot final : public KERN::KernBasicComponent,
+  public D_GP::GoProControllerOwner
 {
  public:
   struct Params
@@ -38,6 +41,9 @@ class Robot final : public KERN::KernBasicComponent
   bool init(const char* serial_port, int baud=9600);
 
  private:
+  //D_GP::GoProController
+  void handleFailedRequest(D_GP::GoProController*, D_GP::Request req) override;
+  
   virtual bool stayRunning();
 
   void processEvent(const D_JS::JSEventMinimal &event);
@@ -52,6 +58,7 @@ class Robot final : public KERN::KernBasicComponent
   unsigned d_motor_num = 0;
   std::unique_ptr<CORE::Servo> d_steering;
   std::unique_ptr<CORE::Servo> d_motor;
+  std::unique_ptr<D_GP::GoProController> d_gp_cont;
 };
 
 #endif

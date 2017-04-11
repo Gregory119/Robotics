@@ -18,6 +18,10 @@ References:
            psk="fta43ea9"
   }
 
+for adsl:
+ssid="TP-LINK_AC5344"
+psk="19242316"
+	   
 ==ethernet==
 static ip for direct ethernet connection between laptop and pi [1]
 - edit /etc/dhcpcd.conf
