@@ -18,7 +18,7 @@ namespace C_HTTP
     SimpleHttpPost& operator=(const SimpleHttpPost&) = delete;
     SimpleHttpPost(const SimpleHttpPost&) = delete;
 
-    bool init(); //must be successful before using class
+    bool init(long timeout_sec = 2); //must be successful before using class
     bool isReady() { return d_ready; }
     bool post(const std::string& url); //example params = "name=daniel&project=curl"
     std::string getPostError();

@@ -13,7 +13,7 @@ SimpleHttpPost::~SimpleHttpPost()
 }
 
 //----------------------------------------------------------------------//
-bool SimpleHttpPost::init()
+bool SimpleHttpPost::init(long timeout_sec)
 {
   if (isReady())
     {
@@ -24,6 +24,11 @@ bool SimpleHttpPost::init()
     {
       return false;
     }
+
+  if (d_curl != nullptr)
+    {
+      curl_easy_cleanup(d_curl);
+    }
   
   d_curl = curl_easy_init();
   if (d_curl == nullptr)
@@ -31,6 +36,11 @@ bool SimpleHttpPost::init()
       return false;
     }
 
+  if (curl_easy_setopt(d_curl, CURLOPT_TIMEOUT, timeout_sec) != CURLE_OK)
+    {
+      return false;
+    }
+  
   d_ready = true;
   return true;
 }
