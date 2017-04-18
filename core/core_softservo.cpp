@@ -122,11 +122,11 @@ unsigned SoftServo::getPulseMaxTimeUs()
 }
 
 //----------------------------------------------------------------------//
-void SoftServo::setTiming(unsigned min_pulse,
-			  unsigned max_pulse)
+void SoftServo::setUsTiming(unsigned min_pulse,
+			    unsigned max_pulse)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  Servo::setTiming(min_pulse, max_pulse);
+  Servo::setUsTiming(min_pulse, max_pulse);
 }
 
 //----------------------------------------------------------------------//

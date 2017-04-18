@@ -32,7 +32,7 @@ namespace CORE
     virtual void moveToPos(uint8_t pos) override; //0 < pos < 255
 
     virtual void setPosValue(uint8_t pos) override; //does not move the servo. It only sets the value
-    virtual void setTiming(unsigned min_pulse,
+    virtual void setUsTiming(unsigned min_pulse,
 			   unsigned max_pulse) override; //use your own units to conform to. The default values are in microseconds.
     
     virtual unsigned getPos() override;

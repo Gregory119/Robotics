@@ -13,8 +13,8 @@ Servo::Servo()
 {}
 
 //----------------------------------------------------------------------//
-void Servo::setTiming(unsigned min_pulse,
-		      unsigned max_pulse)
+void Servo::setUsTiming(unsigned min_pulse,
+			unsigned max_pulse)
 {
   d_min_pulse = min_pulse;
   d_max_pulse = max_pulse;

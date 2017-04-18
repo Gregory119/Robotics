@@ -10,6 +10,7 @@ int main(int argc, char* argv[])
   if (argc < 3)
     {
       std::cout << "parameters: [servo number] [position: 0-255]" << std::endl;
+      return 0;
     }
 
   unsigned servo_num = atoi(argv[1]);;
@@ -20,6 +21,8 @@ int main(int argc, char* argv[])
       return 0;
     }
   HardServo d_steering(servo_num);
+  d_steering.setUsTiming(500,
+  		       2500);
 
   unsigned char pos = 0;
   pos = atoi(argv[2]);

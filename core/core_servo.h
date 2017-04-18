@@ -23,8 +23,8 @@ namespace CORE
     void decrementMove(uint8_t pos);
 
     virtual void setPosValue(uint8_t pos); //does not move the servo. It only sets the value
-    virtual void setTiming(unsigned min_pulse,
-			   unsigned max_pulse); //use your own units to conform to. The default values are in microseconds.
+    virtual void setUsTiming(unsigned min_pulse,
+			     unsigned max_pulse); //use your own units to conform to. The default values are in microseconds.
     
     virtual unsigned getPos() { return d_pos; }
     virtual unsigned getPulseMinTimeUs() { return d_min_pulse; }
@@ -36,6 +36,15 @@ namespace CORE
     static bool isPosInRange(uint8_t pos);
 
   private:
+    /*
+      hobby servos:
+      d_min_pulse = 500;
+      d_max_pulse = 2500;
+
+      rc car steering servos:
+      d_min_pulse = 1000;
+      d_max_pulse = 2000;
+     */
     unsigned d_min_pulse = 500; //default values in us
     unsigned d_max_pulse = 2500;
     unsigned d_pos = 0; //is in the 0-255 range

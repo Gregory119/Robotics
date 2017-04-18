@@ -4,30 +4,30 @@
 #include <cassert>
 #include <iostream>
 
-static const unsigned s_steer_servo_range_deg = 180;
-static const unsigned s_steer_min_pos_deg = 0;
-static const unsigned s_steer_max_pos_deg = 180;
+static const unsigned s_steer_min_pos_deg = 1;
+static const unsigned s_steer_max_pos_deg = 179;
+static const unsigned s_steer_range_deg = 180;
 static const unsigned s_steer_min_pos_servo = CORE::Servo::getMinPos()+
-  CORE::Servo::getRangePos()*s_steer_min_pos_deg/s_steer_servo_range_deg;
+  CORE::Servo::getRangePos()*s_steer_min_pos_deg/s_steer_range_deg;
 static const unsigned s_steer_max_pos_servo = CORE::Servo::getMinPos()+
-  CORE::Servo::getRangePos()*s_steer_max_pos_deg/s_steer_servo_range_deg;
+  CORE::Servo::getRangePos()*s_steer_max_pos_deg/s_steer_range_deg;
 static const unsigned s_steer_mid_pos_servo = 
-  s_steer_min_pos_servo + CORE::Servo::getRangePos()/2;
+  (s_steer_min_pos_servo + s_steer_max_pos_servo)/2;
 
-static const UTIL::Map s_rt_lever_to_servo_pos(D_JS::EventMinimal::lever_max_in, 
-					       D_JS::EventMinimal::lever_max_out, 
-					       CORE::Servo::getMaxPos(), 
-					       s_steer_mid_pos_servo);
+static const UTIL::Map s_rt_map(D_JS::axis_max, 
+				D_JS::axis_min, 
+				s_steer_max_pos_servo, 
+				s_steer_mid_pos_servo);
 
-static const UTIL::Map s_lt_lever_to_servo_pos(D_JS::EventMinimal::lever_max_out, 
-					       D_JS::EventMinimal::lever_max_in, 
-					       s_steer_mid_pos_servo, 
-					       CORE::Servo::getMinPos());
+static const UTIL::Map s_lt_map(D_JS::axis_min, 
+				D_JS::axis_max, 
+				s_steer_mid_pos_servo, 
+			        s_steer_min_pos_servo);
 
-static const UTIL::Map s_stick_to_steer_servo_pos(D_JS::EventMinimal::axis_max_right, 
-						  D_JS::EventMinimal::axis_max_left, 
-						  s_steer_max_pos_servo, 
-						  s_steer_min_pos_servo);
+static const UTIL::Map s_stick_map(D_JS::axis_max, 
+				   D_JS::axis_min, 
+				   s_steer_max_pos_servo, 
+				   s_steer_min_pos_servo);
 
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
@@ -37,7 +37,10 @@ Robot::Robot(Params& params)
     d_motor(new CORE::HardServo(d_motor_num)),
     d_gp_cont(new D_GP::GoProController(this, D_GP::ControlType::Simple))
 {
+  d_motor->setUsTiming(1000, 2000); //in microseconds
+  d_steering->setUsTiming(500, 2500); //in microseconds
   d_steering->moveToPos(s_steer_mid_pos_servo); //start servo in the middle of the set range of motion
+  d_motor->moveToPos(127); //start servo in the middle of the set range of motion
 }
 
 //----------------------------------------------------------------------//
@@ -135,7 +138,6 @@ void Robot::processButton(const D_JS::JSEventMinimal &event)
       
     default:
       std::cout << "Button not found." << std::endl;
-      assert(false);
       return;
     }
 }
@@ -150,7 +152,7 @@ void Robot::processAxis(const D_JS::JSEventMinimal &event)
     case X1:
       {
 	std::cout << "turn left/right" << std::endl;
-	unsigned servo_sig = UTIL::mapFromTo(s_stick_to_steer_servo_pos, static_cast<unsigned>(event.value));
+	unsigned servo_sig = UTIL::mapFromTo(s_stick_map, static_cast<unsigned>(event.value));
 	std::cout << "servo signal = " << servo_sig << std::endl;
 	d_steering->moveToPos(servo_sig);
       }
@@ -169,7 +171,7 @@ void Robot::processAxis(const D_JS::JSEventMinimal &event)
     case RT:
       {
 	std::cout << "move forward" << std::endl;
-	unsigned motor_sig = UTIL::mapFromTo(s_rt_lever_to_servo_pos, static_cast<unsigned>(event.value));
+	unsigned motor_sig = UTIL::mapFromTo(s_rt_map, static_cast<unsigned>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
@@ -178,7 +180,7 @@ void Robot::processAxis(const D_JS::JSEventMinimal &event)
     case LT:
       {
 	std::cout << "move backward" << std::endl;
-        unsigned motor_sig = UTIL::mapFromTo(s_lt_lever_to_servo_pos, static_cast<unsigned>(event.value));
+        unsigned motor_sig = UTIL::mapFromTo(s_lt_map, static_cast<unsigned>(event.value));
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
