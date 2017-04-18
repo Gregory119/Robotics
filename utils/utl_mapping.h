@@ -6,37 +6,37 @@ namespace UTIL
   struct Map
   {
     Map();
-  Map(int o_max, int o_min, int n_max, int n_min)
-  : d_orig_max(o_max),
-      d_orig_min(o_min),
-      d_new_max(n_max),
-      d_new_min(n_min)
+  Map(int in_max, int in_min, int o_max, int o_min)
+  : d_in_max(in_max),
+      d_in_min(in_min),
+      d_out_max(o_max),
+      d_out_min(o_min)
     {}
     Map(const Map &copy) = default;
     Map& operator=(const Map &copy) = default;
 
-    int d_orig_max = 0;
-    int d_orig_min = 0;
-    int d_new_max = 0;
-    int d_new_min = 0;
+    int d_in_max = 0;
+    int d_in_min = 0;
+    int d_out_max = 0;
+    int d_out_min = 0;
   };
   
   //----------------------------------------------------------------------//
-  //flip axis will make the new max value correspond to the original min value and make the new min value correspond to the original max value.
-  //make sure the original value is in range of its original max and min values
+  //flip axis will make the out max value correspond to the input min value and make the out min value correspond to the input max value.
+  //make sure the input value is in range of its input max and min values
   template <typename T>
-    double mapFromTo(const Map &map, T orig_val, bool flip_axis=false)
+    double mapFromTo(const Map &map, T in_val, bool flip_axis=false)
     {
-      double new_val = (static_cast<double>(orig_val) - map.d_orig_min)/
-	(map.d_orig_max - map.d_orig_min)*
-	(map.d_new_max - map.d_new_min) + map.d_new_min;
+      double out_val = (static_cast<double>(in_val) - map.d_in_min)/
+	(map.d_in_max - map.d_in_min)*
+	(map.d_out_max - map.d_out_min) + map.d_out_min;
 
       if (flip_axis)
 	{
-	  new_val = (map.d_new_max - new_val) + map.d_new_min;
+	  out_val = (map.d_out_max - out_val) + map.d_out_min;
 	}
 
-      return new_val;
+      return out_val;
     }
 };
 #endif
