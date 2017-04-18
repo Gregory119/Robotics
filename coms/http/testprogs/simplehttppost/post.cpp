@@ -6,26 +6,22 @@ int main(int argc, char* argv[])
 {
   using namespace C_HTTP;
   
-  if (argc < 2)
+  if (argc < 1)
     {
-      std::cout << "parameters: [url with no params] [params urn]" << std::endl;
+      std::cout << "parameters: [url]" << std::endl;
       return 0;
     }
 
-  SimpleHttpPost poster(argv[1]);
+  SimpleHttpPost poster;
 
   bool res = true;
-  if (argc < 3)
+  if (poster.isReady())
     {
-      res = poster.postWithParams("");
-    }
-  else
-    {
-      res = poster.postWithParams(argv[2]);
+      res = poster.post(argv[1]);
     }
 
   if (!res)
     {
-      std::cout << "Error: " << poster.getPostError() << std::end;
+      std::cout << "Error: " << poster.getPostError() << std::endl;
     }
 }
