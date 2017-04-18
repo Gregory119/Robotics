@@ -87,14 +87,7 @@ namespace D_JS
     uint8_t number = 0;
   };
 
-  namespace EventMinimal
-  {//declarations
-    extern const uint8_t lever_max_out;
-    extern const uint8_t lever_max_in;
-    extern const uint8_t axis_max_left;
-    extern const uint8_t axis_max_up;
-    extern const uint8_t axis_max_right;
-    extern const uint8_t axis_max_down;
-  };
+  extern const uint8_t axis_max;
+  extern const uint8_t axis_min;
 };
 #endif
