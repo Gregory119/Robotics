@@ -4,8 +4,8 @@
 #include <cassert>
 #include <iostream>
 
-static const unsigned s_steer_min_pos_deg = 1;
-static const unsigned s_steer_max_pos_deg = 179;
+static const unsigned s_steer_min_pos_deg = 45;
+static const unsigned s_steer_max_pos_deg = 120;
 static const unsigned s_steer_range_deg = 180;
 static const unsigned s_steer_min_pos_servo = CORE::Servo::getMinPos()+
   CORE::Servo::getRangePos()*s_steer_min_pos_deg/s_steer_range_deg;
@@ -14,15 +14,18 @@ static const unsigned s_steer_max_pos_servo = CORE::Servo::getMinPos()+
 static const unsigned s_steer_mid_pos_servo = 
   (s_steer_min_pos_servo + s_steer_max_pos_servo)/2;
 
+static const unsigned s_esc_mid_pos_servo = 
+  (CORE::Servo::getMinPos() + CORE::Servo::getMaxPos())/2;
+
 static const UTIL::Map s_rt_map(D_JS::axis_max, 
 				D_JS::axis_min, 
-				s_steer_max_pos_servo, 
-				s_steer_mid_pos_servo);
+				CORE::Servo::getMaxPos(), 
+			        s_esc_mid_pos_servo);
 
 static const UTIL::Map s_lt_map(D_JS::axis_min, 
 				D_JS::axis_max, 
-				s_steer_mid_pos_servo, 
-			        s_steer_min_pos_servo);
+				s_esc_mid_pos_servo, 
+			        CORE::Servo::getMinPos());
 
 static const UTIL::Map s_stick_map(D_JS::axis_max, 
 				   D_JS::axis_min, 
