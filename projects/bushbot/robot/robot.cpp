@@ -4,7 +4,7 @@
 #include <cassert>
 #include <iostream>
 
-static const unsigned s_steer_min_pos_deg = 45;
+static const unsigned s_steer_min_pos_deg = 50;
 static const unsigned s_steer_max_pos_deg = 120;
 static const unsigned s_steer_range_deg = 180;
 static const unsigned s_steer_min_pos_servo = CORE::Servo::getMinPos()+
