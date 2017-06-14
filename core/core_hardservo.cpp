@@ -24,7 +24,10 @@ HardServo::HardServo(unsigned servo_num)
 void HardServo::moveToPos(uint8_t pos)
 {
   setPosValue(pos);
-  unsigned pos_blast = UTIL::mapFromTo(getPosMap(), pos)/s_blaster_to_us;
+  unsigned pos_blast = 0;
+  unsigned pos_us = 0;
+  UTIL::mapFromTo(getPosMap(), pos, pos_us);
+  pos_blast = pos_us/s_blaster_to_us;
 
   std::ofstream servo_file;
   servo_file.open(s_driver_dir);

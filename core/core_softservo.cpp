@@ -53,7 +53,8 @@ void SoftServo::stop()
 void SoftServo::updatePos()
 {
   unsigned pos = getPos();
-  unsigned pos_us = UTIL::mapFromTo(getPosMap(), pos);
+  unsigned pos_us = 0;
+  UTIL::mapFromTo(getPosMap(), pos, pos_us);
 
   unsigned time_us = micros();
   digitalWrite(d_pin, HIGH);

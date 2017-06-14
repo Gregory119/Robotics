@@ -169,7 +169,7 @@ bool JoystickReceiver::readSerialEvent(JSEventMinimal &js_event)
     }
 
   //need to decompress the time value from a compressed uint8_t to a uint16_t
-  d_js_event.time_ms = mapFromTo(s_uchar_time_to_uint16_map, serialGetchar(d_desc));
+  mapFromTo(s_uchar_time_to_uint16_map, serialGetchar(d_desc), d_js_event.time_ms);
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
   d_js_event.number = serialGetchar(d_desc);

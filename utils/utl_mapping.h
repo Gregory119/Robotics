@@ -1,6 +1,9 @@
 #ifndef UTIL_MAPPPING_H
 #define UTIL_MAPPPING_H
 
+#include <type_traits>
+#include <cassert>
+
 namespace UTIL
 {
   struct Map
@@ -24,10 +27,18 @@ namespace UTIL
   //----------------------------------------------------------------------//
   //flip axis will make the out max value correspond to the input min value and make the out min value correspond to the input max value.
   //make sure the input value is in range of its input max and min values
-  template <typename T>
-    double mapFromTo(const Map &map, T in_val, bool flip_axis=false)
+  // Only for fundamental types
+  template <typename Tin, typename Tout>
+    void mapFromTo(const Map &map, Tin in_val, Tout& out_val,  bool flip_axis=false)
     {
-      double out_val = (static_cast<double>(in_val) - map.d_in_min)/
+      if (!std::is_fundamental<Tin>::value ||
+	  !std::is_fundamental<Tout>::value)
+	{
+	  assert(false);
+	  return;
+	}
+      
+      out_val = (static_cast<Tout>(in_val) - map.d_in_min)/ //use cast to induce up cast if necessary
 	(map.d_in_max - map.d_in_min)*
 	(map.d_out_max - map.d_out_min) + map.d_out_min;
 
@@ -35,8 +46,6 @@ namespace UTIL
 	{
 	  out_val = (map.d_out_max - out_val) + map.d_out_min;
 	}
-
-      return out_val;
     }
 };
 #endif

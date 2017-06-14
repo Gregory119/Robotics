@@ -52,15 +52,15 @@ namespace D_JS
       char mapToChar(T value, 
 		     unsigned max_digits)
       {
-	char ret;
+	char ret = 0;
 
 	if (max_digits == s_u32_max_digits)
 	  {
-	    ret = mapFromTo(s_time_to_uchar_map, value);
+	    mapFromTo(s_time_to_uchar_map, value, ret);
 	  }
 	else if (max_digits == s_s16_max_digits)
 	  {
-	    ret = mapFromTo(s_value_to_char_map, value);
+	    mapFromTo(s_value_to_char_map, value, ret);
 	  }
 	else if (max_digits == s_u8_max_digits)
 	  {
