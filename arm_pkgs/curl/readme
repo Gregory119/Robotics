@@ -8,3 +8,6 @@ Cross compile and install:
     - $ make
     - $ make install => this installs files to /home/rasppi_xcompile/extra_libs_install/
     - move the header and library files out of any sub-directories
+
+
+/configure -opengl es2 -shared -device-option CROSS_COMPILE=arm-linux-gnueabihf-g++ -sysroot /home/rasppi_xcompile/sysroot -opensource -confirm-license -optimized-qmake -reduce-exports -release -make libs -prefix /home/rasppi_xcompile/extra_libs_install/qt5 -hostprefix /home/rasppi_xcompile/extra_libs_install/qt5

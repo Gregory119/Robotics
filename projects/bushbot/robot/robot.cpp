@@ -58,19 +58,21 @@ bool Robot::init(const char* serial_port,
 }
 
 //----------------------------------------------------------------------//
-bool Robot::stayRunning()
+bool Robot::process()
 {
   if (d_js_receiver.readSerialEvent(d_js_event))
     {
       std::cout << "received event" << std::endl;
       processEvent(d_js_event);
+      // use this section to update input values
     }
   else
     {
+      // NB!!!
       //consider actions when no event is received after a prolonged period of time
       //eg. set the motor speed to zero
     }
-    
+
   //no reason to stop running
   return true;
 }

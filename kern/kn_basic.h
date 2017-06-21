@@ -21,9 +21,19 @@ namespace KERN
 
   class KernBasicComponent
   {
+  public:
+    KernBasicComponent(KernBasic*);
+    KernBasicComponent(KernBasicComponent* superior_comp); // needs a superior component to call it
+
+  private:
+    registerSubKernComponent(KernBasicComponent*);
+    
   private:
     friend KernBasic;
-    virtual bool stayRunning() = 0;
+    virtual bool process() { return true; }
+    bool processSubComponents();
+
+    std::list<KernBasicComponent> d_sub_components;
   };
 };
 

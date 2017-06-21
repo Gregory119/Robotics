@@ -44,7 +44,7 @@ class Robot final : public KERN::KernBasicComponent,
   //D_GP::GoProController
   void handleFailedRequest(D_GP::GoProController*, D_GP::Request req) override;
   
-  virtual bool stayRunning();
+  override bool process();
 
   void processEvent(const D_JS::JSEventMinimal &event);
   void processButton(const D_JS::JSEventMinimal &event);
@@ -59,6 +59,9 @@ class Robot final : public KERN::KernBasicComponent,
   std::unique_ptr<CORE::Servo> d_steering;
   std::unique_ptr<CORE::Servo> d_motor;
   std::unique_ptr<D_GP::GoProController> d_gp_cont;
+
+  //create some sub kernel components to be registered
+  //input derivative limiters eg. velocity derivative (acceleration) limiter
 };
 
 #endif
