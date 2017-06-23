@@ -1,0 +1,33 @@
+git clone git://code.qt.io/qt/qt5.git --branch 5.9.0
+
+then ./init-repository -f
+
+-j option specifies the number of threads
+
+go to arm compiler directory and create a fake symbolic link so that qt will buil with hard float version:
+cd /home/rasppi_xcompile/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
+ln -s arm-linux-gnueabihf-g++ arm-linux-gnueabi-g++
+
+delete this link when finished compiling
+
+
+
+/*
+  ./configure -opengl es2 -shared -device-option -opensource -confirm-license -optimized-qmake -reduce-exports -release -make libs */
+
+./configure -opengl es2 -shared -device-option -opensource -confirm-license -optimized-qmake -reduce-exports -release -make libs
+
+
+==cross compile==
+- nice guide at: http://wiki.qt.io/Raspberry_Pi_Beginners_Guide
+
+- may need to do the step in the above linke with text: "This repository contains a script that will be used to fix some symbolic links."
+
+$ ./configure -v -opengl es2 -device linux-rasp-pi-g++ -device-option CROSS_COMPILE=/home/rasppi_xcompile/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf- -sysroot /home/rasppi_xcompile/sysroot -opensource -confirm-license -optimized-qmake -reduce-exports -release -make libs -prefix /usr/local/qt5
+
+$ make -j4
+$ make install             => installs to $sysroot/$prefix ("/home/rasppi_xcompile/sysroot/usr/local/qt5")
+
+
+==compile on pi==
+./configure -v -opengl es2 -device linux-rasp-pi-g++ -device-option CROSS_COMPILE=/usr/bin -opensource -confirm-license -optimized-qmake -reduce-exports -release -qt-pcre -make libs -prefix /usr/local/qt5 &> output
