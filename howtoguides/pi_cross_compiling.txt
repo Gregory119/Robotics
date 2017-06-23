@@ -20,7 +20,7 @@ apt-get install build-essential
  - $ cd /rasppi_xcompile => all raspberry pi cross compile files
  - $ mkdir extra_libs_srcs => for source files of additional libraries
  - $ mkdir extra_libs_install => for install files of additional libraries
- - $ mkdir sd_card_images => for distro sd card images 
+ - $ mkdir sd_card_images => for distro sd card images
  - $ mkdir sysroot => to be used for mounting the sd card images
 
 # install arm compilation tools
