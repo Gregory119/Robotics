@@ -18,7 +18,7 @@ namespace KERN
     virtual ~StdKernel() = default;
     
     static registerTimer(const KernelTimer&); //called by KernelTimerOwner
-    run(); //checks timeouts of all timers and calls KernelTimer owner handler
+    run(); //updates timer values, checks timeouts, and calls KernelTimer owner handler if necessary
 
   private:
     std::multimap<KernelTimer::Priority, KernelTimer*> d_timers;
@@ -57,14 +57,16 @@ namespace KERN
    int d_timeout_ms = -1;
    bool d_is_timedout = false;
 
-   //has a timer that works on a thread timing
+   //has a timer that does not use threading
  };
 
  //Timer
  //start
  //stop
  //reset
- //getTimeMs
+  //updateTime
+ //getTimeMs->update and then returns
+  //use boost local_time and ticks
 };
 
 #endif
