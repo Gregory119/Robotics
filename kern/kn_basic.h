@@ -5,7 +5,7 @@ namespace KERN
 {
   class KernBasicComponent;
 
-  class KernBasic
+  class KernBasic //make a singleton
   {
   public:
   KernBasic(KernBasicComponent* comp)
@@ -22,18 +22,11 @@ namespace KERN
   class KernBasicComponent
   {
   public:
-    KernBasicComponent(KernBasic*);
-    KernBasicComponent(KernBasicComponent* superior_comp); // needs a superior component to call it
-
-  private:
-    registerSubKernComponent(KernBasicComponent*);
+    ~KernBasicComponent() = default;
     
   private:
     friend KernBasic;
-    virtual bool process() { return true; }
-    bool processSubComponents();
-
-    std::list<KernBasicComponent> d_sub_components;
+    virtual bool process() = 0;
   };
 };
 
