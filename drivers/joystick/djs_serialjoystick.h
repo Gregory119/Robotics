@@ -35,7 +35,7 @@ namespace D_JS
   private:
     virtual void handleEvent(const D_JS::JSEvent &event) override; 
     virtual void handleReadError() override;
-    virtual bool stayRunning() override;
+    virtual bool process() override;
 
   private:
     static const unsigned s_u32_max_digits;

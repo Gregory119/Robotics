@@ -1,6 +1,6 @@
 #include "kn_basic.h"
 
-#include <cassert.h>
+#include <cassert>
 
 using namespace KERN;
 

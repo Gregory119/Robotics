@@ -1,32 +1,16 @@
 #ifndef KN_TIMER_H
 #define KN_TIMER_H
 
+#include "core_timer.h"
+
 namespace KERN
 {
-//timer kernel
-//loop
-//can be notified to process a handletimeout of timer
+  class StdKernel;
   class KernelTimer;
-  using KernelTimer::Priority = unsigned char; //0 is most important
-  class StdKernel 
-  {
-    //must be singleton to be called by timer
-  public:
-    StdKernel();
-    StdKernel& operator=(const StdKernel&) = delete; //should never need to copy
-    StdKernel(const StdKernel&) = delete;
-    virtual ~StdKernel() = default;
-    
-    static registerTimer(const KernelTimer&); //called by KernelTimerOwner
-    run(); //updates timer values, checks timeouts, and calls KernelTimer owner handler if necessary
-
-  private:
-    std::multimap<KernelTimer::Priority, KernelTimer*> d_timers;
-  };
-
   class KernelTimerOwner
   {
-    //inherited by class who wants to use kernel timers
+    //Inherited by class who wants to use kernel timers (Class 1).
+    //Class 1 must have member timers, which it must own.
   public:
     virtual ~KernelTimerOwner() = default;
 
@@ -35,38 +19,42 @@ namespace KERN
     virtual bool handleTimeOut(const KernelTimer&) = 0; //return true if timer found. Use == to compare timers.
   };
 
-  class KernelTimer : Timer
- {
- public:
-   KernelTimer(KernelTimerOwner*);
+  class KernelTimer : CORE::Timer
+  {    
+  public:
+    KernelTimer(KernelTimerOwner*);
+    virtual ~KernelTimer();
+    KernelTimer(const KernelTimer&) = delete; //currently not copyable (consider owner pointer)
+    KernelTimer& operator=(const KernelTimer&) = delete;
+
+    bool operator==(const KernelTimer& rhs) const { return &rhs == this; }
+    bool operator==(const KernelTimer* rhs) const { return operator==(*rhs); }
+    bool operator!=(const KernelTimer& rhs) const { return !operator==(rhs); }
+    bool operator!=(const KernelTimer* rhs) const { return operator!=(*rhs); }
+    
+    void restartMs(long time_ms);
+    void restartMsIfNotSet(long time_ms);
+    void restart();
+    void disable();
+    //Any restarts or disabling will set the consequetive time out count to zero.
+    long getConseqTimeOuts() { return d_count_conseq_timeouts; }
+    long getTotalTimeOuts() { return d_total_timeouts; }
    
-   processTimeOut(); //check if timed out and call owners time out handle function
-   restartMs(unsigned time_ms);
-   restartMsIfNotSet(unsigned time_ms);
-   kill();
-   
-   bool operator==(const KernelTimer&) const; //used to check pointers
-   bool isSet() const { return d_timeout_ms>0; }
-   void setTimeOutMs(int);
-   void setPriority(Priority);
-   bool hasTimedOut() const;
+    bool isSet() const { return d_timeout_ms>=0; }
+    void setTimeMs(long);
 
- private:
-   KernelTimerOwner* d_owner = nullptr;
-   Priority d_priority = 10;
-   int d_timeout_ms = -1;
-   bool d_is_timedout = false;
+  private:
+    friend StdKernel;
+    bool processTimeOut(); //update time and process timeout if it has occured
+    bool hasTimedOut();
 
-   //has a timer that does not use threading
- };
-
- //Timer
- //start
- //stop
- //reset
-  //updateTime
- //getTimeMs->update and then returns
-  //use boost local_time and ticks
+  private:
+    KernelTimerOwner* d_owner = nullptr;
+    long d_timeout_ms = -1;
+    bool d_is_enabled = false;
+    long d_count_conseq_timeouts = 0;
+    long d_total_timeouts = 0;
+  };
 };
 
 #endif

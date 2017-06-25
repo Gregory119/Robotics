@@ -102,7 +102,7 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
 }
 
 //----------------------------------------------------------------------//
-bool JoystickTransmitter::stayRunning()
+bool JoystickTransmitter::process()
 {
   return d_stay_running;
 }

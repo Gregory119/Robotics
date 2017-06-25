@@ -44,7 +44,7 @@ class Robot final : public KERN::KernBasicComponent,
   //D_GP::GoProController
   void handleFailedRequest(D_GP::GoProController*, D_GP::Request req) override;
   
-  override bool process();
+  bool process() override;
 
   void processEvent(const D_JS::JSEventMinimal &event);
   void processButton(const D_JS::JSEventMinimal &event);

@@ -13,14 +13,6 @@ ifndef MAKESETTINGS
       $(error makefile.set must be included before this makefile)
 endif
 
-ifdef USES_LIBCORE
-      LIBCOREPATH = $(BASE_DIR)/core
-      INCLUDES += -I$(LIBCOREPATH)
-      LIBS += -lpthread -lwiringPi
-      LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
-      USES_LIBUTILS=1
-endif
-
 ifdef USES_LIBDGP
       LIBDGPPATH = $(BASE_DIR)/drivers/gopro
       INCLUDES += -I$(LIBDGPPATH)
@@ -50,6 +42,15 @@ ifdef USES_LIBKERN
       INCLUDES += -I$(LIBKERNPATH)
       LIBS += 
       LIBSRC += $(wildcard $(LIBKERNPATH)/*.cpp)
+      USES_LIBCORE=1
+endif
+
+ifdef USES_LIBCORE
+      LIBCOREPATH = $(BASE_DIR)/core
+      INCLUDES += -I$(LIBCOREPATH)
+      LIBS += -lpthread -lwiringPi
+      LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
+      USES_LIBUTILS=1
 endif
 
 ifdef USES_LIBUTILS

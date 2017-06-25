@@ -1,5 +1,4 @@
 all: 
-	$(MAKE) libs
 	$(MAKE) testprogs
 	$(MAKE) projects
 

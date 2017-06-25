@@ -1,6 +1,8 @@
 #ifndef CORE_ACCELERATIONLIMITER_H
 #define CORE_ACCELERATIONLIMITER_H
 
+#include <functional>
+
 //input derivative limiters eg. velocity derivative (acceleration) limiter
 
 namespace CORE
