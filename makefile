@@ -1,8 +1,13 @@
-all: 
+normal: 
 	$(MAKE) testprogs
 	$(MAKE) projects
 
-.PHONY:clean libs testprogs projects
+.PHONY:clean libs testprogs projects all
+
+all:
+	$(MAKE) libs
+	$(MAKE) testprogs
+	$(MAKE) projects
 
 libs:
 	$(MAKE) -C coms
