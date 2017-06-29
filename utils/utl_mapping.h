@@ -31,12 +31,8 @@ namespace UTIL
   template <typename Tin, typename Tout>
     void mapFromTo(const Map &map, Tin in_val, Tout& out_val,  bool flip_axis=false)
     {
-      if (!std::is_fundamental<Tin>::value ||
-	  !std::is_fundamental<Tout>::value)
-	{
-	  assert(false);
-	  return;
-	}
+      assert(std::is_fundamental<Tin>::value &&
+	     std::is_fundamental<Tout>::value);
       
       out_val = (static_cast<Tout>(in_val) - map.d_in_min)/ //use cast to induce up cast if necessary
 	(map.d_in_max - map.d_in_min)*
