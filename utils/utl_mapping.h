@@ -17,7 +17,7 @@ namespace UTIL
     {}
     Map(const Map &copy) = default;
     Map& operator=(const Map &copy) = default;
-
+    
     int d_in_max = 0;
     int d_in_min = 0;
     int d_out_max = 0;
@@ -33,8 +33,10 @@ namespace UTIL
     {
       assert(std::is_fundamental<Tin>::value &&
 	     std::is_fundamental<Tout>::value);
+      assert(in_val <= map.d_in_max);
+      assert(in_val >= map.d_in_min);
       
-      out_val = (static_cast<Tout>(in_val) - map.d_in_min)/ //use cast to induce up cast if necessary
+      out_val = (static_cast<double>(in_val) - map.d_in_min)/ //use cast to induce up cast if necessary
 	(map.d_in_max - map.d_in_min)*
 	(map.d_out_max - map.d_out_min) + map.d_out_min;
 

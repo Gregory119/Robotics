@@ -1,15 +1,13 @@
-#ifndef CORE_SOFTSERVO_H
-#define CORE_SOFTSERVO_H
+#ifndef CTRL_SOFTSERVO_H
+#define CTRL_SOFTSERVO_H
 
-#include "core_servo.h"
+#include "ctrl_servo.h"
 
 #include <future>
-//#include <thread>
-//#inlcude <mutex>
 
-namespace CORE
+namespace CTRL
 {
-  //SoftServo is a software based servo controller (not as accurate as hardware based, which usually results in servo arm jitters)
+  //SoftServo is a software based servo controller (not as accurate as hardware based, thus it usually results in servo arm jitters)
   //this class assumes a minimum pulse time of 1ms, maximum pulse time of 2ms, and a delay time of 20ms
   class SoftServo final : public Servo
   {
@@ -29,20 +27,23 @@ namespace CORE
     void setDelayTimeUs(unsigned delay_us);    
     unsigned getDelayTimeUs();
 
-    virtual void moveToPos(uint8_t pos) override; //0 < pos < 255
+    void moveToPos(uint8_t pos) override; //0 < pos < 255
 
-    virtual void setPosValue(uint8_t pos) override; //does not move the servo. It only sets the value
-    virtual void setUsTiming(unsigned min_pulse,
-			   unsigned max_pulse) override; //use your own units to conform to. The default values are in microseconds.
+    void setUsTiming(unsigned min_pulse,
+		     unsigned max_pulse) override; //use your own units to conform to. The default values are in microseconds.
     
-    virtual unsigned getPos() override;
-    virtual unsigned getPulseMinTimeUs() override;
-    virtual unsigned getPulseMaxTimeUs() override;
-    virtual const UTIL::Map& getPosMap() override;
+    unsigned getSetPos() override;
+    unsigned getPulseMinTimeUs() override;
+    unsigned getPulseMaxTimeUs() override;
+    const UTIL::Map& getPosMap() override;
 
   private:
+    void updateMove() override;
+    void setSetPos(uint8_t pos) override;
+    void setReqPos(uint8_t pos) override;
+    uint8_t getReqPos() override;
+    
     void initPins();
-    virtual void updatePos();
     static void threadFunc(std::future<bool> shutdown,
 			   SoftServo *const servo);
 
@@ -53,6 +54,8 @@ namespace CORE
     bool d_running = false;
     std::promise<bool> d_thread_shutdown;
     std::mutex d_m;
+
+    bool d_first_move = true;
   };
 };
 

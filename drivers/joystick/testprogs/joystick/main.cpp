@@ -18,9 +18,8 @@ public:
   bool d_error = false;
 
   Test()
-  {
-    d_js.reset(new D_JS::JoyStick(this,"/dev/input/js0"));
-  }
+    : d_js(new D_JS::JoyStick(this,"/dev/input/js0"))
+  {}
 
   void init()
   {

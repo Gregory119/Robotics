@@ -9,10 +9,10 @@ using namespace D_GP;
 
 //----------------------------------------------------------------------//
 GoProController::GoProController(GoProControllerOwner* o, ControlType type)
+  : d_gp(GoProFactory::createGoPro(type, this))
 {
   assert(o!=nullptr);
   d_owner = o;
-  d_gp.reset(GoProFactory::createGoPro(type, this));
 }
 
 //----------------------------------------------------------------------//

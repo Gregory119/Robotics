@@ -11,10 +11,10 @@ class TestTimers : KERN::KernelTimerOwner
 {
 public:
   TestTimers()
+    : d_timer1(new KERN::KernelTimer(this)),
+      d_timer2(new KERN::KernelTimer(this)),
+    d_timer3(new KERN::KernelTimer(this))
   {
-    d_timer1.reset(new KERN::KernelTimer(this));
-    d_timer2.reset(new KERN::KernelTimer(this));
-    d_timer3.reset(new KERN::KernelTimer(this));
     d_timer1->restartMs(3000);
     std::cout << "started timer 1" << std::endl;
   }

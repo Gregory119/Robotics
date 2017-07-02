@@ -1,4 +1,4 @@
-#include "core_softservo.h"
+#include "ctrl_softservo.h"
 #include "utl_mapping.h"
 
 #include <wiringPi.h>
@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <cassert>
 
-using namespace CORE;
+using namespace CTRL;
 
 //----------------------------------------------------------------------//
 SoftServo::SoftServo(unsigned control_pin)
@@ -50,9 +50,9 @@ void SoftServo::stop()
 }
 
 //----------------------------------------------------------------------//
-void SoftServo::updatePos()
+void SoftServo::updateMove()
 {
-  unsigned pos = getPos();
+  unsigned pos = getSetPos();
   unsigned pos_us = 0;
   UTIL::mapFromTo(getPosMap(), pos, pos_us);
 
@@ -70,15 +70,15 @@ void SoftServo::threadFunc(std::future<bool> shutdown,
   while (shutdown.wait_for(std::chrono::nanoseconds(0)) != 
 	 std::future_status::ready)
     {
-      servo->updatePos();
+      servo->updateMove();
     }
 }
 
 //----------------------------------------------------------------------//
-unsigned SoftServo::getPos()
+unsigned SoftServo::getSetPos()
 { 
   std::lock_guard<std::mutex> lock(d_m);
-  return Servo::getPos();
+  return Servo::getSetPos();
 }
 
 //----------------------------------------------------------------------//
@@ -98,7 +98,15 @@ unsigned SoftServo::getDelayTimeUs()
 //----------------------------------------------------------------------//
 void SoftServo::moveToPos(uint8_t pos)
 {
-  setPosValue(pos);
+  if (!d_first_move)
+    {
+      setReqPos(pos);
+    }
+  else
+    {
+      setSetPos(pos); // bypasses any possible incrementing
+      d_first_move = false;
+    }
 }
 
 //----------------------------------------------------------------------//
@@ -131,10 +139,24 @@ void SoftServo::setUsTiming(unsigned min_pulse,
 }
 
 //----------------------------------------------------------------------//
-void SoftServo::setPosValue(uint8_t pos) 
+void SoftServo::setSetPos(uint8_t pos)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  Servo::setPosValue(pos);
+  d_set_pos = pos;
+}
+
+//----------------------------------------------------------------------//
+void SoftServo::setReqPos(uint8_t pos)
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  Servo::setReqPos(pos);
+}
+
+//----------------------------------------------------------------------//
+uint8_t SoftServo::getReqPos()
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  return d_req_pos;
 }
 
 //----------------------------------------------------------------------//

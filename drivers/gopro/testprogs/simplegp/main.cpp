@@ -10,8 +10,8 @@ class Test : public D_GP::GoProControllerOwner
 {
 public:  
   Test()
+    : d_gp_cont(new D_GP::GoProController(this, D_GP::ControlType::Simple))
   {
-    d_gp_cont.reset(new D_GP::GoProController(this, D_GP::ControlType::Simple));
     d_gp_cont->connectWithName("BushBot");
     //d_gp_cont->takePicture(); //uncomment to test, but comment out multishot to see single picture taken
     //d_gp_cont->takeMultiShot();

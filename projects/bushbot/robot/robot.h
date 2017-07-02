@@ -1,19 +1,19 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include "kn_basic.h"
+#include "kn_timer.h"
 #include "dgp_controller.h"
 #include "djs_serialjoystick.h"
 
 #include <memory>
 
-namespace CORE
+namespace CTRL
 {
   class Servo;
 };
 
-class Robot final : public KERN::KernBasicComponent,
-  public D_GP::GoProControllerOwner
+class Robot final : KERN::KernelTimerOwner,
+  D_GP::GoProControllerOwner
 {
  public:
   struct Params
@@ -43,12 +43,15 @@ class Robot final : public KERN::KernBasicComponent,
  private:
   //D_GP::GoProController
   void handleFailedRequest(D_GP::GoProController*, D_GP::Request req) override;
-  
-  bool process() override;
 
-  void processEvent(const D_JS::JSEventMinimal &event);
-  void processButton(const D_JS::JSEventMinimal &event);
-  void processAxis(const D_JS::JSEventMinimal &event);
+  // KERN::KernelTimerOwner
+  bool handleTimeOut(const KERN::KernelTimer& timer);
+
+ private:
+  bool processEvent(const D_JS::JSEventMinimal &event);
+  bool processButton(const D_JS::JSEventMinimal &event);
+  bool processAxis(const D_JS::JSEventMinimal &event);
+  void stopMoving();
 
  private:
   D_JS::JoystickReceiver d_js_receiver;
@@ -56,12 +59,12 @@ class Robot final : public KERN::KernBasicComponent,
 
   unsigned d_steer_num = 2;
   unsigned d_motor_num = 0;
-  std::unique_ptr<CORE::Servo> d_steering;
-  std::unique_ptr<CORE::Servo> d_motor;
+  std::unique_ptr<CTRL::Servo> d_steering;
+  std::unique_ptr<CTRL::Servo> d_motor;
   std::unique_ptr<D_GP::GoProController> d_gp_cont;
-
-  //create some sub kernel components to be registered
-  //input derivative limiters eg. velocity derivative (acceleration) limiter
+  
+  std::unique_ptr<KERN::KernelTimer> d_process_timer;
+  std::unique_ptr<KERN::KernelTimer> d_watchdog_timer;
 };
 
 #endif

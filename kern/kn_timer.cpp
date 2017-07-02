@@ -78,12 +78,12 @@ void KernelTimer::disable()
 //----------------------------------------------------------------------//
 bool KernelTimer::hasTimedOut()
 {
-  return d_timeout_ms < getTimeMs();
+  return d_timeout_ms <= getTimeMs();
 }
 
 //----------------------------------------------------------------------//
 void KernelTimer::setTimeMs(long time)
 {
-  assert(time>0);
+  assert(time>=0);
   d_timeout_ms = time;
 }

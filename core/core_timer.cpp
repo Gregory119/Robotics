@@ -8,11 +8,10 @@ using namespace boost;
 
 //----------------------------------------------------------------------//
 Timer::Timer()
-{
-d_start_ptime.reset(new posix_time::ptime(posix_time::microsec_clock::local_time()));
-d_end_ptime.reset(new posix_time::ptime(posix_time::microsec_clock::local_time()));
-d_duration.reset(new posix_time::time_duration(0,0,0,0)); //hrs, min, secs, nanosecs
-}
+  : d_start_ptime(new posix_time::ptime(posix_time::microsec_clock::local_time())),
+    d_end_ptime(new posix_time::ptime(posix_time::microsec_clock::local_time())),
+  d_duration(new posix_time::time_duration(0,0,0,0)) //hrs, min, secs, nanosecs
+{}
 
 //----------------------------------------------------------------------//~
 Timer::~Timer() = default;

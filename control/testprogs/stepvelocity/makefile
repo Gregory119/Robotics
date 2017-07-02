@@ -4,9 +4,10 @@ include $(BASE_DIR)/makedef/makefile.set
 
 IS_TESTPROG=1
 #creating test program name with ccp file in this directory
-TEST_NAME = softservo 
+TEST_NAME = velocitystepper
 
-USES_LIBCORE=1
+USES_LIBCONTROL=1
+USES_LIBKERN=1
 
 include $(BASE_DIR)/makedef/makefile.libs
 include $(BASE_DIR)/makedef/makefile.rules

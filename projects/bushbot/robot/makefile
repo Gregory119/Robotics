@@ -6,7 +6,7 @@ IS_TESTPROG=1
 #creating test program name with cpp file in this directory
 TEST_NAME = robot
 
-USES_LIBCORE=1
+USES_LIBCONTROL=1
 USES_LIBDJS=1
 USES_LIBDGP=1
 

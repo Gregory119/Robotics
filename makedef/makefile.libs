@@ -13,6 +13,15 @@ ifndef MAKESETTINGS
       $(error makefile.set must be included before this makefile)
 endif
 
+ifdef USES_LIBCONTROL
+      LIBCONTROLPATH = $(BASE_DIR)/control
+      INCLUDES += -I$(LIBCONTROLPATH)
+      LIBS += -lpthread -lwiringPi
+      LIBSRC += $(wildcard $(LIBCONTROLPATH)/*.cpp)
+      USES_LIBUTILS=1
+      USES_LIBKERN=1
+endif
+
 ifdef USES_LIBDGP
       LIBDGPPATH = $(BASE_DIR)/drivers/gopro
       INCLUDES += -I$(LIBDGPPATH)
@@ -48,9 +57,7 @@ endif
 ifdef USES_LIBCORE
       LIBCOREPATH = $(BASE_DIR)/core
       INCLUDES += -I$(LIBCOREPATH)
-      LIBS += -lpthread -lwiringPi
       LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
-      USES_LIBUTILS=1
 endif
 
 ifdef USES_LIBUTILS
@@ -66,6 +73,11 @@ OBJ += $(LIBSRC:.cpp=.o)
 
 makelibs:
 #make prerequisite libraries
+ifdef USES_LIBCONTROL
+ifneq "$(LIBNAME)" "CONTROL"
+	$(MAKE) -C $(LIBCONTROLPATH)
+endif
+endif
 ifdef USES_LIBDGP
 ifneq "$(LIBNAME)" "DGP"
 	$(MAKE) -C $(LIBDGPPATH)

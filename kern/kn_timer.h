@@ -34,13 +34,14 @@ namespace KERN
     
     void restartMs(long time_ms);
     void restartMsIfNotSet(long time_ms);
-    void restart();
+    void restart(); //Re-enable with the timeout count from zero. Timeout time needs to have already been set.
     void disable();
     //Any restarts or disabling will set the consequetive time out count to zero.
     long getConseqTimeOuts() { return d_count_conseq_timeouts; }
     long getTotalTimeOuts() { return d_total_timeouts; }
    
     bool isSet() const { return d_timeout_ms>=0; }
+    bool isDisabled() { return !d_is_enabled; }
     void setTimeMs(long);
 
   private:

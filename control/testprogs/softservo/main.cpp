@@ -1,4 +1,4 @@
-#include "core_softservo.h"
+#include "ctrl_softservo.h"
 
 #include <cstdlib>
 
@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {
-  using namespace CORE;
+  using namespace CTRL;
 
   if (argc < 3)
     {

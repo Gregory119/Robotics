@@ -1,4 +1,4 @@
-#include "core_hardservo.h"
+#include "ctrl_hardservo.h"
 
 #include "utl_mapping.h"
 
@@ -7,7 +7,7 @@
 
 #include <cassert>
 
-using namespace CORE;
+using namespace CTRL;
  
 static const std::string s_driver_dir = "/dev/servoblaster";
 static const unsigned s_max_servo_pin = 7;
@@ -23,10 +23,25 @@ HardServo::HardServo(unsigned servo_num)
 //----------------------------------------------------------------------//
 void HardServo::moveToPos(uint8_t pos)
 {
-  setPosValue(pos);
+  if (!d_first_move)
+    {
+      setReqPos(pos);
+    }
+  else
+    {
+      setSetPos(pos); // bypasses any possible incrementing
+      d_first_move = false;
+    }
+
+  updateMove();
+}
+
+//----------------------------------------------------------------------//
+void HardServo::updateMove()
+{
   unsigned pos_blast = 0;
   unsigned pos_us = 0;
-  UTIL::mapFromTo(getPosMap(), pos, pos_us);
+  UTIL::mapFromTo(getPosMap(), getSetPos(), pos_us);
   pos_blast = pos_us/s_blaster_to_us;
 
   std::ofstream servo_file;

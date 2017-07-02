@@ -1,11 +1,11 @@
-#include "core_hardservo.h"
+#include "ctrl_hardservo.h"
 
 #include <cstdlib>
 #include <iostream>
 
 int main(int argc, char* argv[])
 {
-  using namespace CORE;
+  using namespace CTRL;
 
   if (argc < 3)
     {
