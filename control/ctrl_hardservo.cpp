@@ -29,7 +29,7 @@ void HardServo::moveToPos(uint8_t pos)
     }
   else
     {
-      setSetPos(pos); // bypasses any possible incrementing
+      moveToStartPos(pos);
       d_first_move = false;
     }
 

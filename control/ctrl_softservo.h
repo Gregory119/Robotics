@@ -42,6 +42,7 @@ namespace CTRL
     void setSetPos(uint8_t pos) override;
     void setReqPos(uint8_t pos) override;
     uint8_t getReqPos() override;
+    void setReqPosDirect(uint8_t pos) override;
     
     void initPins();
     static void threadFunc(std::future<bool> shutdown,

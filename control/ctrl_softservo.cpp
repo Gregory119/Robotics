@@ -104,7 +104,7 @@ void SoftServo::moveToPos(uint8_t pos)
     }
   else
     {
-      setSetPos(pos); // bypasses any possible incrementing
+      moveToStartPos(pos);
       d_first_move = false;
     }
 }
@@ -142,7 +142,7 @@ void SoftServo::setUsTiming(unsigned min_pulse,
 void SoftServo::setSetPos(uint8_t pos)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  d_set_pos = pos;
+  Servo::setSetPos(pos);
 }
 
 //----------------------------------------------------------------------//
@@ -156,7 +156,14 @@ void SoftServo::setReqPos(uint8_t pos)
 uint8_t SoftServo::getReqPos()
 {
   std::lock_guard<std::mutex> lock(d_m);
-  return d_req_pos;
+  return Servo::getReqPos();
+}
+
+//----------------------------------------------------------------------//
+void SoftServo::setReqPosDirect(uint8_t pos)
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  Servo::setReqPosDirect(pos);
 }
 
 //----------------------------------------------------------------------//

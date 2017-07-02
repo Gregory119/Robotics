@@ -44,17 +44,15 @@ Robot::Robot(Params& params)
 {
   d_motor->setUsTiming(1000, 2000); //in microseconds
   d_motor->moveToPos(s_esc_mid_pos_servo); //start servo in the middle of the set range of motion
+
+  CTRL::Servo::VelocityParams p;
+  p.min_time_for_max_velocity_ms = 10000; //4s for now
+  p.time_step_ms = 100;
+  d_motor->setVelocityParams(p);
+  d_motor->enableVelocityIncrementer(true);
   
   d_steering->setUsTiming(500, 2500); //in microseconds
   d_steering->moveToPos(s_steer_mid_pos_servo); //start servo in the middle of the set range of motion
-
-  //first test with steering
-  
-  /*  CTRL::Servo::VelocityParams p;
-  p.min_time_for_max_velocity_ms = 10000; //4s for now
-  p.time_step_ms = 100;
-  d_steering->setVelocityParams(p);
-  d_steering->enableVelocityIncrementer(true);*/
   
   d_process_timer->restartMs(0);
   d_watchdog_timer->restartMs(2000);

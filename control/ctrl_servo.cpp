@@ -2,6 +2,7 @@
 #include "ctrl_rcstepvelocitymanager.h"
 
 #include <cassert>
+#include <iostream>
 
 using namespace CTRL;
 
@@ -13,8 +14,12 @@ Servo::Servo()
   : d_pos_8bit_to_pulse(UTIL::Map(getMaxPos(), getMinPos(), d_max_pulse, d_min_pulse)),
     d_servo_to_vel_map(UTIL::Map(getMaxPos(),
 				 getMinPos(),
-				 getMaxPos()-getMidPos(),
-				 getMidPos()-getMaxPos())),
+				 static_cast<int>(getMaxPos())-getMidPos(),
+				 static_cast<int>(getMidPos())-getMaxPos())),
+    d_vel_to_servo_map(UTIL::Map(static_cast<int>(getMaxPos())-getMidPos(),
+				 static_cast<int>(getMidPos())-getMaxPos(),
+				 getMaxPos(),
+				 getMinPos())),
     d_vel_inc_timer(new KERN::KernelTimer(this))
 {}
 
@@ -86,11 +91,11 @@ void Servo::setVelocityParams(const VelocityParams& params)
 //----------------------------------------------------------------------//
 void Servo::updateIncPos()
 {
-  uint8_t req_vel = 0;
+  int req_vel = 0;
   mapFromTo(d_servo_to_vel_map, getReqPos(), req_vel);  // pos used as velocity for ESCs
-  uint8_t set_vel = d_velocity_man->stepVelocity(req_vel);
+  int set_vel = d_velocity_man->stepVelocity(req_vel);
   uint8_t set_pos = 0;
-  mapFromTo(d_servo_to_vel_map, set_vel, set_pos, true);  // invert map
+  mapFromTo(d_vel_to_servo_map, set_vel, set_pos);
   setSetPos(set_pos);
 }
 
@@ -139,4 +144,11 @@ void Servo::setReqPos(uint8_t pos)
       d_req_pos = pos;
       updateIncPos();
     }
+}
+
+//----------------------------------------------------------------------//
+void Servo::moveToStartPos(uint8_t pos)
+{
+  setReqPosDirect(pos);
+  setSetPos(pos);
 }

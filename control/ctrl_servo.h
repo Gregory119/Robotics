@@ -53,16 +53,19 @@ namespace CTRL
 
   protected:
     virtual void updateMove() = 0;
+    virtual void moveToStartPos(uint8_t pos);
     virtual void setSetPos(uint8_t pos) { d_set_pos = pos; }
     virtual void setReqPos(uint8_t pos);
     virtual uint8_t getReqPos() { return d_req_pos; }
+    virtual void setReqPosDirect(uint8_t pos) { d_req_pos = pos; }
     
   private:
     // KERN::KernelTimerOwner
     bool handleTimeOut(const KERN::KernelTimer& timer);
+    
     void updateIncPos();
 
-  protected:
+  private:
     /*
       hobby servos:
       d_min_pulse = 500;
@@ -74,12 +77,12 @@ namespace CTRL
     */        
     unsigned d_min_pulse = 500; //default values in us
     unsigned d_max_pulse = 2500;
-    unsigned d_req_pos = 0; //is in the 0-255 range
-    unsigned d_set_pos = 0; //is in the 0-255 range
+    uint8_t d_req_pos = 0; //is in the 0-255 range
+    uint8_t d_set_pos = 0; //is in the 0-255 range
     
-  private:
     UTIL::Map d_pos_8bit_to_pulse;
     UTIL::Map d_servo_to_vel_map;
+    UTIL::Map d_vel_to_servo_map;
 
     bool d_has_velocity_inc = false;
     std::unique_ptr<RCStepVelocityManager> d_velocity_man;
