@@ -24,29 +24,15 @@ namespace CTRL
     //The function setup() calls wiringPiSetup() if you would prefer to call it that way.
     static void setup();
 
-    void setDelayTimeUs(unsigned delay_us);    
-    unsigned getDelayTimeUs();
-
-    void moveToPos(uint8_t pos) override; //0 < pos < 255
-
-    void setUsTiming(unsigned min_pulse,
-		     unsigned max_pulse) override; //use your own units to conform to. The default values are in microseconds.
-    
-    unsigned getSetPos() override;
-    unsigned getPulseMinTimeUs() override;
-    unsigned getPulseMaxTimeUs() override;
-    const UTIL::Map& getPosMap() override;
+    void moveToPos(int pos) override; //0 < pos < 255
 
   private:
+    //Servo
     void updateMove() override;
-    void setSetPos(uint8_t pos) override;
-    void setReqPos(uint8_t pos) override;
-    uint8_t getReqPos() override;
-    void setReqPosDirect(uint8_t pos) override;
     
-    void initPins();
     static void threadFunc(std::future<bool> shutdown,
 			   SoftServo *const servo);
+    unsigned getDelayTimeUs();
 
   private:
     unsigned d_pin;
@@ -54,7 +40,6 @@ namespace CTRL
 
     bool d_running = false;
     std::promise<bool> d_thread_shutdown;
-    std::mutex d_m;
 
     bool d_first_move = true;
   };

@@ -4,6 +4,8 @@
 #include <memory>
 #include <map>
 
+#include "utl_values.h"
+
 namespace CORE
 {
   class StepIncrementer;
@@ -31,6 +33,7 @@ namespace CTRL
       int abs_max_velocity = 0;
       int min_time_for_max_velocity_ms = 1;
       int time_step_ms = 0;
+      int zero_ref_velocity = 0;
     };
     
   public:
@@ -63,6 +66,7 @@ namespace CTRL
     
     std::unique_ptr<CORE::StepIncrementer> d_step_inc;
     int d_velocity = 0;
+    UTIL::SignCheck<int> d_sign_check;
   };
 
   //----------------------------------------------------------------------//

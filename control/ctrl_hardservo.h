@@ -15,7 +15,7 @@ namespace CTRL
     HardServo(const HardServo&) = delete;
     HardServo& operator=(const HardServo&) = delete; //uses the same settings
     
-    virtual void moveToPos(uint8_t pos) override; //0 < pos < 255
+    void moveToPos(int pos) override; //0 < pos < 255
 
   private:
     void updateMove() override;

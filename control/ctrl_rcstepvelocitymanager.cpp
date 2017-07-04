@@ -1,8 +1,6 @@
 #include "ctrl_rcstepvelocitymanager.h"
 #include "core_stepincrementer.h"
 
-#include "utl_values.h"
-
 #include <cassert>
 
 using namespace CTRL;
@@ -12,7 +10,9 @@ using namespace CTRL;
 //----------------------------------------------------------------------//
 RCStepVelocityManager::RCStepVelocityManager(const VelocityLimitParams& p)
   : d_step_inc(new CORE::StepIncrementer(static_cast<double>(p.abs_max_velocity)/p.min_time_for_max_velocity_ms,
-					 p.time_step_ms))
+					 p.time_step_ms)),
+    d_velocity(p.zero_ref_velocity),
+    d_sign_check(p.zero_ref_velocity)
 {
   // add list of possible states
   d_states[VelocityStateId::Pos] = std::unique_ptr<VelocityState>(new PosVelocityState());
@@ -73,19 +73,19 @@ void RCStepVelocityManager::incrementVelocity()
 //----------------------------------------------------------------------//
 void ZeroVelocityState::stepVelocity(RCStepVelocityManager& man, int input_velocity)
 {
-  switch (UTIL::Values::getSign(input_velocity))
+  switch (man.d_sign_check.getSign(input_velocity))
     {
-    case UTIL::Values::Pos:
+    case UTIL::Sign::Pos:
       man.incrementVelocity();
       man.setNextState(VelocityStateId::Pos);
       break;
 
-    case UTIL::Values::Neg:
+    case UTIL::Sign::Neg:
       man.decrementVelocity();
       man.setNextState(VelocityStateId::Neg);
       break;
 
-    case UTIL::Values::Zero:
+    case UTIL::Sign::Zero:
       //should already have zero velocity so do nothing
       assert(man.getVelocity() == 0);
       break;
@@ -103,9 +103,9 @@ void PosVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloci
 {
   int cur_velocity = man.getVelocity();
 
-  switch (UTIL::Values::getSign(input_velocity))
+  switch (man.d_sign_check.getSign(input_velocity))
     {
-    case UTIL::Values::Pos:
+    case UTIL::Sign::Pos:
       if (input_velocity > cur_velocity)
 	{
 	  man.incrementVelocity();
@@ -117,13 +117,13 @@ void PosVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloci
       man.setNextState(VelocityStateId::Pos);
       break;
 
-    case UTIL::Values::Neg:
+    case UTIL::Sign::Neg:
       man.setVelocity(0);
       man.decrementVelocity();
       man.setNextState(VelocityStateId::Neg);
       break;
 
-    case UTIL::Values::Zero:
+    case UTIL::Sign::Zero:
       man.setVelocity(0);
       break;
 
@@ -138,15 +138,15 @@ void NegVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloci
 {
   int cur_velocity = man.getVelocity();
   
-  switch (UTIL::Values::getSign(input_velocity))
+  switch (man.d_sign_check.getSign(input_velocity))
     {
-    case UTIL::Values::Pos:
+    case UTIL::Sign::Pos:
       man.setVelocity(0);
       man.incrementVelocity();
       man.setNextState(VelocityStateId::Pos);
       break;
 
-    case UTIL::Values::Neg:
+    case UTIL::Sign::Neg:
       if (input_velocity < cur_velocity)
 	{
 	  man.decrementVelocity();
@@ -158,7 +158,7 @@ void NegVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloci
       man.setNextState(VelocityStateId::Neg);
       break;
 
-    case UTIL::Values::Zero:
+    case UTIL::Sign::Zero:
       man.setVelocity(0);
       break;
 

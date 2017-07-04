@@ -21,8 +21,10 @@ HardServo::HardServo(unsigned servo_num)
 }
 
 //----------------------------------------------------------------------//
-void HardServo::moveToPos(uint8_t pos)
+void HardServo::moveToPos(int pos)
 {
+  assert(isPosValid(pos));
+  
   if (!d_first_move)
     {
       setReqPos(pos);
@@ -39,10 +41,7 @@ void HardServo::moveToPos(uint8_t pos)
 //----------------------------------------------------------------------//
 void HardServo::updateMove()
 {
-  unsigned pos_blast = 0;
-  unsigned pos_us = 0;
-  UTIL::mapFromTo(getPosMap(), getSetPos(), pos_us);
-  pos_blast = pos_us/s_blaster_to_us;
+  unsigned pos_blast = getSetPulseUs()/s_blaster_to_us;
 
   std::ofstream servo_file;
   servo_file.open(s_driver_dir);

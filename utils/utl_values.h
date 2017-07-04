@@ -5,30 +5,38 @@
 
 namespace UTIL
 {
-  namespace Values
-  {
-    enum Sign
+  enum class Sign
     {
       Pos,
       Neg,
       Zero
     };
-
-    template <class T>
-      Sign getSign(const T& val)
+  
+  template <class T>
+  class SignCheck final
+  {
+  public:
+    SignCheck(const T& zero_ref = 0)
       {
 	assert(std::is_fundamental<T>::value);
-	if (val > 0)
-	  {
-	    return Pos;
-	  }
-	else if (val < 0)
-	  {
-	    return Neg;
-	  }
-
-	return Zero;
       }
+    
+    Sign getSign(const T& val)
+    {
+      if (val > d_zero_ref)
+	{
+	  return Sign::Pos;
+	}
+      else if (val < d_zero_ref)
+	{
+	  return Sign::Neg;
+	}
+
+      return Sign::Zero;
+    }
+
+  private:
+    T d_zero_ref = 0;
   };
 };
 

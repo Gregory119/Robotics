@@ -19,7 +19,7 @@ namespace KERN
     virtual bool handleTimeOut(const KernelTimer&) = 0; //return true if timer found. Use == to compare timers.
   };
 
-  class KernelTimer : CORE::Timer
+  class KernelTimer : public CORE::Timer
   {    
   public:
     KernelTimer(KernelTimerOwner*);

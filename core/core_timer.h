@@ -22,11 +22,13 @@ namespace CORE
     Timer(const Timer&) = delete;
     Timer& operator=(const Timer&) = delete;
     
+    long getTimeMs(); //does not check for overflow
+
+  protected:
     void start();
     void stop();
     void reset();
     void resetAndStart();
-    long getTimeMs(); //does not check for overflow
 
   private:
     enum State

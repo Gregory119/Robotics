@@ -17,17 +17,17 @@ static const unsigned s_steer_mid_pos_servo =
 static const unsigned s_esc_mid_pos_servo = 
   (CTRL::Servo::getMinPos() + CTRL::Servo::getMaxPos())/2;
 
-static const UTIL::Map s_rt_map(D_JS::axis_max, 
+static const UTIL::Map d_rt_map(D_JS::axis_max, 
 				D_JS::axis_min, 
 				CTRL::Servo::getMaxPos(), 
-			        s_esc_mid_pos_servo);
+				s_esc_mid_pos_servo);
 
-static const UTIL::Map s_lt_map(D_JS::axis_min, 
+static const UTIL::Map d_lt_map(D_JS::axis_min, 
 				D_JS::axis_max, 
 				s_esc_mid_pos_servo, 
-			        CTRL::Servo::getMinPos());
+				CTRL::Servo::getMinPos());
 
-static const UTIL::Map s_stick_map(D_JS::axis_max, 
+static const UTIL::Map d_stick_map(D_JS::axis_max, 
 				   D_JS::axis_min, 
 				   s_steer_max_pos_servo, 
 				   s_steer_min_pos_servo);
@@ -42,18 +42,23 @@ Robot::Robot(Params& params)
     d_process_timer(new KERN::KernelTimer(this)),
     d_watchdog_timer(new KERN::KernelTimer(this))
 {
+  //motor
   d_motor->setUsTiming(1000, 2000); //in microseconds
   d_motor->moveToPos(s_esc_mid_pos_servo); //start servo in the middle of the set range of motion
 
-  CTRL::Servo::VelocityParams p;
-  p.min_time_for_max_velocity_ms = 10000; //4s for now
-  p.time_step_ms = 100;
-  d_motor->setVelocityParams(p);
-  d_motor->enableVelocityIncrementer(true);
-  
+  //steering
   d_steering->setUsTiming(500, 2500); //in microseconds
   d_steering->moveToPos(s_steer_mid_pos_servo); //start servo in the middle of the set range of motion
-  
+
+  CTRL::RCStepVelocityManager::VelocityLimitParams p;
+  p.abs_max_velocity = s_steer_max_pos_servo - s_steer_mid_pos_servo;
+  p.min_time_for_max_velocity_ms = 10000;
+  p.time_step_ms = 100;
+  p.zero_ref_velocity = s_steer_mid_pos_servo;
+  d_steering->setVelocityParams(p);
+  d_steering->enableVelocityIncrementer(true);
+
+  //timers
   d_process_timer->restartMs(0);
   d_watchdog_timer->restartMs(2000);
 }
@@ -184,7 +189,7 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
       {
 	std::cout << "turn left/right" << std::endl;
 	unsigned servo_sig = 0;
-	UTIL::mapFromTo(s_stick_map, static_cast<unsigned>(event.value), servo_sig);
+        d_stick_map.map(static_cast<unsigned>(event.value), servo_sig);
 	std::cout << "servo signal = " << servo_sig << std::endl;
 	d_steering->moveToPos(servo_sig);
       }
@@ -204,7 +209,7 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
       {
 	std::cout << "move forward" << std::endl;
 	unsigned motor_sig = 0;
-	UTIL::mapFromTo(s_rt_map, static_cast<unsigned>(event.value), motor_sig);
+        d_rt_map.map(static_cast<unsigned>(event.value), motor_sig);
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
@@ -214,7 +219,7 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
       {
 	std::cout << "move backward" << std::endl;
         unsigned motor_sig = 0;
-	UTIL::mapFromTo(s_lt_map, static_cast<unsigned>(event.value), motor_sig);
+        d_lt_map.map(static_cast<unsigned>(event.value), motor_sig);
 	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }

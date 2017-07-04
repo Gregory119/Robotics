@@ -4,13 +4,9 @@
 #include "djs_joystick.h"
 #include "djs_common.h"
 #include "kn_basic.h"
+#include "utl_mapping.h"
 
 #include <thread>
-
-namespace UTIL
-{
-  struct Map;
-}
 
 namespace D_JS
 {
@@ -56,11 +52,11 @@ namespace D_JS
 
 	if (max_digits == s_u32_max_digits)
 	  {
-	    mapFromTo(s_time_to_uchar_map, value, ret);
+	    s_time_to_uchar_map.map(value, ret);
 	  }
 	else if (max_digits == s_s16_max_digits)
 	  {
-	    mapFromTo(s_value_to_char_map, value, ret);
+	    s_value_to_char_map.map(value, ret);
 	  }
 	else if (max_digits == s_u8_max_digits)
 	  {

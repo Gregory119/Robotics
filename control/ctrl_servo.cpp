@@ -1,25 +1,20 @@
 #include "ctrl_servo.h"
-#include "ctrl_rcstepvelocitymanager.h"
 
 #include <cassert>
 #include <iostream>
 
 using namespace CTRL;
 
-static const unsigned s_max_8bit = 255;
-static const unsigned s_min_8bit = 0;
+static const int s_max_8bit = 255;
+static const int s_min_8bit = 0;
 
 //----------------------------------------------------------------------//
 Servo::Servo()
-  : d_pos_8bit_to_pulse(UTIL::Map(getMaxPos(), getMinPos(), d_max_pulse, d_min_pulse)),
-    d_servo_to_vel_map(UTIL::Map(getMaxPos(),
-				 getMinPos(),
-				 static_cast<int>(getMaxPos())-getMidPos(),
-				 static_cast<int>(getMidPos())-getMaxPos())),
-    d_vel_to_servo_map(UTIL::Map(static_cast<int>(getMaxPos())-getMidPos(),
-				 static_cast<int>(getMidPos())-getMaxPos(),
-				 getMaxPos(),
-				 getMinPos())),
+  : d_pos_to_pulse(UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse)),
+    d_pos_to_vel_map(UTIL::Map(s_max_8bit,
+			       s_min_8bit,
+			       getMidPos(),
+			       0-getMidPos())),
     d_vel_inc_timer(new KERN::KernelTimer(this))
 {}
 
@@ -30,13 +25,14 @@ Servo::~Servo() = default;
 void Servo::setUsTiming(unsigned min_pulse,
 			unsigned max_pulse)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   d_min_pulse = min_pulse;
   d_max_pulse = max_pulse;
-  d_pos_8bit_to_pulse = UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse);
+  d_pos_to_pulse = UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse);
 }
 
 //----------------------------------------------------------------------//
-bool Servo::isPosInRange(uint8_t pos)
+bool Servo::isPosValid(int pos)
 {
   if ((pos <= s_max_8bit) &&
       (pos >= s_min_8bit))
@@ -50,62 +46,42 @@ bool Servo::isPosInRange(uint8_t pos)
 }
 
 //----------------------------------------------------------------------//
-uint8_t Servo::getRangePos()
+void Servo::setVelocityParams
+(const RCStepVelocityManager::VelocityLimitParams& p)
 {
-  return s_max_8bit - s_min_8bit;
-}
-
-//----------------------------------------------------------------------//
-uint8_t Servo::getMaxPos()
-{
-  return s_max_8bit;
-}
-
-//----------------------------------------------------------------------//
-uint8_t Servo::getMinPos()
-{
-  return s_min_8bit;
-}
-
-//----------------------------------------------------------------------//
-uint8_t Servo::getMidPos()
-{
-  return (s_max_8bit + s_min_8bit)/2;
-}
-
-//----------------------------------------------------------------------//
-void Servo::setVelocityParams(const VelocityParams& params)
-{
+  std::lock_guard<std::mutex> lock(d_m);
   assert(d_velocity_man == nullptr); //should only be done straight after initialisation.  This check is helpful for threading.
 
-  RCStepVelocityManager::VelocityLimitParams p;
-  p.abs_max_velocity = d_servo_to_vel_map.d_out_max; //defined by the servo
-  p.min_time_for_max_velocity_ms = params.min_time_for_max_velocity_ms;
-  p.time_step_ms = params.time_step_ms;
-  
   d_velocity_man.reset(new RCStepVelocityManager(p));
 
-  d_vel_inc_timer->setTimeMs(params.time_step_ms);
+  d_vel_inc_timer->setTimeMs(p.time_step_ms);
 }
 
 //----------------------------------------------------------------------//
 void Servo::updateIncPos()
 {
+  std::lock_guard<std::mutex> lock(d_m);
   int req_vel = 0;
-  mapFromTo(d_servo_to_vel_map, getReqPos(), req_vel);  // pos used as velocity for ESCs
+  int set_pos = 0;
+  
+  d_pos_to_vel_map.map(getReqPos(), req_vel); // pos used as velocity for ESCs
   int set_vel = d_velocity_man->stepVelocity(req_vel);
-  uint8_t set_pos = 0;
-  mapFromTo(d_vel_to_servo_map, set_vel, set_pos);
+  d_pos_to_vel_map.inverseMap(set_vel, set_pos);
   setSetPos(set_pos);
+
+  std::cout << "getReqPos() = " << (int)getReqPos() << std::endl;
+  std::cout << "set_pos = " << (int)set_pos << std::endl;
 }
 
 //----------------------------------------------------------------------//
 bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   assert(d_has_velocity_inc);
   
   if (timer == d_vel_inc_timer.get())
     {
+      std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
       updateIncPos();
       updateMove();
       return true;
@@ -117,6 +93,7 @@ bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
 //----------------------------------------------------------------------//
 void Servo::enableVelocityIncrementer(bool state)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   assert(d_velocity_man != nullptr); //should only be done straight after initialisation.  This check is helpful for threading.
   assert(d_vel_inc_timer != nullptr);
   
@@ -132,8 +109,11 @@ void Servo::enableVelocityIncrementer(bool state)
 } 
 
 //----------------------------------------------------------------------//
-void Servo::setReqPos(uint8_t pos)
+void Servo::setReqPos(int pos)
 {
+  std::lock_guard<std::mutex> lock(d_m);
+  assert(isPosValid(pos));
+  
   if (!d_has_velocity_inc)
     {
       setSetPos(pos);
@@ -141,14 +121,63 @@ void Servo::setReqPos(uint8_t pos)
   else
     {
       assert(d_velocity_man != nullptr);
-      d_req_pos = pos;
+      setReqPosDirect(pos);
       updateIncPos();
     }
 }
 
 //----------------------------------------------------------------------//
-void Servo::moveToStartPos(uint8_t pos)
+void Servo::moveToStartPos(int pos)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   setReqPosDirect(pos);
   setSetPos(pos);
+}
+
+//----------------------------------------------------------------------//
+void Servo::setSetPos(int pos)
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  assert(isPosValid(pos));
+  d_set_pos = pos;
+  d_pos_to_pulse.map(d_set_pos, d_set_pulse);
+}
+
+//----------------------------------------------------------------------//
+void Servo::setReqPosDirect(int pos)
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  assert(isPosValid(pos));
+  d_req_pos = pos;
+}
+
+//----------------------------------------------------------------------//
+unsigned Servo::getSetPulseUs()
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  return d_set_pulse;
+}
+
+//----------------------------------------------------------------------//
+int Servo::getMaxPos()
+{
+  return s_max_8bit;
+}
+
+//----------------------------------------------------------------------//
+int Servo::getMinPos()
+{
+  return s_min_8bit;
+}
+
+//----------------------------------------------------------------------//
+int Servo::getRangePos()
+{
+  return s_max_8bit - s_min_8bit;
+}
+
+//----------------------------------------------------------------------//
+int Servo::getMidPos()
+{
+  return (s_max_8bit + s_min_8bit)/2;
 }

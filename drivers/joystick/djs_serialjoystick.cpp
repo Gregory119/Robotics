@@ -1,5 +1,4 @@
 #include "djs_serialjoystick.h"
-#include "utl_mapping.h"
 
 #include <wiringSerial.h>
 #include <iostream>
@@ -81,7 +80,7 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
   serialPutchar(d_desc, mapToChar(event.type, s_u8_max_digits));
   serialPutchar(d_desc, mapToChar(event.number, s_u8_max_digits));
   serialPutchar(d_desc, '#');
-  
+  /*
   std::cout << "=========================================" << std::endl;
   std::cout << "time [ms]: " << (int)event.time << std::endl;
   std::cout << "value: " << (int)event.value << std::endl;
@@ -89,6 +88,7 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
   std::cout << "number: " << (int)event.number << std::endl;
 
   std::cout << "time [8bits]: " << (int)mapToChar(event.time, s_u32_max_digits) << std::endl;
+  
   if (event.type == BUTTON)
     {
       std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_u8_max_digits) << std::endl;
@@ -99,6 +99,7 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
     }
   std::cout << "type [8bits]: " << (int)mapToChar(event.type, s_u8_max_digits) << std::endl;
   std::cout << "number [8bits]: " << (int)mapToChar(event.number, s_u8_max_digits) << std::endl;
+  */
 }
 
 //----------------------------------------------------------------------//
@@ -169,7 +170,7 @@ bool JoystickReceiver::readSerialEvent(JSEventMinimal &js_event)
     }
 
   //need to decompress the time value from a compressed uint8_t to a uint16_t
-  mapFromTo(s_uchar_time_to_uint16_map, serialGetchar(d_desc), d_js_event.time_ms);
+  s_uchar_time_to_uint16_map.map(serialGetchar(d_desc), d_js_event.time_ms);
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
   d_js_event.number = serialGetchar(d_desc);

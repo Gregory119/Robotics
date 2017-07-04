@@ -12,20 +12,15 @@ using namespace CTRL;
 SoftServo::SoftServo(unsigned control_pin)
   : d_pin(control_pin)
 {
-  initPins();
+  // init pins
+  pinMode(d_pin, OUTPUT);
+  digitalWrite(d_pin, LOW);
 }
 
 //----------------------------------------------------------------------//
 void SoftServo::setup()
 {
   wiringPiSetup();
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::initPins()
-{
-  pinMode(d_pin, OUTPUT);
-  digitalWrite(d_pin, LOW);
 }
 
 //----------------------------------------------------------------------//
@@ -52,10 +47,8 @@ void SoftServo::stop()
 //----------------------------------------------------------------------//
 void SoftServo::updateMove()
 {
-  unsigned pos = getSetPos();
-  unsigned pos_us = 0;
-  UTIL::mapFromTo(getPosMap(), pos, pos_us);
-
+  std::lock_guard<std::mutex> lock(d_m);
+  unsigned pos_us = getSetPulseUs();
   unsigned time_us = micros();
   digitalWrite(d_pin, HIGH);
   while((micros()-time_us)<pos_us){}
@@ -65,7 +58,7 @@ void SoftServo::updateMove()
 
 //----------------------------------------------------------------------//
 void SoftServo::threadFunc(std::future<bool> shutdown,
-			   SoftServo *const servo)
+			   SoftServo *const servo) // change this in the future to use a thread safe shared pipe reader/writer
 {
   while (shutdown.wait_for(std::chrono::nanoseconds(0)) != 
 	 std::future_status::ready)
@@ -75,28 +68,7 @@ void SoftServo::threadFunc(std::future<bool> shutdown,
 }
 
 //----------------------------------------------------------------------//
-unsigned SoftServo::getSetPos()
-{ 
-  std::lock_guard<std::mutex> lock(d_m);
-  return Servo::getSetPos();
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::setDelayTimeUs(unsigned delay_us)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  d_delay_us = delay_us;
-}
-
-//----------------------------------------------------------------------//
-unsigned SoftServo::getDelayTimeUs()
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  return d_delay_us;
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::moveToPos(uint8_t pos)
+void SoftServo::moveToPos(int pos)
 {
   if (!d_first_move)
     {
@@ -110,61 +82,8 @@ void SoftServo::moveToPos(uint8_t pos)
 }
 
 //----------------------------------------------------------------------//
-const UTIL::Map& SoftServo::getPosMap()
+unsigned SoftServo::getDelayTimeUs()
 {
   std::lock_guard<std::mutex> lock(d_m);
-  return Servo::getPosMap();
+  return d_delay_us;
 }
-
-//----------------------------------------------------------------------//
-unsigned SoftServo::getPulseMinTimeUs()
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  return Servo::getPulseMinTimeUs();
-}
-
-//----------------------------------------------------------------------//
-unsigned SoftServo::getPulseMaxTimeUs()
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  return Servo::getPulseMaxTimeUs();
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::setUsTiming(unsigned min_pulse,
-			    unsigned max_pulse)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  Servo::setUsTiming(min_pulse, max_pulse);
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::setSetPos(uint8_t pos)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  Servo::setSetPos(pos);
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::setReqPos(uint8_t pos)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  Servo::setReqPos(pos);
-}
-
-//----------------------------------------------------------------------//
-uint8_t SoftServo::getReqPos()
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  return Servo::getReqPos();
-}
-
-//----------------------------------------------------------------------//
-void SoftServo::setReqPosDirect(uint8_t pos)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  Servo::setReqPosDirect(pos);
-}
-
-//----------------------------------------------------------------------//
-//SoftServo::

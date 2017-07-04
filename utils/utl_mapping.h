@@ -6,44 +6,62 @@
 
 namespace UTIL
 {
-  struct Map
+  class Map
   {
-    Map();
-  Map(int in_max, int in_min, int o_max, int o_min)
-  : d_in_max(in_max),
+  public:
+    Map() = default;
+  Map(double in_max, double in_min, double o_max, double o_min)
+    : d_in_max(in_max),
       d_in_min(in_min),
       d_out_max(o_max),
       d_out_min(o_min)
     {}
     Map(const Map &copy) = default;
     Map& operator=(const Map &copy) = default;
+
+    void setInputRange(double in_max, double in_min);
+    void setOutputRange(double out_max, double out_min);
+
+    template <class T>
+    void map(double in_val, T& out_val) const;
+    template <class T>
+    void inverseMap(double in_val, T& out_val) const;
     
-    int d_in_max = 0;
-    int d_in_min = 0;
-    int d_out_max = 0;
-    int d_out_min = 0;
+  private:
+    double d_in_max = 0;
+    double d_in_min = 0;
+    double d_out_max = 0;
+    double d_out_min = 0;
   };
   
   //----------------------------------------------------------------------//
-  //flip axis will make the out max value correspond to the input min value and make the out min value correspond to the input max value.
-  //make sure the input value is in range of its input max and min values
+  // Flip axis will swap the output max and min
   // Only for fundamental types
-  template <typename Tin, typename Tout>
-    void mapFromTo(const Map &map, Tin in_val, Tout& out_val,  bool flip_axis=false)
+  template <class T>
+    void Map::map(double in_val, T& out_val) const
     {
-      assert(std::is_fundamental<Tin>::value &&
-	     std::is_fundamental<Tout>::value);
-      assert(in_val <= map.d_in_max);
-      assert(in_val >= map.d_in_min);
+      assert(std::is_fundamental<T>::value);
+      assert(in_val <= d_in_max);
+      assert(in_val >= d_in_min);
       
-      out_val = (static_cast<double>(in_val) - map.d_in_min)/ //use cast to induce up cast if necessary
-	(map.d_in_max - map.d_in_min)*
-	(map.d_out_max - map.d_out_min) + map.d_out_min;
+      out_val = (in_val - d_in_min)/ 
+	(d_in_max - d_in_min)*
+	(d_out_max - d_out_min) + d_out_min;
+    }
 
-      if (flip_axis)
-	{
-	  out_val = (map.d_out_max - out_val) + map.d_out_min;
-	}
+  //----------------------------------------------------------------------//
+  // Flip axis will swap the output max and min
+  // Only for fundamental types
+  template <class T>
+    void Map::inverseMap(double in_val, T& out_val) const
+    {
+      assert(std::is_fundamental<T>::value);
+      assert(in_val <= d_out_max);
+      assert(in_val >= d_out_min);
+      
+      out_val = (in_val - d_in_min)/ 
+	(d_in_max - d_in_min)*
+	(d_out_max - d_out_min) + d_out_min;
     }
 };
 #endif
