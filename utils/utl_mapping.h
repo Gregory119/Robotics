@@ -26,6 +26,10 @@ namespace UTIL
     void map(double in_val, T& out_val) const;
     template <class T>
     void inverseMap(double in_val, T& out_val) const;
+    template <class T>
+      T flipOnOutAxis(T) const;
+    template <class T>
+      T flipOnInAxis(T) const;
     
   private:
     double d_in_max = 0;
@@ -47,6 +51,9 @@ namespace UTIL
       out_val = (in_val - d_in_min)/ 
 	(d_in_max - d_in_min)*
 	(d_out_max - d_out_min) + d_out_min;
+
+      assert(out_val <= d_out_max);
+      assert(out_val >= d_out_min);
     }
 
   //----------------------------------------------------------------------//
@@ -59,9 +66,27 @@ namespace UTIL
       assert(in_val <= d_out_max);
       assert(in_val >= d_out_min);
       
-      out_val = (in_val - d_in_min)/ 
-	(d_in_max - d_in_min)*
-	(d_out_max - d_out_min) + d_out_min;
+      out_val = (in_val - d_out_min)/ 
+	(d_out_max - d_out_min)*
+	(d_in_max - d_in_min) + d_in_min;
+
+      assert(out_val <= d_in_max);
+      assert(out_val >= d_in_min);
     }
+
+  //----------------------------------------------------------------------//
+  template <class T>
+    T Map::flipOnOutAxis(T val) const
+    {
+      return (d_out_max - val) + d_out_min;
+    }
+
+  //----------------------------------------------------------------------//
+  template <class T>
+    T Map::flipOnInAxis(T val) const
+    {
+      return (d_in_max - val) + d_in_min;
+    }
+
 };
 #endif

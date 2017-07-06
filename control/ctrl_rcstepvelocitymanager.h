@@ -4,8 +4,6 @@
 #include <memory>
 #include <map>
 
-#include "utl_values.h"
-
 namespace CORE
 {
   class StepIncrementer;
@@ -33,7 +31,6 @@ namespace CTRL
       int abs_max_velocity = 0;
       int min_time_for_max_velocity_ms = 1;
       int time_step_ms = 0;
-      int zero_ref_velocity = 0;
     };
     
   public:
@@ -43,19 +40,20 @@ namespace CTRL
     RCStepVelocityManager(const RCStepVelocityManager&) = delete;
     RCStepVelocityManager& operator=(const RCStepVelocityManager&) = delete;
 
-    int stepVelocity(int input_velocity);
+    int stepToVelocity(int vel);
     // This must be called every time step
     // Input velocity sign implies direction.
 
-    int getVelocity() { return d_velocity; }
+    void setVelocity(int vel);
+    int getVelocity();
     
   private:
     friend ZeroVelocityState;
     friend PosVelocityState;
     friend NegVelocityState;
+    
     void decrementVelocity();
     void incrementVelocity();
-    void setVelocity(int in_velocity) { d_velocity = in_velocity; }
     void setNextState(VelocityStateId);
     void updateState();
 
@@ -64,9 +62,7 @@ namespace CTRL
     VelocityState* d_state = nullptr;
     VelocityStateId d_next_state_id = VelocityStateId::Zero;
     
-    std::unique_ptr<CORE::StepIncrementer> d_step_inc;
-    int d_velocity = 0;
-    UTIL::SignCheck<int> d_sign_check;
+    std::unique_ptr<CORE::StepIncrementer> d_vel_inc; // holds the vel
   };
 
   //----------------------------------------------------------------------//
@@ -74,28 +70,28 @@ namespace CTRL
   {
   public:
     virtual ~VelocityState() = default;
-    virtual void stepVelocity(RCStepVelocityManager&, int input_velocity) = 0;
+    virtual void stepVelocity(RCStepVelocityManager&, int in_vel) = 0;
   };
 
   //----------------------------------------------------------------------//
   class ZeroVelocityState final : public VelocityState
   {
   public:
-    void stepVelocity(RCStepVelocityManager&, int input_velocity) override;
+    void stepVelocity(RCStepVelocityManager&, int in_vel) override;
   };
 
   //----------------------------------------------------------------------//
   class PosVelocityState final : public VelocityState
   {
   public:
-    void stepVelocity(RCStepVelocityManager&, int input_velocity) override;    
+    void stepVelocity(RCStepVelocityManager&, int in_vel) override;    
   };
 
   //----------------------------------------------------------------------//
   class NegVelocityState final : public VelocityState
   {
   public:
-    void stepVelocity(RCStepVelocityManager&, int input_velocity) override;
+    void stepVelocity(RCStepVelocityManager&, int in_vel) override;
   };
 };
 

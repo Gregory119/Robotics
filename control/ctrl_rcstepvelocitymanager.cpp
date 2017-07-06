@@ -1,7 +1,10 @@
 #include "ctrl_rcstepvelocitymanager.h"
 #include "core_stepincrementer.h"
 
+#include "utl_values.h"
+
 #include <cassert>
+#include <iostream>
 
 using namespace CTRL;
 
@@ -9,10 +12,8 @@ using namespace CTRL;
 // RCStepVelocityManager
 //----------------------------------------------------------------------//
 RCStepVelocityManager::RCStepVelocityManager(const VelocityLimitParams& p)
-  : d_step_inc(new CORE::StepIncrementer(static_cast<double>(p.abs_max_velocity)/p.min_time_for_max_velocity_ms,
-					 p.time_step_ms)),
-    d_velocity(p.zero_ref_velocity),
-    d_sign_check(p.zero_ref_velocity)
+  : d_vel_inc(new CORE::StepIncrementer(static_cast<double>(p.abs_max_velocity)/p.min_time_for_max_velocity_ms,
+					 p.time_step_ms))
 {
   // add list of possible states
   d_states[VelocityStateId::Pos] = std::unique_ptr<VelocityState>(new PosVelocityState());
@@ -38,42 +39,52 @@ void RCStepVelocityManager::setNextState(VelocityStateId id)
 }
 
 //----------------------------------------------------------------------//
-int RCStepVelocityManager::stepVelocity(int input_velocity)
+int RCStepVelocityManager::stepToVelocity(int vel)
 {
   assert(d_state != nullptr);
-  assert(d_step_inc != nullptr);
-  
-  // avoid oscillating set velocitys due to increment/decrement resolution
-  if (d_step_inc->getIncRes() > std::abs(d_velocity - input_velocity))
+  assert(d_vel_inc != nullptr);
+
+  int vel_diff = 0;
+  int vel_cur = d_vel_inc->getValue();
+  if (vel > vel_cur)
     {
-      return d_velocity;
+      vel_diff = vel - vel_cur;
+    }
+  else
+    {
+      vel_diff = vel_cur - vel;
+    }
+
+  if (vel_diff < d_vel_inc->getIncRes()) // avoid stepping oscillation
+    {
+      return vel;
     }
   
-  d_state->stepVelocity(*this, input_velocity);
+  d_state->stepVelocity(*this, vel);
   updateState();
   
-  return d_velocity;
+  return d_vel_inc->getValue();
 }
 
 //----------------------------------------------------------------------//
 void RCStepVelocityManager::decrementVelocity()
 {
-  assert(d_step_inc != nullptr);
-  d_velocity = d_step_inc->stepDecrement(d_velocity);
+  assert(d_vel_inc != nullptr);
+  d_vel_inc->stepDecrement();
 }
 //----------------------------------------------------------------------//
 void RCStepVelocityManager::incrementVelocity()
 {
-  assert(d_step_inc != nullptr);
-  d_velocity = d_step_inc->stepIncrement(d_velocity);
+  assert(d_vel_inc != nullptr);
+  d_vel_inc->stepIncrement();
 }
 
 //----------------------------------------------------------------------//
 // ZeroState
 //----------------------------------------------------------------------//
-void ZeroVelocityState::stepVelocity(RCStepVelocityManager& man, int input_velocity)
+void ZeroVelocityState::stepVelocity(RCStepVelocityManager& man, int in_vel)
 {
-  switch (man.d_sign_check.getSign(input_velocity))
+  switch (UTIL::getSign(in_vel))
     {
     case UTIL::Sign::Pos:
       man.incrementVelocity();
@@ -88,6 +99,7 @@ void ZeroVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloc
     case UTIL::Sign::Zero:
       //should already have zero velocity so do nothing
       assert(man.getVelocity() == 0);
+      man.setNextState(VelocityStateId::Zero);
       break;
 
     default:
@@ -99,32 +111,33 @@ void ZeroVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloc
 //----------------------------------------------------------------------//
 // PosState
 //----------------------------------------------------------------------//
-void PosVelocityState::stepVelocity(RCStepVelocityManager& man, int input_velocity)
+void PosVelocityState::stepVelocity(RCStepVelocityManager& man, int in_vel)
 {
   int cur_velocity = man.getVelocity();
 
-  switch (man.d_sign_check.getSign(input_velocity))
+  switch (UTIL::getSign(in_vel))
     {
     case UTIL::Sign::Pos:
-      if (input_velocity > cur_velocity)
+      if (in_vel > cur_velocity)
 	{
 	  man.incrementVelocity();
 	}
-      else if (input_velocity < cur_velocity)
+      else if (in_vel < cur_velocity)
 	{
-	  man.setVelocity(input_velocity);
+	  man.setVelocity(in_vel);
 	}
       man.setNextState(VelocityStateId::Pos);
       break;
 
     case UTIL::Sign::Neg:
-      man.setVelocity(0);
+      man.setVelocity(0); // zero the set velocity
       man.decrementVelocity();
       man.setNextState(VelocityStateId::Neg);
       break;
 
     case UTIL::Sign::Zero:
       man.setVelocity(0);
+      man.setNextState(VelocityStateId::Zero);
       break;
 
     default:
@@ -134,11 +147,11 @@ void PosVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloci
 }
 
 //----------------------------------------------------------------------//
-void NegVelocityState::stepVelocity(RCStepVelocityManager& man, int input_velocity)
+void NegVelocityState::stepVelocity(RCStepVelocityManager& man, int in_vel)
 {
   int cur_velocity = man.getVelocity();
   
-  switch (man.d_sign_check.getSign(input_velocity))
+  switch (UTIL::getSign(in_vel))
     {
     case UTIL::Sign::Pos:
       man.setVelocity(0);
@@ -147,23 +160,36 @@ void NegVelocityState::stepVelocity(RCStepVelocityManager& man, int input_veloci
       break;
 
     case UTIL::Sign::Neg:
-      if (input_velocity < cur_velocity)
+      if (in_vel < cur_velocity)
 	{
 	  man.decrementVelocity();
 	}
-      else if (input_velocity > cur_velocity)
+      else if (in_vel > cur_velocity)
 	{
-	  man.setVelocity(input_velocity);
+	  man.setVelocity(in_vel);
 	}
       man.setNextState(VelocityStateId::Neg);
       break;
 
     case UTIL::Sign::Zero:
       man.setVelocity(0);
+      man.setNextState(VelocityStateId::Zero);
       break;
 
     default:
       assert(false);
       break;
     }
+}
+
+//----------------------------------------------------------------------//
+int RCStepVelocityManager::getVelocity()
+{
+  return d_vel_inc->getValue();
+}
+
+//----------------------------------------------------------------------//
+void RCStepVelocityManager::setVelocity(int vel)
+{
+  d_vel_inc->setValue(vel);
 }

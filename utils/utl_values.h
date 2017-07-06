@@ -11,33 +11,22 @@ namespace UTIL
       Neg,
       Zero
     };
-  
+
   template <class T>
-  class SignCheck final
+  Sign getSign(const T& val)
   {
-  public:
-    SignCheck(const T& zero_ref = 0)
+    assert(std::is_fundamental<T>::value);
+    if (val > 0)
       {
-	assert(std::is_fundamental<T>::value);
+	return Sign::Pos;
       }
-    
-    Sign getSign(const T& val)
-    {
-      if (val > d_zero_ref)
-	{
-	  return Sign::Pos;
-	}
-      else if (val < d_zero_ref)
-	{
-	  return Sign::Neg;
-	}
+    else if (val < 0)
+      {
+	return Sign::Neg;
+      }
 
-      return Sign::Zero;
-    }
-
-  private:
-    T d_zero_ref = 0;
-  };
+    return Sign::Zero;
+  }
 };
 
 #endif

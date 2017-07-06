@@ -31,7 +31,8 @@ private:
     if (timer==d_timer.get())
       {
 	std::cout << "Requested velocity = " << d_req_velocity << std::endl;
-	std::cout << "New output velocity = " << d_man->stepVelocity(d_req_velocity) << std::endl;
+	int vel = d_man->stepToVelocity(d_req_velocity);
+	std::cout << "New output velocity = " << vel << std::endl;
 	if (d_input_timer->isDisabled())
 	  {
 	    d_timer->disable();

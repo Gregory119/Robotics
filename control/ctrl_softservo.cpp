@@ -9,8 +9,11 @@
 using namespace CTRL;
 
 //----------------------------------------------------------------------//
-SoftServo::SoftServo(unsigned control_pin)
-  : d_pin(control_pin)
+SoftServo::SoftServo(unsigned control_pin,
+		     int max_pos,
+		     int min_pos)
+  : Servo(max_pos,min_pos),
+    d_pin(control_pin)
 {
   // init pins
   pinMode(d_pin, OUTPUT);
@@ -70,6 +73,8 @@ void SoftServo::threadFunc(std::future<bool> shutdown,
 //----------------------------------------------------------------------//
 void SoftServo::moveToPos(int pos)
 {
+  assert(isPosValid(pos));
+  
   if (!d_first_move)
     {
       setReqPos(pos);
