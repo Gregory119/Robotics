@@ -2,9 +2,13 @@
 //#include <unistd.h> //for sleep
 
 #include "djs_serialjoystick.h"
+#include "kn_stdkernel.h"
+
+#include <iostream>
 
 int main()
 {
+  KERN::StdKernel k;
   int baud = 9600;
 
   D_JS::JoystickTransmitter js_tran;
@@ -13,7 +17,9 @@ int main()
 		   baud,
 		   "/dev/input/js0"))
     {
-      KERN::KernBasic k(&js_tran);
-      k.run();
+      std::cout << "failed to initialize" << std::endl;
+      return 0;
     }
+  
+  return k.run();
 }

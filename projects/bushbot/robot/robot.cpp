@@ -45,7 +45,7 @@ Robot::Robot(Params& params)
   d_motor->setUsTiming(1000, 2000); //in microseconds
   d_motor->moveToPos(s_esc_mid_pos_servo); //start servo in the middle of the set range of motion
 
-  d_motor->setVelocityParams(2000, 200);
+  d_motor->setVelocityParams(4000, 100);
   d_motor->enableVelocityIncrementer(true);
   
   //steering
@@ -57,7 +57,7 @@ Robot::Robot(Params& params)
 
   //timers
   d_process_timer->restartMs(0);
-  d_watchdog_timer->restartMs(2000);
+  d_watchdog_timer->restartMs(1000);
 }
 
 //----------------------------------------------------------------------//
@@ -65,7 +65,7 @@ Robot::~Robot()
 {}
 
 //----------------------------------------------------------------------//
-bool Robot::init(const char* serial_port, 
+bool Robot::init(const std::string& serial_port, 
 		 int baud)
 {
   return d_js_receiver.init(serial_port, baud);
@@ -89,8 +89,7 @@ bool Robot::handleTimeOut(const KERN::KernelTimer& timer)
 
   if (timer == d_watchdog_timer.get()) // signal loss or interference
     {
-      // implement watchdog message on basestation
-      // stopMoving();
+      stopMoving();
       
       return true;
     }
@@ -184,7 +183,6 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
     {
     case X1:
       {
-	std::cout << "turn left/right" << std::endl;
 	unsigned servo_sig = 0;
         d_stick_map.map(static_cast<unsigned>(event.value), servo_sig);
 	std::cout << "servo signal = " << servo_sig << std::endl;
@@ -216,6 +214,7 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
         unsigned motor_sig = 0;
         d_lt_map.map(static_cast<unsigned>(event.value), motor_sig);
 	motor_sig = d_lt_map.flipOnOutAxis(motor_sig);
+	std::cout << "motor signal = " << motor_sig << std::endl;
 	d_motor->moveToPos(motor_sig);
       }
       break;

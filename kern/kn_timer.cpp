@@ -14,7 +14,15 @@ KernelTimer::KernelTimer(KernelTimerOwner* o)
 }
 
 //----------------------------------------------------------------------//
-KernelTimer::~KernelTimer() = default;
+KernelTimer::KernelTimer(const KernelTimer& rhs)
+  : KernelTimer(rhs.d_owner)
+{}
+
+//----------------------------------------------------------------------//
+KernelTimer::~KernelTimer()
+{
+  StdKernel::removeTimer(*this);
+}
 
 //----------------------------------------------------------------------//
 bool KernelTimer::processTimeOut()

@@ -22,16 +22,16 @@ const UTIL::Map JoystickReceiver::s_uchar_time_to_uint16_map(255,0,JoystickTrans
 //----------------------------------------------------------------------//
 // JoystickTransmitter
 //----------------------------------------------------------------------//
-
-JoystickTransmitter::JoystickTransmitter() 
+JoystickTransmitter::JoystickTransmitter()
+  : d_resend_timer(KERN::KernelTimer(this))
 {}
 
 //----------------------------------------------------------------------//
-bool JoystickTransmitter::init(const char* serial_port,
+bool JoystickTransmitter::init(const std::string& serial_port,
 			       int baud,
-			       const char* js_source)
+			       const std::string& js_source)
 {
-  d_js.reset(new JoyStick(this,js_source));
+  d_js.reset(new JoyStick(this,js_source.c_str()));
 
   if (!d_js->init())
     {
@@ -40,7 +40,7 @@ bool JoystickTransmitter::init(const char* serial_port,
       return false;
     }
 
-  d_desc = serialOpen(serial_port, baud);
+  d_desc = serialOpen(serial_port.c_str(), baud);
 
   if (d_desc == -1)
     {
@@ -50,6 +50,8 @@ bool JoystickTransmitter::init(const char* serial_port,
     }
 
   d_js->run();
+
+  d_resend_timer.restartMs(60000); // initially made large to avoid holding up other timeouts
 
   return true;
 }
@@ -63,10 +65,36 @@ JoystickTransmitter::~JoystickTransmitter()
     }
 }
 
+//-----------------------------------------------------------------------/
+void JoystickTransmitter::setResendEventTimeoutMs(long t_ms)
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  d_resend_event = true;
+  d_resend_timer.restartMs(t_ms);
+}
+
+//-----------------------------------------------------------------------/
+void JoystickTransmitter::resendLastEvent()
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  assert(d_resend_event);
+  sendEvent(d_event);
+}
+
 //----------------------------------------------------------------------//
 void JoystickTransmitter::handleEvent(const JSEvent &event) 
 {
-  std::lock_guard<std::mutex> lock(m);
+  std::lock_guard<std::mutex> lock(d_m);
+  d_event = event;
+  d_received_event = true;
+  sendEvent(event);
+}
+
+//----------------------------------------------------------------------//
+void JoystickTransmitter::sendEvent(const JSEvent &event)
+{
+  d_resend_timer.restart(); // timer should timeout when no event has been received
+  
   serialPutchar(d_desc, 'J');
   serialPutchar(d_desc, mapToChar(event.time, s_u32_max_digits));
   if (event.type == BUTTON)
@@ -81,39 +109,49 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
   serialPutchar(d_desc, mapToChar(event.number, s_u8_max_digits));
   serialPutchar(d_desc, '#');
   /*
-  std::cout << "=========================================" << std::endl;
-  std::cout << "time [ms]: " << (int)event.time << std::endl;
-  std::cout << "value: " << (int)event.value << std::endl;
-  std::cout << "type: " << (int)event.type << std::endl;
-  std::cout << "number: " << (int)event.number << std::endl;
+    std::cout << "=========================================" << std::endl;
+    std::cout << "time [ms]: " << (int)event.time << std::endl;
+    std::cout << "value: " << (int)event.value << std::endl;
+    std::cout << "type: " << (int)event.type << std::endl;
+    std::cout << "number: " << (int)event.number << std::endl;
 
-  std::cout << "time [8bits]: " << (int)mapToChar(event.time, s_u32_max_digits) << std::endl;
+    std::cout << "time [8bits]: " << (int)mapToChar(event.time, s_u32_max_digits) << std::endl;
   
-  if (event.type == BUTTON)
+    if (event.type == BUTTON)
     {
-      std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_u8_max_digits) << std::endl;
+    std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_u8_max_digits) << std::endl;
     }
-  else if (event.type == AXIS)
+    else if (event.type == AXIS)
     {
-      std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_s16_max_digits) << std::endl;
+    std::cout << "value [8bits]: " << (int)mapToChar(event.value, s_s16_max_digits) << std::endl;
     }
-  std::cout << "type [8bits]: " << (int)mapToChar(event.type, s_u8_max_digits) << std::endl;
-  std::cout << "number [8bits]: " << (int)mapToChar(event.number, s_u8_max_digits) << std::endl;
+    std::cout << "type [8bits]: " << (int)mapToChar(event.type, s_u8_max_digits) << std::endl;
+    std::cout << "number [8bits]: " << (int)mapToChar(event.number, s_u8_max_digits) << std::endl;
   */
-}
-
-//----------------------------------------------------------------------//
-bool JoystickTransmitter::process()
-{
-  return d_stay_running;
 }
 
 //----------------------------------------------------------------------//
 void JoystickTransmitter::handleReadError()
 {
-  std::lock_guard<std::mutex> lock(m);
-  d_stay_running = false;
+  std::lock_guard<std::mutex> lock(d_m);
   d_js->stop();
+}
+
+//----------------------------------------------------------------------//
+bool JoystickTransmitter::handleTimeOut(const KERN::KernelTimer& timer)
+{
+  if (timer == d_resend_timer)
+    {
+      if (d_resend_event)
+	{
+	  resendLastEvent();
+	}
+      // else
+      // do nothing
+      // only used to keep running in order to process the threaded joystick events
+      return true;
+    }
+  return false;
 }
 
 //----------------------------------------------------------------------//
@@ -133,10 +171,10 @@ JoystickReceiver::~JoystickReceiver()
 }
 
 //----------------------------------------------------------------------//
-bool JoystickReceiver::init(const char* serial_port,
+bool JoystickReceiver::init(const std::string& serial_port,
 			    int baud)
 {
-  d_desc = serialOpen(serial_port, baud);
+  d_desc = serialOpen(serial_port.c_str(), baud);
   if (d_desc == -1)
     {
       std::cout << "Could not open serial port" << std::endl;

@@ -32,6 +32,23 @@ void StdKernel::registerTimer(KernelTimer& new_timer)
 }
 
 //----------------------------------------------------------------------//
+void StdKernel::removeTimer(KernelTimer& t)
+{
+  assert(s_singleton!=nullptr);
+  assert(!s_singleton->d_timers.empty());
+  
+  //check if it already exists (debug)
+#ifdef NDEBUG
+  for (const auto& timer : s_singleton->d_timers)
+    {
+      assert(timer != new_timer);
+    }
+#endif
+
+  s_singleton->d_timers.remove(&t);
+}
+
+//----------------------------------------------------------------------//
 int StdKernel::process()
 {
   assert(!d_timers.empty());

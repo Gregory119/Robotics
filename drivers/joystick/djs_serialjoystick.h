@@ -1,46 +1,42 @@
 #ifndef DJS_SERIALJOYSTICK_H
 #define DJS_SERIALJOYSTICK_H
 
-#include "djs_joystick.h"
 #include "djs_common.h"
-#include "kn_basic.h"
+#include "djs_joystick.h"
+
+#include "kn_timer.h"
 #include "utl_mapping.h"
 
 #include <thread>
 
 namespace D_JS
 {
-  class JoystickReceiver;
-  
-  class JoystickTransmitter : public D_JS::JoyStickOwner,
-    public KERN::KernBasicComponent
+  class JoystickReceiver;  
+  class JoystickTransmitter : JoyStickOwner,
+    KERN::KernelTimerOwner
   {
-    friend JoystickReceiver; //allow access to the static private constants
-
   public:
     JoystickTransmitter();
     JoystickTransmitter(const JoystickTransmitter&) = delete; //cannot use copy constructor
     JoystickTransmitter& operator=(const JoystickTransmitter&) = delete; //cannot copy
     virtual ~JoystickTransmitter();
 
-    bool init(const char* serial_port, 
+    bool init(const std::string& serial_port, 
 	      int baud,
-	      const char* js_source);
+	      const std::string& js_source);
     //must return true before calling other functions
 
+    void setResendEventTimeoutMs(long);
+    
   private:
-    virtual void handleEvent(const D_JS::JSEvent &event) override; 
+    // KERN::KernelTimerOwner
+    bool handleTimeOut(const KERN::KernelTimer& timer);
+    
+  private:
+    virtual void handleEvent(const JSEvent &event) override; 
     virtual void handleReadError() override;
-    virtual bool process() override;
-
-  private:
-    static const unsigned s_u32_max_digits;
-    static const unsigned s_s16_max_digits;
-    static const unsigned s_u8_max_digits;
-
-    static const unsigned s_max_time_ms;
-    static const UTIL::Map s_time_to_uchar_map;
-    static const UTIL::Map s_value_to_char_map;
+    void sendEvent(const JSEvent &event);
+    void resendLastEvent();
 
   private:
     //----------------------------------------------------------------------//
@@ -67,10 +63,25 @@ namespace D_JS
       }
 
   private:
-    std::mutex m;
-    std::unique_ptr<D_JS::JoyStick> d_js = nullptr;
+    friend JoystickReceiver; //allow access to the static private constants
+    
+    std::mutex d_m;
+    JSEvent d_event;
+    std::unique_ptr<D_JS::JoyStick> d_js;
     int d_desc = -1;
     bool d_stay_running = true;
+    bool d_received_event = false;
+
+    static const unsigned s_u32_max_digits;
+    static const unsigned s_s16_max_digits;
+    static const unsigned s_u8_max_digits;
+
+    static const unsigned s_max_time_ms;
+    static const UTIL::Map s_time_to_uchar_map;
+    static const UTIL::Map s_value_to_char_map;
+
+    bool d_resend_event = false;
+    KERN::KernelTimer d_resend_timer;
   };
 
   class JoystickReceiver
@@ -82,15 +93,15 @@ namespace D_JS
     JoystickReceiver& operator=(const JoystickReceiver &copy) = default;
     virtual ~JoystickReceiver();
 
-    bool init(const char* serial_port, 
+    bool init(const std::string& serial_port, 
 	      int baud);
     //must return true before calling other functions
 
-    bool readSerialEvent(D_JS::JSEventMinimal &js_event);
+    bool readSerialEvent(JSEventMinimal &js_event);
     
   private:
     int d_desc = -1;
-    D_JS::JSEventMinimal d_js_event; //values auto initialised to zero
+    JSEventMinimal d_js_event; //values auto initialised to zero
 
     static const UTIL::Map s_uchar_time_to_uint16_map;
 

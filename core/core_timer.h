@@ -19,7 +19,7 @@ namespace CORE
   public:
     Timer();
     virtual ~Timer();
-    Timer(const Timer&) = delete;
+    Timer(const Timer&) = default;
     Timer& operator=(const Timer&) = delete;
     
     long getTimeMs(); //does not check for overflow

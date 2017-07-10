@@ -24,8 +24,8 @@ namespace KERN
   public:
     KernelTimer(KernelTimerOwner*);
     virtual ~KernelTimer();
-    KernelTimer(const KernelTimer&) = delete; //currently not copyable (consider owner pointer)
-    KernelTimer& operator=(const KernelTimer&) = delete;
+    KernelTimer(const KernelTimer&);
+    KernelTimer& operator=(const KernelTimer&) = default;
 
     bool operator==(const KernelTimer& rhs) const { return &rhs == this; }
     bool operator==(const KernelTimer* rhs) const { return operator==(*rhs); }
@@ -39,7 +39,7 @@ namespace KERN
     //Any restarts or disabling will set the consequetive time out count to zero.
     long getConseqTimeOuts() { return d_count_conseq_timeouts; }
     long getTotalTimeOuts() { return d_total_timeouts; }
-   
+    
     bool isSet() const { return d_timeout_ms>=0; }
     bool isDisabled() { return !d_is_enabled; }
     void setTimeMs(long);

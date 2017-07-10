@@ -16,7 +16,7 @@ int main()
   std::string serial_port = "/dev/ttyAMA0";
   int baud=9600;
 
-  if (!r.init(serial_port.c_str(),
+  if (!r.init(serial_port,
 	      baud))
     {
       std::cout << "failed to initialize robot" << std::endl;

@@ -38,7 +38,7 @@ class Robot final : KERN::KernelTimerOwner,
   Robot(const Robot&) = default;
   Robot& operator=(const Robot&) = default;
 
-  bool init(const char* serial_port, int baud=9600);
+  bool init(const std::string& serial_port, int baud=9600);
 
  private:
   //D_GP::GoProController
