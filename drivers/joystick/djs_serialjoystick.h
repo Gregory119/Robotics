@@ -26,7 +26,9 @@ namespace D_JS
 	      const std::string& js_source);
     //must return true before calling other functions
 
+    // has no affect if already started
     void setResendEventTimeoutMs(long);
+    void start();
     
   private:
     // KERN::KernelTimerOwner
@@ -69,8 +71,7 @@ namespace D_JS
     JSEvent d_event;
     std::unique_ptr<D_JS::JoyStick> d_js;
     int d_desc = -1;
-    bool d_stay_running = true;
-    bool d_received_event = false;
+    bool d_is_init = false;
 
     static const unsigned s_u32_max_digits;
     static const unsigned s_s16_max_digits;
@@ -82,6 +83,7 @@ namespace D_JS
 
     bool d_resend_event = false;
     KERN::KernelTimer d_resend_timer;
+    long d_resend_time_ms = 60000;
   };
 
   class JoystickReceiver

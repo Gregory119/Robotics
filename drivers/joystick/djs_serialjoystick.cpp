@@ -17,8 +17,6 @@ const unsigned JoystickTransmitter::s_max_time_ms = 3000;
 const UTIL::Map JoystickTransmitter::s_time_to_uchar_map(s_max_time_ms,0,255,0);
 const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,255,0);
 
-const UTIL::Map JoystickReceiver::s_uchar_time_to_uint16_map(255,0,JoystickTransmitter::s_max_time_ms,0);
-
 //----------------------------------------------------------------------//
 // JoystickTransmitter
 //----------------------------------------------------------------------//
@@ -36,7 +34,6 @@ bool JoystickTransmitter::init(const std::string& serial_port,
   if (!d_js->init())
     {
       std::cout << "Joystick init failed" << std::endl;
-      d_stay_running = false;
       return false;
     }
 
@@ -45,15 +42,24 @@ bool JoystickTransmitter::init(const std::string& serial_port,
   if (d_desc == -1)
     {
       std::cout << "Could not open serial port" << std::endl;
-      d_stay_running = false;
       return false;
     }
 
-  d_js->run();
-
-  d_resend_timer.restartMs(60000); // initially made large to avoid holding up other timeouts
-
+  d_is_init = true;
+  
   return true;
+}
+
+//----------------------------------------------------------------------//
+void JoystickTransmitter::start()
+{
+  // initially made large to avoid holding up other timeouts
+  d_resend_timer.restartMs(d_resend_time_ms);
+  assert(d_is_init);
+  if (d_is_init)
+    {
+      d_js->run();
+    }
 }
 
 //----------------------------------------------------------------------//
@@ -70,7 +76,7 @@ void JoystickTransmitter::setResendEventTimeoutMs(long t_ms)
 {
   std::lock_guard<std::mutex> lock(d_m);
   d_resend_event = true;
-  d_resend_timer.restartMs(t_ms);
+  d_resend_time_ms = t_ms;
 }
 
 //-----------------------------------------------------------------------/
@@ -86,17 +92,17 @@ void JoystickTransmitter::handleEvent(const JSEvent &event)
 {
   std::lock_guard<std::mutex> lock(d_m);
   d_event = event;
-  d_received_event = true;
   sendEvent(event);
 }
 
 //----------------------------------------------------------------------//
 void JoystickTransmitter::sendEvent(const JSEvent &event)
 {
+  std::cout << "sendEvent" << std::endl;
   d_resend_timer.restart(); // timer should timeout when no event has been received
   
   serialPutchar(d_desc, 'J');
-  serialPutchar(d_desc, mapToChar(event.time, s_u32_max_digits));
+  // does not send the time
   if (event.type == BUTTON)
     {
       serialPutchar(d_desc, mapToChar(event.value, s_u8_max_digits));
@@ -208,7 +214,6 @@ bool JoystickReceiver::readSerialEvent(JSEventMinimal &js_event)
     }
 
   //need to decompress the time value from a compressed uint8_t to a uint16_t
-  s_uchar_time_to_uint16_map.map(serialGetchar(d_desc), d_js_event.time_ms);
   d_js_event.value = serialGetchar(d_desc);
   d_js_event.type = serialGetchar(d_desc);
   d_js_event.number = serialGetchar(d_desc);

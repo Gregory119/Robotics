@@ -20,6 +20,7 @@ int main()
       std::cout<<"failed to initialize"<<std::endl;
       return 0;
     }
+  js_tran.start();
 
   return k.run();
 }

@@ -63,7 +63,7 @@ long Timer::getTimeMs()
     {
     case Started:
       *d_end_ptime = posix_time::microsec_clock::local_time();
-*d_duration = *d_end_ptime - *d_start_ptime;
+      *d_duration = *d_end_ptime - *d_start_ptime;
       break;
       
     case Stopped:
@@ -71,9 +71,8 @@ long Timer::getTimeMs()
       break;
 
     case Reset:
- default:
-    assert(false);
-    return 0;
+    default:
+      return 0;
     };
 
   return d_duration->total_milliseconds();
