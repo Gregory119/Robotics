@@ -65,7 +65,7 @@ void SimpleGoPro::setMode(Mode mode)
       owner()->handleFailedCommand(this,Cmd::SetMode);
       return;
     }
-  owner()->handleModeChanged(this,mode);
+  owner()->handleModeSet(this,mode);
 }
 
 //----------------------------------------------------------------------//

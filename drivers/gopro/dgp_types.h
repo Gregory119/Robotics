@@ -22,6 +22,8 @@ namespace D_GP
   
   enum class Mode
   {
+    Disconnected,
+    Connected,
     Photo,
     Video,
     MultiShot

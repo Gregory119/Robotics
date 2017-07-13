@@ -29,7 +29,7 @@ namespace D_GP
     friend SimpleGoPro;
     virtual void handleFailedCommand(GoPro*, Cmd) = 0;
     virtual void handleShutterSet(GoPro*, bool) = 0;
-    virtual void handleModeChanged(GoPro*, Mode) = 0;
+    virtual void handleModeSet(GoPro*, Mode) = 0;
   };
   
   class GoPro

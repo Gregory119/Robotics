@@ -2,6 +2,8 @@
 #define DGP_CONTROLLER_H
 
 #include "dgp_gopro.h"
+//#include "kn_timer.h" //implement this
+
 #include <memory>
 #include <vector>
 
@@ -24,27 +26,42 @@ namespace D_GP
   class GoProController final : GoProOwner
   {
   public:
-    GoProController(GoProControllerOwner*, ControlType);
+    struct GPCtrlParams
+    {
+      ControlType ctrl_type;
+      std::string connect_name;
+    };
+    
+  public:
+    GoProController(GoProControllerOwner*, GPCtrlParams);
 
-    void connectWithName(const std::string& name);
     void takePicture();
     void takeMultiShot();
     void StartStopRecording();
 
   private:
     //D_GP::GoPro
-    void handleModeChanged(GoPro*, Mode) override;
+    void handleModeSet(GoPro*, Mode) override;
     void handleShutterSet(GoPro*, bool) override;
     void handleFailedCommand(GoPro*, Cmd) override;
 
-    void toggleRecording() { d_is_recording = !d_is_recording; }
-
   private:
-    GoProControllerOwner* d_owner;
+    void connectWithName(const std::string& name);
+    void setState(State);
+    void processState();
+    bool hasStateChanged() { return d_state != d_prev_state; }
     
-    std::unique_ptr<D_GP::GoPro> d_gp = nullptr;
-    std::vector<Request> d_gp_cmd_list;
+  private:
+    GoProControllerOwner* d_owner = nullptr;
+    
+    std::unique_ptr<D_GP::GoPro> d_gp;
+    D_GP::Request d_req = D_GP::Request::Connect;
     bool d_is_recording = false;
+    std::string d_connect_name;
+    bool d_multishot_complete = true;
+
+    D_GP::Mode d_state = D_GP::Mode::Disconnected;
+    D_GP::Mode d_prev_state = D_GP::Mode::Disconnected;
   };
 };
 #endif
