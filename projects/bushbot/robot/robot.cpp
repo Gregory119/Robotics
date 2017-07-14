@@ -37,7 +37,9 @@ Robot::Robot(Params& params)
   : d_steer_num(params.steering_num),
     d_motor_num(params.motor_num),
     d_motor(new CTRL::HardServo(d_motor_num)),
-    d_gp_cont(new D_GP::GoProController(this, D_GP::ControlType::Simple)),
+    d_gp_cont(new D_GP::GoProController
+	      (this, D_GP::GoProController::GPCtrlParams()
+	       .setName("Robot"))),
     d_process_timer(new KERN::KernelTimer(this)),
     d_watchdog_timer(new KERN::KernelTimer(this))
 {
@@ -136,7 +138,7 @@ bool Robot::processButton(const D_JS::JSEventMinimal &event)
       if (event.value==1)
 	{
 	  std::cout << "Trying to connect." << std::endl;
-	  d_gp_cont->connectWithName("Mantis");
+	  d_gp_cont->connect();
 	}
       break;
 
@@ -145,7 +147,7 @@ bool Robot::processButton(const D_JS::JSEventMinimal &event)
       if (event.value==1)
 	{
 	  std::cout << "Taking pic." << std::endl;
-	  d_gp_cont->takePicture();
+	  d_gp_cont->takePhoto();
 	}
       break;
 	
@@ -160,11 +162,6 @@ bool Robot::processButton(const D_JS::JSEventMinimal &event)
 
     case X:
       std::cout << "X" << std::endl;
-      if (event.value==1)
-	{
-	  std::cout << "taking multishot" << std::endl;
-	  d_gp_cont->takeMultiShot();
-	}
       break;
       
     default:
@@ -227,7 +224,7 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
 }
 
 //----------------------------------------------------------------------//
-void Robot::handleFailedRequest(D_GP::GoProController*, D_GP::Request req)
+void Robot::handleFailedRequest(D_GP::GoProController*)
 {
-  std::cout << "Robot::handleFailedRequest: " << D_GP::reqToString(req) << std::endl;
+  std::cout << "Robot::handleFailedRequest: " << std::endl;
 }

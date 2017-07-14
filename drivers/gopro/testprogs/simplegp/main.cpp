@@ -10,10 +10,9 @@ class Test : public D_GP::GoProControllerOwner
 {
 public:  
   Test()
-    : d_gp_cont(new D_GP::GoProController(this, D_GP::ControlType::Simple))
-  {
-    d_gp_cont->connectWithName("BushBot");
-    //d_gp_cont->takePicture(); //uncomment to test, but comment out multishot to see single picture taken
+    : d_gp_cont(new D_GP::GoProController(this, D_GP::GoProController::GPCtrlParams()))
+  {    
+    d_gp_cont->takePhoto(); //uncomment to test, but comment out multishot to see single picture taken
     //d_gp_cont->takeMultiShot();
 
     //recording
@@ -24,9 +23,9 @@ public:
   
 private:
   //D_GP::GoProController
-  void handleFailedRequest(D_GP::GoProController*, D_GP::Request req) override
+  void handleFailedRequest(D_GP::GoProController*) override
   {
-    std::cout << "handleFailedRequest: " << D_GP::reqToString(req) << std::endl;
+    std::cout << "handleFailedRequest: " << std::endl;
   }
   
 private:

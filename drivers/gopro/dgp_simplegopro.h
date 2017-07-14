@@ -20,7 +20,7 @@ namespace D_GP
   public:
     explicit SimpleGoPro(GoProOwner* o);
 
-    void connectWithName(std::string) override;
+    void connectWithName(const std::string&) override;
     void setMode(Mode) override;
     void setShutter(bool) override;
 

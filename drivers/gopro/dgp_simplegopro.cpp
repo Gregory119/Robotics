@@ -4,6 +4,8 @@
 
 #include "chttp_simplepost.h"
 
+#include <cassert>
+
 using namespace D_GP;
 
 //----------------------------------------------------------------------//
@@ -13,8 +15,10 @@ SimpleGoPro::SimpleGoPro(GoProOwner* o)
 {}
 
 //----------------------------------------------------------------------//
-void SimpleGoPro::connectWithName(std::string name)
+void SimpleGoPro::connectWithName(const std::string& name)
 {
+  assert(!name.empty());
+  
   if (!d_http_post->isReady())
     {
       d_http_post->init();

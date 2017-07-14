@@ -43,32 +43,3 @@ std::string D_GP::cmdToString(Cmd cmd)
     };
   return ret;
 }
-
-//----------------------------------------------------------------------//
-std::string D_GP::reqToString(Request req)
-{
-  std::string ret;
-  switch (req)
-    {
-    case Request::Connect:
-      ret = "Connecting";
-      break;
-      
-    case Request::Picture:
-      ret = "Taking a picture";
-      break;
-      
-    case Request::MultiShot:
-      ret = "Taking a multiShot";
-      break;
-      
-    case Request::StartStopRec:
-      ret = "Starting or stopping a recording";
-      break;
-      
-    default:
-      assert(false);
-      return ret;
-    };
-  return ret;
-}
