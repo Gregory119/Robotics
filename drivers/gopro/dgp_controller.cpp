@@ -51,7 +51,7 @@ void GoProController::handleFailedCommand(GoPro*, Cmd cmd)
 
   d_is_recording = false;
   setState(GPStateId::Connect);
-  d_owner->handleFailedRequest(this);
+  d_owner->handleFailedRequest(this); // I am concerned about a command failing after a recording has started
 }
 
 //----------------------------------------------------------------------//
