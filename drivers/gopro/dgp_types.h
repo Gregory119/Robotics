@@ -12,21 +12,10 @@ namespace D_GP
     SetShutter
   };
 
-  enum class Request
-  {
-    Connect,
-    Picture,
-    MultiShot,
-    StartStopRec
-  };
-  
   enum class Mode
   {
-    Disconnected,
-    Connected,
     Photo,
-    Video,
-    MultiShot
+    Video
   };
 
   enum class ControlType

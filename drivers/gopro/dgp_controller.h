@@ -9,6 +9,7 @@
 
 namespace D_GP
 {
+	class GPState;
   class GoProController;
   class GoProControllerOwner
   {
@@ -20,7 +21,8 @@ namespace D_GP
    
   private:
     friend GoProController;
-    virtual void handleFailedRequest(GoProController*, Request) = 0;
+		// the synchronous type controller will have undefined behaviour if it is not deleted after signaling a failure
+    virtual void handleFailedRequest(GoProController*) = 0; 
   };
 
   class GoProController final : GoProOwner
@@ -35,33 +37,70 @@ namespace D_GP
   public:
     GoProController(GoProControllerOwner*, GPCtrlParams);
 
-    void takePicture();
-    void takeMultiShot();
+    void takePhoto();
     void StartStopRecording();
 
   private:
-    //D_GP::GoPro
-    void handleModeSet(GoPro*, Mode) override;
-    void handleShutterSet(GoPro*, bool) override;
+    //GoPro
+    void handleModeSet(GoPro*, Mode) override {}
+    void handleShutterSet(GoPro*, bool) override {}
     void handleFailedCommand(GoPro*, Cmd) override;
 
   private:
     void connectWithName(const std::string& name);
-    void setState(State);
+    void setState(StateId);
+		StateId getPrevState() { return d_prev_state_id; }
     void processState();
-    bool hasStateChanged() { return d_state != d_prev_state; }
-    
+
+	private:
+		enum class StateId
+		{
+			Connect,
+			Photo,
+			StartStopRec
+		};
+
+		enum class Request
+		{
+			TakePhoto,
+			StartStopRec
+		};
+		
   private:
+		friend GPState;
+		
     GoProControllerOwner* d_owner = nullptr;
-    
-    std::unique_ptr<D_GP::GoPro> d_gp;
-    D_GP::Request d_req = D_GP::Request::Connect;
+
+    std::unique_ptr<GoPro> d_gp;
     bool d_is_recording = false;
     std::string d_connect_name;
-    bool d_multishot_complete = true;
 
-    D_GP::Mode d_state = D_GP::Mode::Disconnected;
-    D_GP::Mode d_prev_state = D_GP::Mode::Disconnected;
-  };
+		StateId d_state_id = StateId::Connect;
+		StateId d_prev_state_id = StateId::Connect;
+		std::vector<StateId, std::unique_ptr<GPState>> d_states;
+		GPState* d_state = nullptr;
+	};
+
+	class GPState
+	{
+	public:
+		virtual ~GPState() = default;
+		virtual void process(GoProController&) = 0;
+	};
+
+	class StateConnect : GPState
+	{
+		void process(GoProController&) override;
+	};
+	
+	class StatePhoto : GPState
+	{
+		void process(GoProController&) override;
+	};
+
+	class StateVideo : GPState
+	{
+		void process(GoProController&) override;
+	};
 };
 #endif

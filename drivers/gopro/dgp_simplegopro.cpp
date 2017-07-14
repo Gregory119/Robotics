@@ -54,9 +54,10 @@ void SimpleGoPro::setMode(Mode mode)
     case Mode::Video:
       params = "?p=0";
       break;
-      
-    case Mode::MultiShot:
-      params = "?p=2";;
+
+		default:
+			assert(false);
+			return;
       break;
     }
   

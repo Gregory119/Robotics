@@ -9,134 +9,151 @@ using namespace D_GP;
 
 //----------------------------------------------------------------------//
 GoProController::GoProController(GoProControllerOwner* o, GPCtrlParams p)
-  : d_gp(GoProFactory::createGoPro(p.ctrl_type, this)),
-    d_connect_name(p.connect_name)
+  : d_owner(o),
+		d_gp(GoProFactory::createGoPro(p.ctrl_type, this)),
+    d_connect_name(p.connect_name),
+		d_state(new StateDisconnected),
+		d_prev_state(new StateDisconnected)
 {
   assert(o!=nullptr);
-  d_owner = o;
-
-  processState(); // process intially to connect
+  
+	// add list of possible states
+  d_states[StateId::Connect] = std::unique_ptr<GPState>(new StateConnect());
+  d_states[StateId::Photo] = std::unique_ptr<GPState>(new StatePhoto());
+  d_states[StateId::StartStopRec] = std::unique_ptr<GPState>(new StateVideo());
+  d_state = d_states[StateId::Connect].get();
+	d_prev_state = d_state;
 }
 
 //----------------------------------------------------------------------//
-void GoProController::connectWithName(const std::string& name)
+void GoProController::takePhoto()
 {
-  d_req = D_GP::Request::Connect;
-  setState(D_GP::Mode:Connected);
-}
-
-//----------------------------------------------------------------------//
-void GoProController::takePicture()
-{
-  d_req = D_GP::Request::Picture;
-  setState(D_GP::Mode:Photo);
-}
-
-//----------------------------------------------------------------------//
-void GoProController::takeMultiShot()
-{
-  d_req = D_GP::Request::MultiShot;
-  setState(D_GP::Mode:MultiShot);
+  d_state_id = StateId::Photo;
+  setState(d_state_id);
 }
 
 //----------------------------------------------------------------------//
 void GoProController::StartStopRecording()
 {
-  d_req = D_GP::Request::StartStopRec;
-  setState(D_GP::Mode:Video);
-}
-
-//----------------------------------------------------------------------//
-void GoProController::handleModeSet(GoPro*, Mode mode)
-{
-  processState();
-}
-
-//----------------------------------------------------------------------//
-void GoProController::handleShutterSet(GoPro*, bool state)
-{
+  d_state_id = StateId::StartStopRec;
+  setState(d_state_id);
 }
 
 //----------------------------------------------------------------------//
 void GoProController::handleFailedCommand(GoPro*, Cmd cmd)
 {
   std::cout << "handleFailedCommand: " << cmdToString(cmd) << std::endl;
-  
-  d_owner->handleFailedRequest(this, d_req);
+
+	d_is_recording = false;
+	setState(GPStateId::Disconnected);
+	d_owner->handleFailedRequest(this);
 }
 
 //----------------------------------------------------------------------//
-void GoProController::setState(D_GP::Mode state)
-{
-  switch (d_prev_state)
-    {
-    case D_GP::Mode::Disconnected:
-      assert(state == D_GP::Mode::Connected);
-      break;
-
-    case D_GP::Mode::Connected:
-      assert(state != D_GP::Mode::Disconnected); // should not happen because no mode changed is requested in the connected state/mode
-      break;
-      
-    case D_GP::Mode::MultiShot:
-      if (!d_multishot_complete)
-	{
-	  //log
-	  return; // do not change state until multishot has completed
-	}
-    case D_GP::Mode::Photo:
-      if (d_is_recording)
-	{
-	  return;
-	}
-      break;
-      
-    case D_GP::Mode::Video:
-      break;
-
-    default:
-      assert(false);
-      return;
-      break;
-    }
-
-  d_prev_state = d_state;
-  d_state = state;
-  d_gp->setMode(D_GP::Mode::Photo);
+void GoProController::setState(StateId id)
+{	
+	d_prev_state_id = d_state_id;
+	d_state_id = id;
+	d_state = d_states[id].get();
+	d_state->process();
 }
 
 //----------------------------------------------------------------------//
-void GoProController::processState()
+void StateConnect::process(GoProController& ctrl)
 {
-  switch (d_state)
-    {
-    case D_GP::Mode::Disconnected:
-      connectWithName(d_connect_name);
-      setState(D_GP::Mode::Connected);
-      break;
+	assert(!d_connect_name.empty());
+	assert(d_gp != nullptr);
+	
+	switch (ctrl.getPrevState())
+		{
+		case StateId::Connect:
+			// do nothing
+			break;
+			
+		case StateId::Photo:
+			d_gp->connectWithName(d_connect_name);
+			break;
+			
+		case StateId::StartStopRec:
+			d_gp->connectWithName(d_connect_name);
+			if (d_is_recording)
+				{
+					d_gp->setShutter(true); // stop recording
+					d_is_recording = false;
+				}
+			break;
 
-    case D_GP::Mode::Connected:
-      assert(d_gp->isConnected());
-      break;
-      
-    case D_GP::Mode::Photo:
-      d_gp->setShutter(true);
-      break;
-      
-    case D_GP::Mode::MultiShot:
-      d_multishot_complete = false;
-      d_gp->setShutter(true);
-      //?????????start multishot wait timer for completion
-      break;
-      
-    case D_GP::Mode::Video:
-      d_is_recording = !d_is_recording;
-      d_gp->setShutter(true);
-      break;
-      
-    default:
-      assert(false);
-      return;
-      break;
-    }
+		default:
+			assert(false);
+			return;
+			break;
+		};
+}
+
+//----------------------------------------------------------------------//
+void StatePhoto::process(GoProController& ctrl)
+{
+	assert(d_gp != nullptr);
+	
+	switch (ctrl.getPrevState())
+		{
+		case StateId::Connect:
+			assert(!d_connect_name.empty());
+			d_gp->connectWithName(d_connect_name);
+			d_gp->setMode(Mode::Photo);
+			d_gp->setShutter(true); // take pic
+			break;
+			
+		case StateId::Photo:
+			d_gp->setShutter(true); // take pic
+			break;
+			
+		case StateId::StartStopRec:
+			if (d_is_recording)
+				{
+					d_gp->setShutter(true); // stop recording
+					d_is_recording = false;
+				}
+			d_gp->setMode(Mode::Photo);
+			d_gp->setShutter(true); // take pic
+			break;
+
+		default:
+			assert(false);
+			return;
+			break;
+		};
+}
+
+//----------------------------------------------------------------------//
+void StateVideo::process(GoProController& ctrl)
+{
+	assert(d_gp != nullptr);
+	
+	switch (ctrl.getPrevState())
+		{
+		case StateId::Connect:
+			assert(!d_connect_name.empty());
+			assert(!d_is_recording);
+			d_gp->connectWithName(d_connect_name);
+			d_gp->setMode(Mode::Video);
+			d_gp->setShutter(true); // start video
+			break;
+			
+		case StateId::Photo:
+			assert(!d_is_recording);
+			d_gp->setMode(Mode::Video);
+			d_gp->setShutter(true); // start video
+			break;
+			
+		case StateId::StartStopRec:
+			d_is_recording = !d_is_recording;
+			d_gp->setShutter(true); // start/stop video
+			break;
+
+		default:
+			assert(false);
+			return;
+			break;
+		};
 }
