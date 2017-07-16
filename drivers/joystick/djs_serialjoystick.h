@@ -28,6 +28,7 @@ namespace D_JS
 
     // has no affect if already started
     void setResendEventTimeoutMs(long);
+    void enableOnlyResendAxisEvents(bool); // axis only events enabled by default
     void start();
     
   private:
@@ -68,7 +69,7 @@ namespace D_JS
     friend JoystickReceiver; //allow access to the static private constants
     
     std::mutex d_m;
-    JSEvent d_event;
+    JSEvent d_resend_event;
     std::unique_ptr<D_JS::JoyStick> d_js;
     int d_desc = -1;
     bool d_is_init = false;
@@ -81,9 +82,10 @@ namespace D_JS
     static const UTIL::Map s_time_to_uchar_map;
     static const UTIL::Map s_value_to_char_map;
 
-    bool d_resend_event = false;
+    bool d_enable_resend_event = false;
     KERN::KernelTimer d_resend_timer;
     long d_resend_time_ms = 60000;
+    bool d_resend_only_axis = true;
   };
 
   class JoystickReceiver

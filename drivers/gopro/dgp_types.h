@@ -14,6 +14,7 @@ namespace D_GP
 
   enum class Mode
   {
+    Unknown,
     Photo,
     Video
   };

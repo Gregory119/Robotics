@@ -11,13 +11,15 @@ namespace D_GP
 {
   enum class GPStateId
     {
-      Connect,
+      Disconnected,
+      Connected,
       Photo,
       StartStopRec
     };
   
   class GPState;
-  class StateConnect;
+  class StateConnected;
+  class StateDisconnected;
   class StatePhoto;
   class StateVideo;
   class GoProController;
@@ -57,18 +59,21 @@ namespace D_GP
     
   private:
     //GoPro
-    void handleModeSet(GoPro*, Mode) override {}
+    void handleModeSet(GoPro*, Mode mode) override { d_mode = mode; }
     void handleShutterSet(GoPro*, bool) override {}
     void handleFailedCommand(GoPro*, Cmd) override;
 
   private:
     void setState(GPStateId);
     GPStateId getPrevState() { return d_prev_state_id; }
-    void processState();
+    void processCurrentState();
+    void toggleRecording(); // sets to video mode
+    void setMode(Mode); // set mode if different
 		
   private:
     friend GPState;
-    friend StateConnect;
+    friend StateConnected;
+    friend StateDisconnected;
     friend StatePhoto;
     friend StateVideo;
 		
@@ -77,9 +82,10 @@ namespace D_GP
     std::unique_ptr<GoPro> d_gp;
     bool d_is_recording = false;
     std::string d_connect_name;
+    Mode d_mode = Mode::Unknown;
 
-    GPStateId d_state_id = GPStateId::Connect;
-    GPStateId d_prev_state_id = GPStateId::Connect;
+    GPStateId d_state_id = GPStateId::Disconnected;
+    GPStateId d_prev_state_id = GPStateId::Disconnected;
     std::map<GPStateId, std::unique_ptr<GPState>> d_states;
     GPState* d_state = nullptr;
   };
@@ -91,7 +97,12 @@ namespace D_GP
     virtual void process(GoProController&) = 0;
   };
 
-  class StateConnect : public GPState
+  class StateConnected : public GPState
+  {
+    void process(GoProController&) override;
+  };
+
+  class StateDisconnected : public GPState
   {
     void process(GoProController&) override;
   };

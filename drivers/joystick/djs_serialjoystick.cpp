@@ -75,7 +75,7 @@ JoystickTransmitter::~JoystickTransmitter()
 void JoystickTransmitter::setResendEventTimeoutMs(long t_ms)
 {
   std::lock_guard<std::mutex> lock(d_m);
-  d_resend_event = true;
+  d_enable_resend_event = true;
   d_resend_time_ms = t_ms;
 }
 
@@ -83,15 +83,18 @@ void JoystickTransmitter::setResendEventTimeoutMs(long t_ms)
 void JoystickTransmitter::resendLastEvent()
 {
   std::lock_guard<std::mutex> lock(d_m);
-  assert(d_resend_event);
-  sendEvent(d_event);
+  assert(d_enable_resend_event);
+  sendEvent(d_resend_event);
 }
 
 //----------------------------------------------------------------------//
 void JoystickTransmitter::handleEvent(const JSEvent &event) 
 {
   std::lock_guard<std::mutex> lock(d_m);
-  d_event = event;
+  if (d_resend_only_axis && event.type == D_JS::AXIS)
+    {
+      d_resend_event = event; // update event to be resent with only axis type values
+    }
   sendEvent(event);
 }
 
@@ -148,7 +151,7 @@ bool JoystickTransmitter::handleTimeOut(const KERN::KernelTimer& timer)
 {
   if (timer == d_resend_timer)
     {
-      if (d_resend_event)
+      if (d_enable_resend_event)
 	{
 	  resendLastEvent();
 	}
@@ -158,6 +161,12 @@ bool JoystickTransmitter::handleTimeOut(const KERN::KernelTimer& timer)
       return true;
     }
   return false;
+}
+
+//----------------------------------------------------------------------//
+void JoystickTransmitter::enableOnlyResendAxisEvents(bool state)
+{
+  d_resend_only_axis = state;
 }
 
 //----------------------------------------------------------------------//
@@ -233,6 +242,3 @@ bool JoystickReceiver::readSerialEvent(JSEventMinimal &js_event)
 
   return true;
 }
-
-//----------------------------------------------------------------------//
-//JoystickReceiver::

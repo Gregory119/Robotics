@@ -80,12 +80,12 @@ void Servo::updateIncPos()
   int set_pos = 0;
   
   d_pos_to_vel_map.map(getReqPos(), req_vel); // pos used as velocity for ESCs
-  std::cout << "getReqPos() = " << (int)getReqPos() << std::endl;
-  std::cout << "req_vel = " << (int)req_vel << std::endl;
+  //std::cout << "getReqPos() = " << (int)getReqPos() << std::endl;
+  //std::cout << "req_vel = " << (int)req_vel << std::endl;
   int set_vel = d_velocity_man->stepToVelocity(req_vel);
-  std::cout << "set_vel = " << (int)set_vel << std::endl;
+  //std::cout << "set_vel = " << (int)set_vel << std::endl;
   d_pos_to_vel_map.inverseMap(set_vel, set_pos);
-  std::cout << "set_pos = " << (int)set_pos << std::endl;
+  //std::cout << "set_pos = " << (int)set_pos << std::endl;
   //std::cout.flush();
   setSetPos(set_pos);
 }
@@ -97,7 +97,7 @@ bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
   
   if (timer == d_vel_inc_timer.get())
     {
-      std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
+      //std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
       updateIncPos();
       updateMove();
       return true;
@@ -131,7 +131,6 @@ void Servo::setReqPos(int pos)
   
   if (!d_has_velocity_inc)
     {
-      std::cout << "ff" <<std::endl;
       setSetPos(pos);
     }
   else
@@ -145,8 +144,8 @@ void Servo::setReqPos(int pos)
 void Servo::moveToStartPos(int pos)
 {
   setReqPosDirect(pos);
-  std::cout << "moveToStartPos" << std::endl;
-  std::cout << "pos = " << pos << std::endl;
+  //std::cout << "moveToStartPos" << std::endl;
+  //std::cout << "pos = " << pos << std::endl;
   setSetPos(pos);
 }
 

@@ -44,7 +44,7 @@ void HardServo::moveToPos(int pos)
 //----------------------------------------------------------------------//
 void HardServo::updateMove()
 {
-  std::cout << "getSetPulseUs() = " << getSetPulseUs() << std::endl;
+  //std::cout << "getSetPulseUs() = " << getSetPulseUs() << std::endl;
   unsigned pos_blast = getSetPulseUs()/s_blaster_to_us;
 
   std::ofstream servo_file;

@@ -59,9 +59,9 @@ void SimpleGoPro::setMode(Mode mode)
       params = "?p=0";
       break;
 
-		default:
-			assert(false);
-			return;
+    default:
+      assert(false);
+      return;
       break;
     }
   
