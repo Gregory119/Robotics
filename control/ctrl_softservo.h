@@ -12,9 +12,7 @@ namespace CTRL
   class SoftServo final : public Servo
   {
   public:
-    explicit SoftServo(unsigned control_pin,
-		       int max_pos=getMax8bitPos(),
-		       int min_pos=getMin8bitPos());
+    explicit SoftServo(unsigned control_pin);
     ~SoftServo() { stop(); }
     SoftServo(const SoftServo&) = delete;
     SoftServo& operator=(const SoftServo&) = delete;

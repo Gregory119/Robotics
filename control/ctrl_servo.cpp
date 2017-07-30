@@ -5,41 +5,36 @@
 
 using namespace CTRL;
 
-static const int s_max_8bit = 255;
-static const int s_min_8bit = 0;
-
 //----------------------------------------------------------------------//
-Servo::Servo(int max_pos, int min_pos)
-  : d_max_pos(max_pos),
-    d_min_pos(min_pos),
-    d_pos_to_pulse(UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse)),
+Servo::Servo()
+  : d_pos_to_pulse(UTIL::Map(d_max_pos, d_min_pos, d_max_pulse, d_min_pulse)),
     d_pos_to_vel_map(UTIL::Map(d_max_pos,
 			       d_min_pos,
-			       d_max_pos - getMidPos(),
-			       getMidPos() - d_max_pos)),
+			       d_max_pos - d_mid_pos,
+			       d_mid_pos - d_max_pos)),
     d_vel_inc_timer(new KERN::KernelTimer(this))
-{
-  assert(max_pos <= s_max_8bit);
-  assert(min_pos >= s_min_8bit);
-}
+{}
 
 //----------------------------------------------------------------------//
 Servo::~Servo() = default;
 
 //----------------------------------------------------------------------//
-int Servo::getMidPos()
-{
-  return (d_max_pos+d_min_pos)/2;
-}
-
-//----------------------------------------------------------------------//
 void Servo::setUsTiming(unsigned min_pulse,
 			unsigned max_pulse)
 {
+  assert(max_pulse > min_pulse);
+
   std::lock_guard<std::mutex> lock(d_m);
   d_min_pulse = min_pulse;
   d_max_pulse = max_pulse;
-  d_pos_to_pulse = UTIL::Map(s_max_8bit, s_min_8bit, d_max_pulse, d_min_pulse);
+  d_max_out_pulse = d_max_pulse;
+  d_min_out_pulse = d_min_pulse;
+  d_mid_out_pulse = (d_max_out_pulse+d_min_out_pulse)/2;
+    
+  d_pos_to_pulse = UTIL::Map(d_max_pos,
+			     d_min_pos,
+			     d_max_pulse,
+			     d_min_pulse);
 }
 
 //----------------------------------------------------------------------//
@@ -64,23 +59,24 @@ void Servo::setVelocityParams(int min_time_for_max_velocity_ms,
   assert(d_velocity_man == nullptr); //should only be done straight after initialisation.  This check is helpful for threading.
 
   RCStepVelocityManager::VelocityLimitParams p;
-  p.abs_max_velocity = d_max_pos - getMidPos();
+  p.abs_max_velocity = d_max_pos - d_mid_pos;
   p.min_time_for_max_velocity_ms = min_time_for_max_velocity_ms;
   p.time_step_ms = time_step_ms;
   
   d_velocity_man.reset(new RCStepVelocityManager(p));
 
-  d_vel_inc_timer->setTimeMs(p.time_step_ms);
+  d_vel_inc_timer->restartMs(p.time_step_ms);
 }
 
 //----------------------------------------------------------------------//
 void Servo::updateIncPos()
-{  
+{
+  assert(d_velocity_man != nullptr);
   int req_vel = 0;
   int set_pos = 0;
   
-  d_pos_to_vel_map.map(getReqPos(), req_vel); // pos used as velocity for ESCs
-  //std::cout << "getReqPos() = " << (int)getReqPos() << std::endl;
+  d_pos_to_vel_map.map(d_req_pos, req_vel); // pos used as velocity for ESCs
+  //std::cout << "d_req_pos = " << (int)d_req_pos << std::endl;
   //std::cout << "req_vel = " << (int)req_vel << std::endl;
   int set_vel = d_velocity_man->stepToVelocity(req_vel);
   //std::cout << "set_vel = " << (int)set_vel << std::endl;
@@ -93,7 +89,7 @@ void Servo::updateIncPos()
 //----------------------------------------------------------------------//
 bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
 {
-  assert(d_has_velocity_inc);
+  assert(d_velocity_man != nullptr);
   
   if (timer == d_vel_inc_timer.get())
     {
@@ -107,35 +103,16 @@ bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
 }
 
 //----------------------------------------------------------------------//
-void Servo::enableVelocityIncrementer(bool state)
-{
-  std::lock_guard<std::mutex> lock(d_m);
-  assert(d_velocity_man != nullptr); //should only be done straight after initialisation.  This check is helpful for threading.
-  assert(d_vel_inc_timer != nullptr);
-  
-  d_has_velocity_inc = state;
-  if (state)
-    {
-      d_vel_inc_timer->restart();
-    }
-  else
-    {
-      d_vel_inc_timer->disable();
-    }
-} 
-
-//----------------------------------------------------------------------//
 void Servo::setReqPos(int pos)
 {
   assert(isPosValid(pos));
   
-  if (!d_has_velocity_inc)
+  if (d_velocity_man == nullptr)
     {
       setSetPos(pos);
     }
   else
     {
-      assert(d_velocity_man != nullptr);
       setReqPosDirect(pos);
     }
 }
@@ -174,25 +151,80 @@ unsigned Servo::getSetPulseUs()
 }
 
 //----------------------------------------------------------------------//
-int Servo::getMax8bitPos()
+void Servo::setAsESC()
 {
-  return s_max_8bit;
+  setUsTiming(1000, 2000);
 }
 
 //----------------------------------------------------------------------//
-int Servo::getMin8bitPos()
+int Servo::getMaxInputPos()
 {
-  return s_min_8bit;
+  std::lock_guard<std::mutex> lock(d_m);
+  return d_max_pos;
 }
 
 //----------------------------------------------------------------------//
-int Servo::getRange8bitPos()
+int Servo::getMinInputPos()
 {
-  return s_max_8bit - s_min_8bit;
+  std::lock_guard<std::mutex> lock(d_m);
+  return d_min_pos;
 }
 
 //----------------------------------------------------------------------//
-int Servo::getMid8bitPos()
+int Servo::getMidInputPos()
 {
-  return (s_max_8bit + s_min_8bit)/2;
+  std::lock_guard<std::mutex> lock(d_m);
+  return d_mid_pos;
+}
+
+//----------------------------------------------------------------------//
+int Servo::getRangeInputPos()
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  return d_max_pos - d_min_pos;
+}
+
+//----------------------------------------------------------------------//  
+void Servo::setInputPosLimits(int min_pos, int max_pos)
+{
+  assert(max_pos > min_pos);
+  std::lock_guard<std::mutex> lock(d_m);
+  d_min_pos = min_pos;
+  d_max_pos = max_pos;
+  d_mid_pos = (d_max_pos+d_min_pos)/2;
+  d_pos_to_pulse = UTIL::Map(d_max_pos,
+			     d_min_pos,
+			     d_max_out_pulse, // output pulses may have already been set when calling this function
+			     d_min_out_pulse,
+			     d_mid_out_pulse);
+}
+
+//----------------------------------------------------------------------//
+void Servo::setOutputPosLimits(int min_pos, int max_pos, int mid_pos)
+{
+  std::lock_guard<std::mutex> lock(d_m);
+  assert(min_pos > d_min_pos);
+  assert(max_pos < d_max_pos);
+  assert(mid_pos > min_pos);
+  assert(mid_pos < max_pos);
+
+  d_max_out_pulse = max_pos/getRangeInputPos()*(d_max_pulse-d_min_pulse)+d_min_pulse;
+  d_min_out_pulse = min_pos/getRangeInputPos()*(d_max_pulse-d_min_pulse)+d_min_pulse;
+  d_mid_out_pulse = mid_pos/getRangeInputPos()*(d_max_pulse-d_min_pulse)+d_min_pulse;
+  assert(d_max_out_pulse < d_max_pulse);
+  assert(d_min_out_pulse > d_min_pulse);
+  assert(d_mid_out_pulse > d_min_pulse);
+  assert(d_mid_out_pulse < d_max_pulse);
+  
+  d_pos_to_pulse = UTIL::Map(d_max_pos,
+			     d_min_pos,
+			     d_max_out_pulse,
+			     d_min_out_pulse,
+			     d_mid_out_pulse);
+}
+
+//----------------------------------------------------------------------//
+void Servo::setOutputPosLimits(int min_pos, int max_pos)
+{
+  setOutputPosLimits(min_pos, max_pos, (max_pos+min_pos)/2);
 }

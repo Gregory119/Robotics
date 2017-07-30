@@ -6,31 +6,8 @@
 
 static const unsigned s_steer_min_pos_deg = 58;
 static const unsigned s_steer_max_pos_deg = 106;
+static const unsigned s_steer_mid_pos_deg = 106+5;
 static const unsigned s_steer_range_deg = 180;
-static const unsigned s_steer_min_pos_servo = CTRL::Servo::getMin8bitPos()+
-  CTRL::Servo::getRange8bitPos()*s_steer_min_pos_deg/s_steer_range_deg;
-static const unsigned s_steer_max_pos_servo = CTRL::Servo::getMin8bitPos()+
-  CTRL::Servo::getRange8bitPos()*s_steer_max_pos_deg/s_steer_range_deg;
-static const unsigned s_steer_mid_pos_servo = 
-  (s_steer_min_pos_servo + s_steer_max_pos_servo)/2;
-
-static const unsigned s_esc_mid_pos_servo = 
-  (CTRL::Servo::getMin8bitPos() + CTRL::Servo::getMax8bitPos())/2;
-
-static const UTIL::Map d_rt_map(D_JS::axis_max, 
-				D_JS::axis_min, 
-				CTRL::Servo::getMax8bitPos(), 
-				s_esc_mid_pos_servo);
-
-static const UTIL::Map d_lt_map(D_JS::axis_max, 
-				D_JS::axis_min, 
-				s_esc_mid_pos_servo, 
-				CTRL::Servo::getMin8bitPos());
-
-static const UTIL::Map d_stick_map(D_JS::axis_max, 
-				   D_JS::axis_min, 
-				   s_steer_max_pos_servo, 
-				   s_steer_min_pos_servo);
 
 //----------------------------------------------------------------------//
 Robot::Robot(Params& params)
@@ -41,21 +18,34 @@ Robot::Robot(Params& params)
 	      (this, D_GP::GoProController::GPCtrlParams()
 	       .setName("Robot"))),
     d_process_timer(new KERN::KernelTimer(this)),
-    d_watchdog_timer(new KERN::KernelTimer(this))
+    d_watchdog_timer(new KERN::KernelTimer(this)),
+    d_rt_map(UTIL::Map(D_JS::axis_max, 
+		       D_JS::axis_min, 
+		       d_motor->getMaxInputPos(), 
+		       d_motor->getMidInputPos())),
+    d_lt_map(UTIL::Map(D_JS::axis_max, 
+		       D_JS::axis_min, 
+		       d_motor->getMidInputPos(), 
+		       d_motor->getMinInputPos())),
+    d_stick_map(UTIL::Map(D_JS::axis_max,
+			  D_JS::axis_min,
+			  d_steering->getMaxInputPos(),
+			  d_steering->getMinInputPos()))
 {
   //motor
-  d_motor->setUsTiming(1000, 2000); //in microseconds
-  d_motor->moveToPos(s_esc_mid_pos_servo); //start servo in the middle of the set range of motion
-
+  d_motor->setAsESC();
+  d_motor->moveToMidPos();
   d_motor->setVelocityParams(4000, 100);
-  d_motor->enableVelocityIncrementer(true);
   
   //steering
-  d_steering.reset(new CTRL::HardServo(d_steer_num,
-				       s_steer_max_pos_servo,
-				       s_steer_min_pos_servo));
-  d_steering->setUsTiming(500, 2500); //in microseconds
-  d_steering->moveToPos(s_steer_mid_pos_servo); //start servo in the middle of the set range of motion
+  d_steering.reset(new CTRL::HardServo(d_steer_num));
+  d_steering->setOutputPosLimits(d_steering->getMinInputPos()+
+				 d_steering->getRangeInputPos()*s_steer_min_pos_deg/s_steer_range_deg, //min
+				 d_steering->getMinInputPos()+
+				 d_steering->getRangeInputPos()*s_steer_max_pos_deg/s_steer_range_deg, //max
+				 d_steering->getMinInputPos()+
+				 d_steering->getRangeInputPos()*s_steer_mid_pos_deg/s_steer_range_deg); //mid
+  d_steering->moveToMidPos();
 
   //timers
   d_process_timer->restartMs(0);
@@ -102,7 +92,7 @@ bool Robot::handleTimeOut(const KERN::KernelTimer& timer)
 //-----------------------------------------------------------------------//
 void Robot::stopMoving()
 {
-  d_motor->moveToPos(s_esc_mid_pos_servo); // stop moving/coast (helpful with regenerative braking)
+  d_motor->moveToMidPos(); // stop moving/coast (helpful with regenerative braking)
 }
 
 //----------------------------------------------------------------------//

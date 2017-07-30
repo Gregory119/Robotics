@@ -4,6 +4,7 @@
 #include "kn_timer.h"
 #include "dgp_controller.h"
 #include "djs_serialjoystick.h"
+//#include "utl_mapping.h"
 
 #include <memory>
 
@@ -65,6 +66,10 @@ class Robot final : KERN::KernelTimerOwner,
   
   std::unique_ptr<KERN::KernelTimer> d_process_timer;
   std::unique_ptr<KERN::KernelTimer> d_watchdog_timer;
+
+  UTIL::Map d_rt_map;
+  UTIL::Map d_lt_map;
+  UTIL::Map d_stick_map;
 };
 
 #endif

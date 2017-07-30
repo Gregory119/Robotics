@@ -14,10 +14,7 @@ static const unsigned s_max_servo_pin = 7;
 static const unsigned s_blaster_to_us = 10; //each blaster unit is 10 us
 
 //----------------------------------------------------------------------//   
-HardServo::HardServo(unsigned servo_num,
-		     int max_pos,
-		     int min_pos)
-  : Servo(max_pos,min_pos)
+HardServo::HardServo(unsigned servo_num)
 {
   assert(servo_num <= s_max_servo_pin);
   d_servo_num = servo_num;
@@ -34,7 +31,7 @@ void HardServo::moveToPos(int pos)
     }
   else
     {
-      moveToStartPos(pos);
+      moveToStartPos(pos); // first move sets the set position to avoid the increment manager
       d_first_move = false;
     }
 
