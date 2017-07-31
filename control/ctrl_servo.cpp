@@ -40,6 +40,7 @@ void Servo::setUsTiming(unsigned min_pulse,
 //----------------------------------------------------------------------//
 bool Servo::isPosValid(int pos)
 {
+  std::lock_guard<std::mutex> lock(d_m);
   if ((pos <= d_max_pos) &&
       (pos >= d_min_pos))
     {
@@ -202,17 +203,20 @@ void Servo::setInputPosLimits(int min_pos, int max_pos)
 //----------------------------------------------------------------------//
 void Servo::setOutputPosLimits(int min_pos, int max_pos, int mid_pos)
 {
-  std::lock_guard<std::mutex> lock(d_m);
+  std::unique_lock<std::mutex> lock_f(d_m);
   assert(min_pos > d_min_pos);
   assert(max_pos < d_max_pos);
+  lock_f.unlock();
   assert(mid_pos > min_pos);
   assert(mid_pos < max_pos);
 
-  d_max_out_pulse = max_pos/getRangeInputPos()*(d_max_pulse-d_min_pulse)+d_min_pulse;
-  d_min_out_pulse = min_pos/getRangeInputPos()*(d_max_pulse-d_min_pulse)+d_min_pulse;
-  d_mid_out_pulse = mid_pos/getRangeInputPos()*(d_max_pulse-d_min_pulse)+d_min_pulse;
-  assert(d_max_out_pulse < d_max_pulse);
-  assert(d_min_out_pulse > d_min_pulse);
+  std::lock_guard<std::mutex> lock_s(d_m);
+  UTIL::Map pos_to_out_pulse(d_max_pos, d_min_pos, d_max_pulse, d_min_pulse);
+  d_max_out_pulse = pos_to_out_pulse.map<int>(max_pos);
+  d_min_out_pulse = pos_to_out_pulse.map<int>(min_pos);
+  d_mid_out_pulse = pos_to_out_pulse.map<int>(mid_pos);
+  assert(d_max_out_pulse <= d_max_pulse);
+  assert(d_min_out_pulse >= d_min_pulse);
   assert(d_mid_out_pulse > d_min_pulse);
   assert(d_mid_out_pulse < d_max_pulse);
   
