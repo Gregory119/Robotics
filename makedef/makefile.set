@@ -14,6 +14,9 @@ else
 	CXXFLAGS = -std=c++11 -Wall --sysroot=/home/rasppi_xcompile/sysroot -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm -I/home/rasppi_xcompile/extra_libs_install/ -L/home/rasppi_xcompile/extra_libs_install/ 
 endif
 
+# load debug symbols
+CXXFLAGS += -g
+
 SRC = $(wildcard *.cpp)
 
 #avoid repetition of library object files in this directory for a library
