@@ -29,7 +29,11 @@ namespace UTIL
     template <class T>
     void map(double in_val, T& out_val) const;
     template <class T>
+    T map(double in_val) const;
+    template <class T>
     void inverseMap(double in_val, T& out_val) const;
+    template <class T>
+    T inverseMap(double in_val) const;
     template <class T>
       T flipOnOutAxis(T) const;
     template <class T>
@@ -45,8 +49,6 @@ namespace UTIL
   };
   
   //----------------------------------------------------------------------//
-  // Flip axis will swap the output max and min
-  // Only for fundamental types
   template <class T>
     void Map::map(double in_val, T& out_val) const
     {
@@ -74,8 +76,15 @@ namespace UTIL
     }
 
   //----------------------------------------------------------------------//
-  // Flip axis will swap the output max and min
-  // Only for fundamental types
+  template <class T>
+    T Map::map(double in_val) const
+    {
+      T out_val;
+      map(in_val, out_val);
+      return out_val;
+    }
+  
+  //----------------------------------------------------------------------//
   template <class T>
     void Map::inverseMap(double in_val, T& out_val) const
     {
@@ -104,6 +113,15 @@ namespace UTIL
       assert(out_val >= d_in_min);
     }
 
+  //----------------------------------------------------------------------//
+  template <class T>
+    T Map::inverseMap(double in_val) const
+    {
+      T out_val;
+      inverseMap(in_val, out_val);
+      return out_val;
+    }
+  
   //----------------------------------------------------------------------//
   template <class T>
     T Map::flipOnOutAxis(T val) const
