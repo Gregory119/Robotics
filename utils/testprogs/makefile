@@ -4,8 +4,8 @@ BASE_DIR = ../..
 
 include $(BASE_DIR)/makedef/makefile.set
 
-#IS_TESTPROG=1
-#TEST_NAME=wanker
+IS_TESTPROG=1
+TEST_NAME=testmapping
 #add -l lib names here
 USES_LIBUTILS=1
 
