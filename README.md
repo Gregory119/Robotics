@@ -3,22 +3,13 @@ This code is used for the camera based robot that I have created.
 
 
 !!TO DO:
-phase 1:
-- replace steering part
-- field test as radio control car
-
 phase 2:
-- add more checks for controlling the gopro with simultaneous commands (eg. start vid then try take pic)
-- add gopro api into bushbot project and test
-- mod gopro mount to hold nut and buy nut
+- mod software to allow non-linear steering mechanism
+- modify steering parts to accommodate wheel vertical motion
 - field test with gopro and live stream
 
 phase 3:
-- improve wheel fastening by ensuring enough available thread for lock nut
-- improve steering range of motion
-- decrease wheel rotational play
-- improve wheel alignment on shafts
-- use batteries for the base station
+- use AA batteries for the base station
 - base station housing with screen
 
 phase 4:
