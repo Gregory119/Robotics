@@ -16,6 +16,13 @@ To trigger the shutter:
 Start (all that is needed for Photo): http://10.5.5.9/gp/gpControl/command/shutter?p=1
 Stop (Video/Timelapse): http://10.5.5.9/gp/gpControl/command/shutter?p=0
 
+To stream live video wirelessly:
+send the following command repeatively on an interval less than 6 seconds: http://10.5.5.9/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart
+you can stream with ffplay with the command: ffplay -fflags nobuffer udp://:8554
+send stream to pi analog out with: omxplayer --threshold 0 udp://:8554
+check this for composite configuration: http://www.raspberrypi-spy.co.uk/2014/07/raspberry-pi-model-b-3-5mm-audiovideo-jack/
+info found at https://github.com/KonradIT/goprowifihack/blob/master/HERO4/Livestreaming.md
+
 ======================================================================
 Research on Pairing Commands
 ======================================================================
