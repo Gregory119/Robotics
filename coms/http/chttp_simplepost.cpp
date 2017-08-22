@@ -3,7 +3,7 @@
 using namespace C_HTTP;
 
 //----------------------------------------------------------------------//
-SimpleHttpPost::~SimpleHttpPost()
+SimpleHttp::~SimpleHttp()
 {
   if (d_curl != nullptr)
     {
@@ -13,7 +13,7 @@ SimpleHttpPost::~SimpleHttpPost()
 }
 
 //----------------------------------------------------------------------//
-bool SimpleHttpPost::init(long timeout_sec)
+bool SimpleHttp::init(long timeout_sec)
 {
   if (isReady())
     {
@@ -46,12 +46,12 @@ bool SimpleHttpPost::init(long timeout_sec)
 }
 
 //----------------------------------------------------------------------//
-bool SimpleHttpPost::post(const std::string& url)
+bool SimpleHttp::post(const std::string& url)
 {
   curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
   
-  d_post_res = curl_easy_perform(d_curl);
-  if (d_post_res != CURLE_OK)
+  d_res = curl_easy_perform(d_curl);
+  if (d_res != CURLE_OK)
     {
       return false;
     }
@@ -59,7 +59,7 @@ bool SimpleHttpPost::post(const std::string& url)
 }
 
 //----------------------------------------------------------------------//
-std::string SimpleHttpPost::getPostError()
+std::string SimpleHttp::getError()
 {
-  return std::string(curl_easy_strerror(d_post_res));
+  return std::string(curl_easy_strerror(d_res));
 }
