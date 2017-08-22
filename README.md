@@ -4,7 +4,7 @@ This code is used for the camera based robot that I have created.
 
 !!TO DO:
 phase 2:
-- mod software to allow non-linear steering mechanism
+- mod software to allow 1us resolution accuracy on servo timing
 - modify steering parts to accommodate wheel vertical motion
 - field test with gopro and live stream
 
