@@ -5,10 +5,18 @@ using namespace C_HTTP;
 //----------------------------------------------------------------------//
 SimpleHttp::~SimpleHttp()
 {
-  if (d_curl != nullptr)
-    {
-      curl_easy_cleanup(d_curl);
-    }
+	if (d_curl_multi != nullptr)
+		{
+			assert(d_curl != nullptr);
+			curl_multi_remove_handle(d_curl_multi, d_curl);
+			curl_easy_cleanup(d_curl);
+			curl_multi_cleanup(d_curl_multi);
+		}
+	else
+		{
+			assert(d_curl == nullptr);
+		}
+	
   curl_global_cleanup();
 }
 
@@ -19,8 +27,10 @@ bool SimpleHttp::init(long timeout_sec)
     {
       return true;
     }
-  
-  if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK)
+
+	// multiple calls have the same affect as one call
+	// NB: not thread safe
+  if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) 
     {
       return false;
     }
@@ -40,8 +50,16 @@ bool SimpleHttp::init(long timeout_sec)
     {
       return false;
     }
-  
-  d_ready = true;
+
+	d_curl_multi = curl_multi_init();
+	if (d_curl_multi == nullptr)
+		{
+			return false;
+		}
+	
+	curl_multi_add_handle(d_curl_multi, d_curl);
+	d_ready = true;
+	
   return true;
 }
 
