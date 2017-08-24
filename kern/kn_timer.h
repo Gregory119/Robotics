@@ -27,10 +27,7 @@ namespace KERN
     KernelTimer(const KernelTimer&);
     KernelTimer& operator=(const KernelTimer&) = default;
 
-    bool operator==(const KernelTimer& rhs) const { return &rhs == this; }
-    bool operator==(const KernelTimer* rhs) const { return operator==(*rhs); }
-    bool operator!=(const KernelTimer& rhs) const { return !operator==(rhs); }
-    bool operator!=(const KernelTimer* rhs) const { return operator!=(*rhs); }
+		bool is(const KernelTimer& timer) { return &timer == this; }
     
     void restartMs(long time_ms);
     void restartMsIfNotSet(long time_ms);

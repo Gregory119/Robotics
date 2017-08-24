@@ -1,33 +1,83 @@
 #ifndef CHTTP_SIMPLEHTTP_H
 #define CHTTP_SIMPLEHTTP_H
 
+#include "kn_timer.h"
+
 #include <curl/curl.h>
 #include <string>
 
 /*
-  SimpleHttp is based on synchronous http communication.
+  SimpleHttp is based on asynchronous http communication.
+
+	When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end())
  */
 
 namespace C_HTTP
 {
-  class SimpleHttp final
+	enum class SimpleError
+	{
+		Internal,
+		Timeout
+	};
+
+	using ResponseCode = unsigned;
+	
+	class SimpleHttpOwner // inherit privately
+	{
+	private:
+		friend class SimpleHttp;
+		virtual void handleFailed(SimpleError) = 0;
+		virtual voud handleResponse(ResponseCode,
+																const std::list<std::string>& header,
+																const std::vector<char>& body);
+	};
+	
+  class SimpleHttp final : KERN::KernelTimerOwner
   {
   public:
-    SimpleHttp() = default;
-    ~SimpleHttp();
+		explicit SimpleHttp(SimpleHttpOwner* o);
+		~SimpleHttp();
     SimpleHttp& operator=(const SimpleHttp&) = delete;
     SimpleHttp(const SimpleHttp&) = delete;
 
-    bool init(long timeout_sec = 2); //must be successful before using class
-    void setCompleteCallback(std::function);
-    bool get(const std::string& url); //example params = "name=daniel&project=curl"
-    std::string getError();
-    
+		// must be successful before using class
+    bool init(long timeout_sec = 30); 
+
+		// example params = "name=daniel&project=curl"
+		// must wait for response before sending another message
+    bool get(const std::string& url); 
+
+	private:
+		// KERN::KernelTimerOwner
+		bool handleTimeOut(const KernelTimer&) override;
+
+	private:
+		static size_t respBodyWrite(char *ptr,
+																size_t size_mem,
+																size_t num_mem,
+																void *userdata);
+		
+		static size_t respHeaderWrite(char *ptr,
+																	size_t size_mem,
+																	size_t num_mem,
+																	void *userdata);
+
+		static int timerRestart(CURLM *multi,
+														long timeout_ms,
+														void *userdata);
+			
   private:
+		SimpleHttpOwner d_owner = nullptr;
+		
     CURL *d_curl = nullptr;
 		CURLM *d_curl_multi = nullptr;
-    CURLcode d_res = CURLE_OK;
-    bool d_ready = false;
+    CURLcode d_res_multi = CURLE_OK;
+
+		long d_resp_code = 0;
+		std::vector<char> d_resp_body; // could be download data
+		std::list<std::string> d_resp_headers; // http always has header response as text
+		
+		KERN::KernelTimer d_timer;
   };
 };
 
@@ -38,10 +88,11 @@ namespace C_HTTP
 // Set callback for timeout value using CURLMOPT_TIMERFUNCTION to set the poll time of the call to curl_multi_perform
 
 // Consider handling the body of received data by setting a callback function using the option CURLOPT_WRITEFUNCTION (also see CURLOPT_WRITEDATA)
-// Consider handling the header of received data by
 // Consider using CURLOPT_HEADER to include received header data in received body data
 
 // multi_perform command: https://curl.haxx.se/libcurl/c/curl_multi_perform.html
 // curl_multi_info_read: https://curl.haxx.se/libcurl/c/curl_multi_info_read.html
+
+// if version 7.2 then look at https://curl.haxx.se/libcurl/c/curl_multi_info_read.html
 
 #endif
