@@ -1,5 +1,5 @@
-#ifndef CHTTP_SIMPLEHTTP_H
-#define CHTTP_SIMPLEHTTP_H
+#ifndef CHTTP_SIMPLE_H
+#define CHTTP_SIMPLE_H
 
 #include "kn_timer.h"
 
@@ -27,8 +27,8 @@ namespace C_HTTP
 	private:
 		friend class SimpleHttp;
 		virtual void handleFailed(SimpleError) = 0;
-		virtual voud handleResponse(ResponseCode,
-																const std::list<std::string>& header,
+		virtual void handleResponse(ResponseCode,
+																const std::vector<std::string>& headers,
 																const std::vector<char>& body);
 	};
 	
@@ -44,7 +44,7 @@ namespace C_HTTP
     bool init(long timeout_sec = 30); 
 
 		// example params = "name=daniel&project=curl"
-		// must wait for response before sending another message
+		// Will return false if current message is not complete
     bool get(const std::string& url); 
 
 	private:
@@ -68,14 +68,14 @@ namespace C_HTTP
 			
   private:
 		SimpleHttpOwner d_owner = nullptr;
-		
+
     CURL *d_curl = nullptr;
 		CURLM *d_curl_multi = nullptr;
     CURLcode d_res_multi = CURLE_OK;
 
 		long d_resp_code = 0;
 		std::vector<char> d_resp_body; // could be download data
-		std::list<std::string> d_resp_headers; // http always has header response as text
+		std::vector<std::string> d_resp_headers; // http always has header response as text
 		
 		KERN::KernelTimer d_timer;
   };

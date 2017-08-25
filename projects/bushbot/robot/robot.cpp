@@ -70,7 +70,7 @@ bool Robot::init(const std::string& serial_port,
 //----------------------------------------------------------------------//
 bool Robot::handleTimeOut(const KERN::KernelTimer& timer)
 {
-  if (timer == d_process_timer.get())
+  if (timer.is(d_process_timer))
     {
       if (d_js_receiver.readSerialEvent(d_js_event))
 	{
@@ -83,7 +83,7 @@ bool Robot::handleTimeOut(const KERN::KernelTimer& timer)
       return true;
     }
 
-  if (timer == d_watchdog_timer.get()) // signal loss or interference
+  if (timer.is(d_watchdog_timer)) // signal loss or interference
     {
       stopMoving();
       

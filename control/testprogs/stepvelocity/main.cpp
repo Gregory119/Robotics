@@ -28,49 +28,49 @@ public:
 private:
   bool handleTimeOut(const KERN::KernelTimer& timer)
   {
-    if (timer==d_timer.get())
+    if (timer.is(d_timer))
       {
-	std::cout << "Requested velocity = " << d_req_velocity << std::endl;
-	int vel = d_man->stepToVelocity(d_req_velocity);
-	std::cout << "New output velocity = " << vel << std::endl;
-	if (d_input_timer->isDisabled())
-	  {
-	    d_timer->disable();
-	  }
-	return true;
+				std::cout << "Requested velocity = " << d_req_velocity << std::endl;
+				int vel = d_man->stepToVelocity(d_req_velocity);
+				std::cout << "New output velocity = " << vel << std::endl;
+				if (d_input_timer->isDisabled())
+					{
+						d_timer->disable();
+					}
+				return true;
       }
 
-    if (timer==d_input_timer.get())
+    if (timer.is(d_input_timer))
       {
-	if (d_input_timer->getConseqTimeOuts() == 1)
-	  {
-	    d_req_velocity = 0;
-	  }
-	else if (d_input_timer->getConseqTimeOuts() == 2)
-	  {
-	    d_req_velocity = 120;
-	  }
-	else if (d_input_timer->getConseqTimeOuts() == 3)
-	  {
-	    d_req_velocity = -120;
-	  }
-	else if (d_input_timer->getConseqTimeOuts() == 4)
-	  {
-	    d_req_velocity = 0;
-	  }
-	else if (d_input_timer->getConseqTimeOuts() == 5)
-	  {
-	    d_req_velocity = -120;
-	  }
-	else if (d_input_timer->getConseqTimeOuts() == 6)
-	  {
-	    d_req_velocity = 120;
-	  }
-	else
-	  {
-	    d_input_timer->disable();
-	  }
-	return true;
+				if (d_input_timer->getConseqTimeOuts() == 1)
+					{
+						d_req_velocity = 0;
+					}
+				else if (d_input_timer->getConseqTimeOuts() == 2)
+					{
+						d_req_velocity = 120;
+					}
+				else if (d_input_timer->getConseqTimeOuts() == 3)
+					{
+						d_req_velocity = -120;
+					}
+				else if (d_input_timer->getConseqTimeOuts() == 4)
+					{
+						d_req_velocity = 0;
+					}
+				else if (d_input_timer->getConseqTimeOuts() == 5)
+					{
+						d_req_velocity = -120;
+					}
+				else if (d_input_timer->getConseqTimeOuts() == 6)
+					{
+						d_req_velocity = 120;
+					}
+				else
+					{
+						d_input_timer->disable();
+					}
+				return true;
       }
 
     return false;

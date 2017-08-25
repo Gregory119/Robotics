@@ -1,7 +1,7 @@
 testprogs:
-	$(MAKE) -C simplehttppost
+	$(MAKE) -C simplehttp
 
 .PHONY:clean
 clean:
 	$(RM) *~ *.d* *.o* *# *.core
-	$(MAKE) clean -C simplehttppost
+	$(MAKE) clean -C simplehttp

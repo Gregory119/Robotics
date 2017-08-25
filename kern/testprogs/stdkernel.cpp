@@ -22,7 +22,7 @@ public:
 private:
   bool handleTimeOut(const KERN::KernelTimer& timer)
   {
-    if (timer==d_timer1.get())
+    if (timer.is(d_timer1))
       {
 	std::cout << "timer 1 has timed out with a consequetive count of " << d_timer1->getConseqTimeOuts() << ", a total count of " << d_timer1->getTotalTimeOuts() << std::endl;
 
@@ -34,7 +34,7 @@ private:
 	  }
 	return true;
       }
-    else if (timer==d_timer2.get())
+    else if (timeris(d_timer2))
       {
 	std::cout << "timer 2 has timed out with a consequetive count of " << d_timer2->getConseqTimeOuts() << ", a total count of " << d_timer2->getTotalTimeOuts() << std::endl;
 
@@ -53,7 +53,7 @@ private:
 	
 	return true;
       }
-    else if (timer==d_timer3.get())
+    else if (timer.is(d_timer3))
       {
 	std::cout << "timer 3 has timed out with a consequetive count of " << d_timer3->getConseqTimeOuts() << ", a total count of " << d_timer3->getTotalTimeOuts() << std::endl;
 	std::cout << "Disabling timer 3 now." << std::endl;

@@ -2,7 +2,7 @@
 
 #include "dgp_types.h"
 
-#include "chttp_simplepost.h"
+#include "chttp_simple.h"
 
 #include <cassert>
 

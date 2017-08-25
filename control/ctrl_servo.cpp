@@ -92,7 +92,7 @@ bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
 {
   assert(d_velocity_man != nullptr);
   
-  if (timer == d_vel_inc_timer.get())
+  if (timer.is(d_vel_inc_timer))
     {
       //std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
       updateIncPos();

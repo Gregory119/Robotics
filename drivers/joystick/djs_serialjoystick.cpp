@@ -149,12 +149,12 @@ void JoystickTransmitter::handleReadError()
 //----------------------------------------------------------------------//
 bool JoystickTransmitter::handleTimeOut(const KERN::KernelTimer& timer)
 {
-  if (timer == d_resend_timer)
+  if (timer.is(d_resend_timer))
     {
       if (d_enable_resend_event)
-	{
-	  resendLastEvent();
-	}
+				{
+					resendLastEvent();
+				}
       // else
       // do nothing
       // only used to keep running in order to process the threaded joystick events

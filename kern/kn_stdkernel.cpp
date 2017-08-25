@@ -24,7 +24,7 @@ void StdKernel::registerTimer(KernelTimer& new_timer)
 #ifdef NDEBUG
   for (const auto& timer : s_singleton->d_timers)
     {
-      assert(timer != new_timer);
+      assert(!timer.is(new_timer));
     }
 #endif
 

@@ -1,7 +1,7 @@
 #ifndef DGP_GOPRO_H
 #define DGP_GOPRO_H
 
-#include "chttp_simplepost.h"
+#include "chttp_simple.h"
 #include "dgp_types.h"
 
 /*

@@ -1,4 +1,6 @@
-#include "chttp_simplepost.h"
+#include "chttp_simple.h"
+
+#include <cassert>
 
 using namespace C_HTTP;
 
@@ -7,6 +9,7 @@ SimpleHttp::SimpleHttp(SimpleHttpOwner* o)
 	: d_owner(o)
 {
 	assert(o != nullptr);
+	d_resp_headers.reserve(6*20); // assuming 6 headers each with 20 characters (at least 3 headers)
 }
 
 //----------------------------------------------------------------------//
@@ -68,7 +71,7 @@ bool SimpleHttp::init(long timeout_sec)
 			return false;
 		}
 
-	if (curl_easy_setopt(d_curl, CURLOPT_WRITEDATA, &d_resp_body) != CURLE_OK)
+	if (curl_easy_setopt(d_curl, CURLOPT_WRITEDATA, this) != CURLE_OK)
 		{
 			return false;
 		}
@@ -78,7 +81,7 @@ bool SimpleHttp::init(long timeout_sec)
 			return false;
 		}
 
-	if (curl_easy_setopt(d_curl, CURLOPT_HEADERDATA, &d_resp_headers) != CURLE_OK)
+	if (curl_easy_setopt(d_curl, CURLOPT_HEADERDATA, this) != CURLE_OK)
 		{
 			return false;
 		}
@@ -94,7 +97,7 @@ bool SimpleHttp::init(long timeout_sec)
 			return false;
 		}
 
-	if (curl_easy_setopt(d_curl_multr, CURLOPT_TIMERDATA, d_timer) != CURLE_OK)
+	if (curl_easy_setopt(d_curl_multr, CURLOPT_TIMERDATA, this) != CURLE_OK)
 		{
 			return false;
 		}
@@ -193,9 +196,11 @@ static size_t SimpleHttp::respBodyWrite(char *ptr,
 																				size_t num_mem,
 																				void *userdata)
 {
-	// userdata points to d_resp_body
+	// userdata points to this
 	// incrementally store the received body data
-	userdata->insert(userdata->end(), ptr, ptr+size_mem*num_mem);
+	userdata->d_resp_body.insert(userdata->d_resp_body.end(),
+															 ptr,
+															 ptr+size_mem*num_mem);
 }
 
 //----------------------------------------------------------------------//
@@ -204,10 +209,10 @@ static size_t SimpleHttp::respHeaderWrite(char *ptr,
 																					size_t num_mem,
 																					void *userdata)
 {
-	// userdata points to d_resp_headers
+	// userdata points to this
 	// store each header as it comes in
 	std::string header(ptr, size_mem*num_mem);
-	userdata->emplace_back(std::move(header));
+	userdata->d_resp_headers.emplace_back(std::move(header));
 }
 
 //----------------------------------------------------------------------//
@@ -215,6 +220,6 @@ static int SimpleHttp::timerCallback(CURLM *multi,
 																		 long timeout_ms,
 																		 void *userdata)
 {
-	// userdata points d_timer
-	userdata->restartMs(timeout_ms);
+	// userdata points to this
+	userdata->d_timer.restartMs(timeout_ms);
 }
