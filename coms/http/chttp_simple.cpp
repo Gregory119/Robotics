@@ -9,7 +9,7 @@ SimpleHttp::SimpleHttp(SimpleHttpOwner* o)
 	: d_owner(o)
 {
 	assert(o != nullptr);
-	d_resp_headers.reserve(6*20); // assuming 6 headers each with 20 characters (at least 3 headers)
+	d_resp_headers.reserve(10*30); // assuming 10 headers each with 30 characters (assuming digest auth)
 }
 
 //----------------------------------------------------------------------//
