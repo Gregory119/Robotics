@@ -13,23 +13,20 @@
 namespace D_GP
 {
   class GoPro;
-  class SimpleGoPro;
-  class GoProOwner
+  class GoProOwner // inherit privately
   {
   public:
-    virtual ~GoProOwner() = default;
     GoProOwner& operator=(const GoProOwner&) = default;
     GoProOwner(const GoProOwner&) = default;
 
-  protected:
-    GoProOwner() = default;
-    
-  private:
-    friend GoPro;
-    friend SimpleGoPro;
     virtual void handleFailedCommand(GoPro*, Cmd) = 0;
     virtual void handleShutterSet(GoPro*, bool) = 0;
     virtual void handleModeSet(GoPro*, Mode) = 0;
+    virtual void handleConnectionUp(GoPro*) = 0;
+    
+  protected:
+    GoProOwner() = default;
+    ~GoProOwner() = default;
   };
   
   class GoPro
@@ -42,17 +39,13 @@ namespace D_GP
     virtual void connectWithName(const std::string&) = 0;
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
-    bool isConnected() { return d_is_connected; }
+    virtual void startLiveStream() = 0;
+    virtual void stopLiveStream() = 0;
     
-  protected: //only to be inherited
+  protected:
+    //only to be inherited
     explicit GoPro(GoProOwner* o);
-
-    GoProOwner* owner() { return d_owner; }
-    void setConnected() { d_is_connected=true; }
-
-  private:
     GoProOwner* d_owner = nullptr;
-    bool d_is_connected = false;
   };
 };
 

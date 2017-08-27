@@ -1,5 +1,5 @@
-#ifndef CHTTP_SIMPLE_H
-#define CHTTP_SIMPLE_H
+#ifndef CHTTP_OPERATIONS_H
+#define CHTTP_OPERATIONS_H
 
 #include "kn_timer.h"
 
@@ -9,14 +9,14 @@
 #include <string>
 
 /*
-  SimpleHttp is based on asynchronous http communication.
+  HttpOperations is based on asynchronous http communication.
 
   When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end())
 */
 
 namespace C_HTTP
 {
-  enum class SimpleError
+  enum class HttpOpError
   {
     Internal,
     Timeout
@@ -24,23 +24,24 @@ namespace C_HTTP
 
   using HttpResponseCode = unsigned;
 	
-  class SimpleHttpOwner // inherit privately
+  class HttpOperationsOwner // inherit privately
   {
   private:
-    friend class SimpleHttp;
-    virtual void handleFailed(SimpleError) = 0;
-    virtual void handleResponse(HttpResponseCode,
+    friend class HttpOperations;
+    virtual void handleFailed(HttpOperations*,HttpOpError) = 0;
+    virtual void handleResponse(HttpOperations*,
+				HttpResponseCode,
 				const std::vector<std::string>& headers,
 				const std::vector<char>& body) = 0;
   };
 	
-  class SimpleHttp final : KERN::KernelTimerOwner
+  class HttpOperations final : KERN::KernelTimerOwner
   {
   public:
-    explicit SimpleHttp(SimpleHttpOwner* o);
-    ~SimpleHttp();
-    SimpleHttp& operator=(const SimpleHttp&) = delete;
-    SimpleHttp(const SimpleHttp&) = delete;
+    explicit HttpOperations(HttpOperationsOwner* o);
+    ~HttpOperations();
+    HttpOperations& operator=(const HttpOperations&) = delete;
+    HttpOperations(const HttpOperations&) = delete;
 
     // must be successful before using class
     bool init(long timeout_sec = 30); 
@@ -48,7 +49,8 @@ namespace C_HTTP
     // example params = "name=daniel&project=curl"
     // Will return false if current message is not complete
     bool get(const std::string& url); 
-
+    std::string getUrl() { return d_url; }
+    
   private:
     // KERN::KernelTimerOwner
     bool handleTimeOut(const KERN::KernelTimer&) override;
@@ -73,10 +75,12 @@ namespace C_HTTP
     void processMessage();
       
   private:
-    SimpleHttpOwner *d_owner = nullptr;
+    HttpOperationsOwner *d_owner = nullptr;
 
     CURL *d_curl = nullptr;
     CURLM *d_curl_multi = nullptr;
+
+    std::string d_url;
 
     bool d_ready = false;
     long d_resp_code = 0;

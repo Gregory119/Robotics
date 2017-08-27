@@ -42,10 +42,10 @@ namespace D_GP
   public:
     struct GPCtrlParams
     {
-      GPCtrlParams& setType(ControlType t) { type = t; return *this; }
+      GPCtrlParams& setType(CamModel m) { model = m; return *this; }
       GPCtrlParams& setName(std::string s) { name = std::move(s); return *this; }
       
-      ControlType type = ControlType::Simple;
+      CamModel model = CamModel::Hero5;
       std::string name = "Robot";
     };
     

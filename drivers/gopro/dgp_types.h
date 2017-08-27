@@ -9,7 +9,8 @@ namespace D_GP
   {
     Connect,
     SetMode,
-    SetShutter
+    SetShutter,
+    LiveStream  
   };
 
   enum class Mode
@@ -19,10 +20,9 @@ namespace D_GP
     Video
   };
 
-  enum class ControlType
+  enum class CamModel
   {
-    Simple,  //Synchronous
-    Fast   //Asynchronous
+    Hero5
   };
   
   std::string CreateCmdUrl(const std::string& cmd);

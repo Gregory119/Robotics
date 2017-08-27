@@ -1,18 +1,18 @@
-#include "chttp_simple.h"
+#include "chttp_operations.h"
 
 #include "kn_stdkernel.h"
 
 #include <cassert>
 #include <iostream>
 
-class TestHttp : C_HTTP::SimpleHttpOwner
+class TestHttp : C_HTTP::HttpOperationsOwner
 {
 public:
   TestHttp(const std::string& url)
   {
-    d_http.reset(new C_HTTP::SimpleHttp(static_cast<C_HTTP::SimpleHttpOwner*>(this)));
+    d_http.reset(new C_HTTP::HttpOperations(static_cast<C_HTTP::HttpOperationsOwner*>(this)));
 
-    if (!d_http->init(5))
+    if (!d_http->init(60))
       {
 	std::cout << "Failed to init http." << std::endl;
       }
@@ -21,16 +21,16 @@ public:
   }
 	
 private:
-  // SimpleHttpOwner
-  void handleFailed(C_HTTP::SimpleError err) override
+  // HttpOperationsOwner
+  void handleFailed(HttpOperations*,C_HTTP::HttpOpError err) override
   {
     switch (err)
       {
-      case C_HTTP::SimpleError::Internal:
+      case C_HTTP::HttpOpError::Internal:
 	std::cout << "Got an internal error." << std::endl;
 	return;
 
-      case C_HTTP::SimpleError::Timeout:
+      case C_HTTP::HttpOpError::Timeout:
 	std::cout << "Got a timeout error." << std::endl;
 	return;
       }
@@ -42,7 +42,7 @@ private:
 		      const std::vector<char>& body) override
   {
     std::cout << "Received response\n";
-    std::cout << "Response code is " << code << "\n\n";
+    std::cout << "Response code: " << code << "\n\n";
 
     std::cout << "Response headers are:\n";
     for (const auto& header : headers)
@@ -60,14 +60,14 @@ private:
   }
 
 private:
-  std::unique_ptr<C_HTTP::SimpleHttp> d_http;
+  std::unique_ptr<C_HTTP::HttpOperations> d_http;
 };
 
 int main(int argc, char* argv[])
 {
   using namespace C_HTTP;
   
-  if (argc < 1)
+  if (argc < 2)
     {
       std::cout << "parameters: [url]" << std::endl;
       return 0;

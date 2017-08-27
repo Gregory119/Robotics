@@ -10,7 +10,7 @@ using namespace D_GP;
 //----------------------------------------------------------------------//
 GoProController::GoProController(GoProControllerOwner* o, GPCtrlParams p)
   : d_owner(o),
-    d_gp(GoProFactory::createGoPro(p.type, this)),
+    d_gp(GoProFactory::createGoPro(p.model, this)),
     d_connect_name(p.name),
     d_state(new StateDisconnected)
 {

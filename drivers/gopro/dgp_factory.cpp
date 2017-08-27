@@ -1,6 +1,6 @@
 #include "dgp_factory.h"
 
-#include "dgp_simplegopro.h"
+#include "dgp_hero5.h"
 
 #include <cassert>
 #include <memory>
@@ -8,19 +8,14 @@
 using namespace D_GP;
 
 //----------------------------------------------------------------------//
-GoPro* GoProFactory::createGoPro(ControlType type, GoProOwner* o)
+GoPro* GoProFactory::createGoPro(CamModel model, GoProOwner* o)
 {
   switch (type)
     {
-    case ControlType::Simple:
-      return new SimpleGoPro(o);
-      break;
-
-    case ControlType::Fast:
-      assert(false); //for now
-      break;
-
-    default:
-      assert(false);
+    case CamModel::Hero5:
+      return new GoProHero5(o);
     };
+
+  // LOG the model type here since it was not picked up
+  assert(false);
 }

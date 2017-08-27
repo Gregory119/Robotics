@@ -1,11 +1,11 @@
-#include "chttp_simple.h"
+#include "chttp_operations.h"
 
 #include <cassert>
 
 using namespace C_HTTP;
 
 //----------------------------------------------------------------------//
-SimpleHttp::SimpleHttp(SimpleHttpOwner* o)
+HttpOperations::HttpOperations(HttpOperationsOwner* o)
   : d_owner(o)
 {
   assert(o != nullptr);
@@ -13,7 +13,7 @@ SimpleHttp::SimpleHttp(SimpleHttpOwner* o)
 }
 
 //----------------------------------------------------------------------//
-SimpleHttp::~SimpleHttp()
+HttpOperations::~HttpOperations()
 {
   if (d_curl_multi != nullptr)
     {
@@ -31,7 +31,7 @@ SimpleHttp::~SimpleHttp()
 }
 
 //----------------------------------------------------------------------//
-bool SimpleHttp::init(long timeout_sec)
+bool HttpOperations::init(long timeout_sec)
 {
   if (d_ready)
     {
@@ -104,7 +104,7 @@ bool SimpleHttp::init(long timeout_sec)
 }
 
 //----------------------------------------------------------------------//
-bool SimpleHttp::get(const std::string& url)
+bool HttpOperations::get(const std::string& url)
 {
   if (d_running_transfers > 0)
     {
@@ -112,7 +112,8 @@ bool SimpleHttp::get(const std::string& url)
       assert(false);
       return false;
     }
-	
+
+  d_url = url;
   curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
   // set the timer call back
   d_resp_body.clear();
@@ -123,7 +124,7 @@ bool SimpleHttp::get(const std::string& url)
 }
 
 //----------------------------------------------------------------------//
-bool SimpleHttp::handleTimeOut(const KERN::KernelTimer& timer)
+bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 {
   if (d_timer_process.is(timer))
     {
@@ -131,7 +132,8 @@ bool SimpleHttp::handleTimeOut(const KERN::KernelTimer& timer)
 
       if (res_multi != CURLM_OK)
 	{
-	  d_owner->handleFailed(SimpleError::Internal);
+	  d_timer_process.disable();
+	  d_owner->handleFailed(this,HttpOpError::Internal);
 	  return true;
 	}
 			
@@ -149,7 +151,7 @@ bool SimpleHttp::handleTimeOut(const KERN::KernelTimer& timer)
 }
 
 //----------------------------------------------------------------------//
-void SimpleHttp::processMessage()
+void HttpOperations::processMessage()
 {
   int messages = 0;
   CURLMsg* msg = curl_multi_info_read(d_curl_multi, &messages);
@@ -164,7 +166,7 @@ void SimpleHttp::processMessage()
 
   if (msg->data.result == CURLE_OPERATION_TIMEDOUT)
     {
-      d_owner->handleFailed(SimpleError::Timeout);
+      d_owner->handleFailed(this,HttpOpError::Timeout);
       return;
     }
 
@@ -172,22 +174,23 @@ void SimpleHttp::processMessage()
   if (msg->data.result != CURLE_OK)
     {
       // LOG THIS: the exact error details should be logged here
-      d_owner->handleFailed(SimpleError::Internal);
+      d_owner->handleFailed(this,HttpOpError::Internal);
+      return;
     }
 
   curl_easy_getinfo(d_curl,CURLINFO_RESPONSE_CODE,&d_resp_code);
-  d_owner->handleResponse(d_resp_code, d_resp_headers, d_resp_body); 
+  d_owner->handleResponse(this, d_resp_code, d_resp_headers, d_resp_body); 
 }
 
 //----------------------------------------------------------------------//
-size_t SimpleHttp::respBodyWrite(char *data,
-				 size_t size_mem,
-				 size_t num_mem,
-				 void *userdata)
+size_t HttpOperations::respBodyWrite(char *data,
+				     size_t size_mem,
+				     size_t num_mem,
+				     void *userdata)
 {
   // userdata points to this
   // incrementally store the received body data
-  SimpleHttp* ptr = static_cast<SimpleHttp*>(userdata);
+  HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
   size_t num_bytes = size_mem*num_mem;
   ptr->d_resp_body.insert(ptr->d_resp_body.end(),
 			  data,
@@ -196,34 +199,32 @@ size_t SimpleHttp::respBodyWrite(char *data,
 }
 
 //----------------------------------------------------------------------//
-size_t SimpleHttp::respHeaderWrite(char *data,
-				   size_t size_mem,
-				   size_t num_mem,
-				   void *userdata)
+size_t HttpOperations::respHeaderWrite(char *data,
+				       size_t size_mem,
+				       size_t num_mem,
+				       void *userdata)
 {
   // userdata points to this
   // store each header as it comes in
   size_t num_bytes = size_mem*num_mem;
   std::string header(data, num_bytes);
-  SimpleHttp* ptr = static_cast<SimpleHttp*>(userdata);
+  HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
   ptr->d_resp_headers.emplace_back(std::move(header));
   return num_bytes;
 }
 
 //----------------------------------------------------------------------//
-int SimpleHttp::timerRestart(CURLM *multi,
-			     long timeout_ms,
-			     void *userdata)
+int HttpOperations::timerRestart(CURLM *multi,
+				 long timeout_ms,
+				 void *userdata)
 {
   // userdata points to this
-  SimpleHttp* ptr = static_cast<SimpleHttp*>(userdata);
+  HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
   if (timeout_ms > 0)
     {
       ptr->d_timer_process.restartMs(timeout_ms);
     }
-  else
-    {
-      ptr->d_timer_process.disable();
-    }
+  // not processing timeout_ms == -1 because the timer handle function with detect the timer disable 
+
   return 0;
 }

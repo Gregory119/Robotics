@@ -9,7 +9,7 @@ namespace D_GP
   class GoProFactory
   {
   public:
-    static GoPro* createGoPro(ControlType, GoProOwner*);
+    static GoPro* createGoPro(CamModel, GoProOwner*);
   };
 };
 
