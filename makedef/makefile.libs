@@ -35,6 +35,7 @@ ifdef USES_LIBCHTTP
       INCLUDES += -I$(LIBCHTTPPATH)
       LIBS += -lcurl
       LIBSRC += $(wildcard $(LIBCHTTPPATH)/*.cpp)
+      USES_LIBKERN=1
 endif
 
 ifdef USES_LIBDJS

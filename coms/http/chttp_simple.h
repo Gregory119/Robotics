@@ -5,79 +5,86 @@
 
 #include <curl/curl.h>
 #include <string>
+#include <vector>
+#include <string>
 
 /*
   SimpleHttp is based on asynchronous http communication.
 
-	When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end())
- */
+  When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end())
+*/
 
 namespace C_HTTP
 {
-	enum class SimpleError
-	{
-		Internal,
-		Timeout
-	};
+  enum class SimpleError
+  {
+    Internal,
+    Timeout
+  };
 
-	using ResponseCode = unsigned;
+  using HttpResponseCode = unsigned;
 	
-	class SimpleHttpOwner // inherit privately
-	{
-	private:
-		friend class SimpleHttp;
-		virtual void handleFailed(SimpleError) = 0;
-		virtual void handleResponse(ResponseCode,
-																const std::vector<std::string>& headers,
-																const std::vector<char>& body);
-	};
+  class SimpleHttpOwner // inherit privately
+  {
+  private:
+    friend class SimpleHttp;
+    virtual void handleFailed(SimpleError) = 0;
+    virtual void handleResponse(HttpResponseCode,
+				const std::vector<std::string>& headers,
+				const std::vector<char>& body) = 0;
+  };
 	
   class SimpleHttp final : KERN::KernelTimerOwner
   {
   public:
-		explicit SimpleHttp(SimpleHttpOwner* o);
-		~SimpleHttp();
+    explicit SimpleHttp(SimpleHttpOwner* o);
+    ~SimpleHttp();
     SimpleHttp& operator=(const SimpleHttp&) = delete;
     SimpleHttp(const SimpleHttp&) = delete;
 
-		// must be successful before using class
+    // must be successful before using class
     bool init(long timeout_sec = 30); 
 
-		// example params = "name=daniel&project=curl"
-		// Will return false if current message is not complete
+    // example params = "name=daniel&project=curl"
+    // Will return false if current message is not complete
     bool get(const std::string& url); 
 
-	private:
-		// KERN::KernelTimerOwner
-		bool handleTimeOut(const KernelTimer&) override;
-
-	private:
-		static size_t respBodyWrite(char *ptr,
-																size_t size_mem,
-																size_t num_mem,
-																void *userdata);
-		
-		static size_t respHeaderWrite(char *ptr,
-																	size_t size_mem,
-																	size_t num_mem,
-																	void *userdata);
-
-		static int timerRestart(CURLM *multi,
-														long timeout_ms,
-														void *userdata);
-			
   private:
-		SimpleHttpOwner d_owner = nullptr;
+    // KERN::KernelTimerOwner
+    bool handleTimeOut(const KERN::KernelTimer&) override;
+
+  private:
+    // Curl callbacks
+    static size_t respBodyWrite(char *ptr,
+				size_t size_mem,
+				size_t num_mem,
+				void *userdata);
+		
+    static size_t respHeaderWrite(char *ptr,
+				  size_t size_mem,
+				  size_t num_mem,
+				  void *userdata);
+
+    static int timerRestart(CURLM *multi,
+			    long timeout_ms,
+			    void *userdata);
+
+  private:
+    void processMessage();
+      
+  private:
+    SimpleHttpOwner *d_owner = nullptr;
 
     CURL *d_curl = nullptr;
-		CURLM *d_curl_multi = nullptr;
-    CURLcode d_res_multi = CURLE_OK;
+    CURLM *d_curl_multi = nullptr;
 
-		long d_resp_code = 0;
-		std::vector<char> d_resp_body; // could be download data
-		std::vector<std::string> d_resp_headers; // http always has header response as text
+    bool d_ready = false;
+    long d_resp_code = 0;
+    std::vector<char> d_resp_body; // could be download data
+    std::vector<std::string> d_resp_headers; // http always has header response as text
+    int d_running_transfers = 0;
 		
-		KERN::KernelTimer d_timer;
+    KERN::KernelTimer d_timer_process = KERN::KernelTimer(this);
   };
 };
 
