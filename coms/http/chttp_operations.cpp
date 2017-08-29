@@ -132,6 +132,8 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 
       if (res_multi != CURLM_OK)
 	{
+	  // LOG THIS: the exact error details should be logged here
+	  assert(false); // this should not happen
 	  d_timer_process.disable();
 	  d_owner->handleFailed(this,HttpOpError::Internal);
 	  return true;
@@ -174,6 +176,7 @@ void HttpOperations::processMessage()
   if (msg->data.result != CURLE_OK)
     {
       // LOG THIS: the exact error details should be logged here
+      assert(false); // this should not happen
       d_owner->handleFailed(this,HttpOpError::Internal);
       return;
     }

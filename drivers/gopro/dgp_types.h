@@ -1,16 +1,22 @@
 #ifndef DGP_TYPES_H
 #define DGP_TYPES_H
 
-#include <string>
-
 namespace D_GP
 {
-  enum class Cmd
+  enum class CamModel
   {
+    Hero5
+  };
+  
+  enum class Cmd
+  { // H5 implies hero 5
     Connect,
-    SetMode,
-    SetShutter,
-    LiveStream  
+    SetModePhoto,
+    SetModeVideo,
+    SetShutterTrigger,
+    SetShutterStop,
+    LiveStream,
+    Unknown
   };
 
   enum class Mode
@@ -19,20 +25,6 @@ namespace D_GP
     Photo,
     Video
   };
-
-  enum class CamModel
-  {
-    Hero5
-  };
-  
-  std::string CreateCmdUrl(const std::string& cmd);
-  std::string cmdToString(Cmd);
-  
-  extern const std::string& g_ip_url;
-  extern const std::string& g_bacpac;
-  extern const std::string& g_wifipair;
-  extern const std::string& g_mode;
-  extern const std::string& g_shutter;
 };
 
 #endif

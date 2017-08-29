@@ -16,13 +16,22 @@
 
 namespace C_HTTP
 {
+  enum ResponseCode
+  {
+    Continue = 100, // 1xx informational
+    Ok = 200, // 2xx success
+    MultipleChoices = 300, // 3xx redirections
+    BadRequest = 400, // 4xx client errors
+    InternalServerError = 500 // 5xx server errors
+  }
+  
   enum class HttpOpError
   {
     Internal,
     Timeout
   };
 
-  using HttpResponseCode = unsigned;
+  using HttpResponseCode = int;
 	
   class HttpOperationsOwner // inherit privately
   {

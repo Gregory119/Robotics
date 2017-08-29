@@ -1,13 +1,13 @@
 #ifndef DGP_GOPRO_H
 #define DGP_GOPRO_H
 
-#include "chttp_simple.h"
 #include "dgp_types.h"
 
 /*
   This is the gopro interface.
 
-  First connect to go pro before calling other commands. Verify connection with isConnected();
+  - First connect to go pro before calling other commands. 
+  - The GoPro should automatically and continuously attempt to reconnect after a successful connection.
 */
 
 namespace D_GP
@@ -19,10 +19,11 @@ namespace D_GP
     GoProOwner& operator=(const GoProOwner&) = default;
     GoProOwner(const GoProOwner&) = default;
 
-    virtual void handleFailedCommand(GoPro*, Cmd) = 0;
-    virtual void handleShutterSet(GoPro*, bool) = 0;
-    virtual void handleModeSet(GoPro*, Mode) = 0;
-    virtual void handleConnectionUp(GoPro*) = 0;
+    virtual void handleCommandFailed(GoPro*, Cmd) = 0; // eg. any failure other than a timeout
+    virtual void handleCommandSuccessful(GoPro*,
+					 Cmd,
+					 const std::string& msg) = 0;
+    virtual void handleDisconnected(GoPro*, Cmd) = 0; // eg. timeout on waiting for message response
     
   protected:
     GoProOwner() = default;
@@ -36,7 +37,7 @@ namespace D_GP
     GoPro& operator=(const GoPro&) = default;
     GoPro(const GoPro&) = default;
 
-    virtual void connectWithName(const std::string&) = 0;
+    virtual void connect() = 0;
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
     virtual void startLiveStream() = 0;

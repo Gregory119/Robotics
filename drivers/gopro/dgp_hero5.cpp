@@ -1,12 +1,13 @@
 #include "dgp_hero5.h"
 
-#include "dgp_types.h"
-
-#include "chttp_simple.h"
+#include "dgp_utils.h"
 
 #include <cassert>
 
 using namespace D_GP;
+
+static const int s_http_timeout_ms = 3000;
+static const int s_connection_check_ms = 5000;
 
 //----------------------------------------------------------------------//
 GoProHero5::GoProHero5(GoProOwner* o)
@@ -16,22 +17,22 @@ GoProHero5::GoProHero5(GoProOwner* o)
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::connectWithName(const std::string& name)
+void GoProHero5::connect()
 {
   assert(!name.empty());
-  stop();  
+  cancel();  
 
   d_http.reset(new C_HTTP::HttpOperations(d_owner));
   
-  if (!d_http->init())
+  if (!d_http->init(s_http_timeout_ms))
     {
       d_owner->handleFailedCommand(this,Cmd::Connect);
       return;
     }
   
-  if (!d_http->get(CreateCmdUrl(g_bacpac)))
+  if (!d_http->get(CmdConverter::cmdToUrl(Cmd::Connect, CamModel::Hero5)))
     {
-      d_owner->handleFailedCommand(this,Cmd::Connect);
+      d_owner->handleFailedCommand(this, Cmd::Connect);
       return;
     }
 }
@@ -39,55 +40,131 @@ void GoProHero5::connectWithName(const std::string& name)
 //----------------------------------------------------------------------//
 void GoProHero5::setMode(Mode mode)
 {
-  std::string params;
+  bool ret = false;
   switch (mode)
     {
     case Mode::Photo:
-      params = "?p=1";
+      ret = d_http->get(CmdConverter::cmdToUrl(Cmd::SetModePhoto,
+					       CamModel::Hero5));
       break;
       
     case Mode::Video:
-      params = "?p=0";
-      break;
-
-    default:
-      assert(false);
-      return;
+      ret = d_http->get(CmdConverter::cmdToUrl(Cmd::SetModeVideo,
+					       CamModel::Hero5));
       break;
     }
   
-  if (!d_http->post(CreateCmdUrl(g_mode)+params))
+  if (!ret)
     {
       d_owner->handleFailedCommand(this,Cmd::SetMode);
       return;
     }
-  d_owner->handleModeSet(this,mode);
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::setShutter(bool state)
 {
-  std::string params;
+  bool ret = false;
+
   if (state)
     {
-      params = "?p=1";
+      ret = d_http->get(CmdConverter::cmdToUrl(Cmd::SetShutterTrigger,
+					       CamModel::Hero5));
     }
   else
     {
-      params = "?p=0";
+      ret = d_http->get(CmdConverter::cmdToUrl(Cmd::SetShutterStop,
+					       CamModel::Hero5));
     }
-  
-  if(!d_http->post(CreateCmdUrl(g_shutter)+params))
+
+  if (!ret)
     {
       d_owner->handleFailedCommand(this,Cmd::SetShutter);
       return;
     }
-  d_owner->handleShutterSet(this, state);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::handleFailed(HttpOperations* http,
+			      C_HTTP::HttpOpError error)
+{
+  // sent command was unsuccessful
+  Cmd cmd = CmdConverter::urlToType(http->getUrl());
+
+  switch (error)
+    {
+    case C_HTTP::HttpOpError::Internal:
+      d_owner->handleFailedCommand(this,cmd);
+      return;
+
+    case C_HTTP::HttpOpError::Timeout:
+      connect(); // Attempt to reconnect (this will occur every timeout until connected). Internally calls cancel() initially.
+      if (d_connected)
+	{
+	  d_connected = false;
+	  d_owner->handleDisconnected(this,cmd);
+	}
+      return;
+    }
+  assert(false);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::handleResponse(HttpOperations* http,
+				C_HTTP::HttpResponseCode code,
+				const std::vector<std::string>& headers,
+				const std::vector<char>& body)
+{
+  Cmd cmd = CmdConverter::urlToType(http->getUrl());
+  
+  if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
+    {
+      // not successful
+      d_owner->handleCommandFailed(this, cmd);
+      return;
+    }
+
+  // successful response
+  switch (cmd)
+    {
+    case Cmd::Connect:
+      processConnected();
+      d_owner->handleCommandSuccessful(this,
+				       cmd,
+				       "");
+      return;
+      
+    case Cmd::SetModePhoto:
+    case Cmd::SetModeVideo:
+    case Cmd::SetShutterTrigger:
+    case Cmd::SetShutterStop:
+      d_owner->handleCommandSuccessful(this,
+				       cmd,
+				       "");
+      return;
+      
+    case Cmd::LiveStream:
+      // STILL TO DO
+      return;
+      
+    case Cmd::Unknown:
+      assert(false);
+      return;
+    }
+  assert(false);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::processConnected()
+{
+  d_connected = true;
+  d_timer_connect_check.restartTimerMs(s_connection_check_ms);  
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::startLiveStream()
 {
+  // STILL TO DO
   // possibly wait on state of pi analogue connection
   // send stream request command on a timer
   // start a terminal process of omxplayer to send udp stream to the pi analogue output
@@ -96,66 +173,19 @@ void GoProHero5::startLiveStream()
 //----------------------------------------------------------------------//
 void GoProHero5::stopLiveStream()
 {
+  // STILL TO DO
   // stop waiting on state of pi analogue connection
   // stop requesting stream on a timer
   // stop the terminal process of omxplayer
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::stop()
+void GoProHero5::cancel()
 {
-  d_timer_connect.disable();
+  // STILL TO DO
+  // clear buffered requests
+  d_timer_connect_check.disable();
   stopLiveStream();
-}
-
-//----------------------------------------------------------------------//
-void GoProHero5::handleFailed(HttpOperations* o,
-			      C_HTTP::HttpOpError error)
-{
-  // sent command was unsuccessful
-  // http->getUrl()
-
-  // --if connect bacpac command--
-  d_owner->handleFailedCommand(this,Cmd::Connect);
-  
-  // if connect command and connected =>failed to connect
-  // if connect command and disconnected =>failed to connect once off (connect timer not running)
-  d_owner->handleFailedCommand(this,Cmd::Connect);
-}
-
-//----------------------------------------------------------------------//
-void GoProHero5::handleResponse(HttpOperations* http,
-				C_HTTP::HttpResponseCode,
-				const std::vector<std::string>& headers,
-				const std::vector<char>& body)
-{
-  // sent command was successful
-  
-  // http->getUrl()
-  // parse the url to determine the successful command sent
-  // call owner handle command
-
-  
-  // shutter set??
-
-
-
-  // mode set??
-  
-  
-  
-  // --if connect bacpac command--
-  if (!d_http->get(CreateCmdUrl(g_wifipair+std::string("?success=1&deviceName=")+name)))
-    {
-      d_owner->handleFailedCommand(this,Cmd::Connect);
-      return;
-    }
-
-  // --if connect name command--
-  // start a timer to continuously check the connection status
-  // d_timer_connect.restartTimerMs(5000);  
-  // if not connected =>handleConnectionUp
-  // if connected =>nothing
 }
 
 //----------------------------------------------------------------------//
