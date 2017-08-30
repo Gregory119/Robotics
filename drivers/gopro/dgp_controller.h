@@ -58,10 +58,12 @@ namespace D_GP
     void StartStopRecording();
     
   private:
-    //GoPro
-    void handleModeSet(GoPro*, Mode mode) override { d_mode = mode; }
-    void handleShutterSet(GoPro*, bool) override {}
-    void handleFailedCommand(GoPro*, Cmd) override;
+    //GoProOwner
+    // void handleModeSet(GoPro*, Mode mode) override { d_mode = mode; } ACCOMMODATE THIS IN THE NEW INTERFACE FUNCTIONS BELOW
+    void handleCommandSuccessful(GoPro*, Cmd) override;
+    // Cmd == connect => connection up: Could consider querying the status to decide on control (eg. Was the recording stopped by the user while disconnected??)
+    void handleCommandFailed(GoPro*, Cmd) override;
+    void handleDisconnected(GoPro*, Cmd) override {} // for now. 
 
   private:
     void setState(GPStateId);

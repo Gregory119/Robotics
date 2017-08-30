@@ -49,9 +49,9 @@ void GoProController::StartStopRecording()
 }
 
 //----------------------------------------------------------------------//
-void GoProController::handleFailedCommand(GoPro*, Cmd cmd)
+void GoProController::handleCommandFailed(GoPro*, Cmd cmd)
 {
-  std::cout << "handleFailedCommand: " << cmdToString(cmd) << std::endl;
+  std::cout << "handleCommandFailed: " << cmdToString(cmd) << std::endl;
 
   d_mode = Mode::Unknown; // cause any set mode to happen
   setState(GPStateId::Disconnected);

@@ -59,12 +59,13 @@ namespace C_HTTP
     // Will return false if current message is not complete
     bool get(const std::string& url); 
     std::string getUrl() { return d_url; }
+
+    void cancelBufferedReqs();
     
   private:
     // KERN::KernelTimerOwner
     bool handleTimeOut(const KERN::KernelTimer&) override;
 
-  private:
     // Curl callbacks
     static size_t respBodyWrite(char *ptr,
 				size_t size_mem,
@@ -82,7 +83,22 @@ namespace C_HTTP
 
   private:
     void processMessage();
-      
+    void processNextBufferedReq();
+
+  private:
+    enum class RequestType
+    {
+      Get,
+      Post
+    };
+    
+    struct Request
+    {
+      RequestType type = RequestType::Get;
+      std::string url;
+      std::string body;
+    };
+    
   private:
     HttpOperationsOwner *d_owner = nullptr;
 
@@ -98,6 +114,8 @@ namespace C_HTTP
     int d_running_transfers = 0;
 		
     KERN::KernelTimer d_timer_process = KERN::KernelTimer(this);
+
+    std::list<Request> d_reqs;
   };
 };
 

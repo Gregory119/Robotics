@@ -104,13 +104,12 @@ bool HttpOperations::init(long timeout_sec)
 }
 
 //----------------------------------------------------------------------//
-bool HttpOperations::get(const std::string& url)
+void HttpOperations::get(const std::string& url)
 {
   if (d_running_transfers > 0)
     {
-      // still transferring message
-      assert(false);
-      return false;
+      d_reqs.push_back(Request{RequestType::Get, url});
+      return;
     }
 
   d_url = url;
@@ -119,8 +118,6 @@ bool HttpOperations::get(const std::string& url)
   d_resp_body.clear();
   d_resp_headers.clear();
   d_timer_process.restartMs(0);
-  
-  return true;
 }
 
 //----------------------------------------------------------------------//
@@ -143,6 +140,7 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
       if (d_running_transfers == 0)
 	{
 	  d_timer_process.disable();
+	  processNextBufferedReq(); // next request can start while sending owner messages
 	  processMessage();
 	}
 			
@@ -150,6 +148,31 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
     }
 	
   return false;
+}
+
+//----------------------------------------------------------------------//
+void HttpOperations::processNextBufferedReq()
+{
+  if (d_reqs.empty())
+    {
+      // nothing to do
+      return;
+    }
+
+  Request& req = d_reqs.front();
+  switch (req.type)
+    {
+    case RequestType::Get:
+      get(req.url);
+      break;
+
+    case RequestType::Post:
+      assert(false); // STILL TO DO
+      // post(url, body);
+      break;
+    }
+  
+  d_reqs.pop_front();
 }
 
 //----------------------------------------------------------------------//
@@ -230,4 +253,10 @@ int HttpOperations::timerRestart(CURLM *multi,
   // not processing timeout_ms == -1 because the timer handle function with detect the timer disable 
 
   return 0;
+}
+
+//----------------------------------------------------------------------//
+void HttpOperations::cancelBufferedReqs()
+{
+  d_reqs.clear();
 }

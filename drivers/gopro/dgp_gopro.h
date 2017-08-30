@@ -21,8 +21,7 @@ namespace D_GP
 
     virtual void handleCommandFailed(GoPro*, Cmd) = 0; // eg. any failure other than a timeout
     virtual void handleCommandSuccessful(GoPro*,
-					 Cmd,
-					 const std::string& msg) = 0;
+					 Cmd) = 0;
     virtual void handleDisconnected(GoPro*, Cmd) = 0; // eg. timeout on waiting for message response
     
   protected:
@@ -37,11 +36,12 @@ namespace D_GP
     GoPro& operator=(const GoPro&) = default;
     GoPro(const GoPro&) = default;
 
-    virtual void connect() = 0;
+    virtual void connectWithName(const std::string&) = 0;
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
     virtual void startLiveStream() = 0;
     virtual void stopLiveStream() = 0;
+    virtual bool isConnected() = 0;
     
   protected:
     //only to be inherited

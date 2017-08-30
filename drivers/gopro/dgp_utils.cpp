@@ -12,8 +12,8 @@ const std::string s_h5_shutter = "/gp/gpControl/command/shutter";
 const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
 
 //----------------------------------------------------------------------//
-std::string CmdConverter::createCmdUrl(const std::string& cmd,
-				       CamModel model)
+std::string HttpCmdConverter::prependAddress(const std::string& cmd,
+					 CamModel model)
 {
   switch (model)
     {
@@ -26,12 +26,14 @@ std::string CmdConverter::createCmdUrl(const std::string& cmd,
 }
 
 //----------------------------------------------------------------------//
-std::string CmdConverter::cmdToUrl(Cmd cmd, CamModel model)
+std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
+				       CamModel model,
+				       const std::vector<std::string>& params)
 {
   switch (model)
     {
     case CamModel::Hero5:
-      return cmdToUrlHero5(cmd);
+      return cmdToUrlHero5(cmd, params);
     }
   
   assert(false);
@@ -39,27 +41,43 @@ std::string CmdConverter::cmdToUrl(Cmd cmd, CamModel model)
 }
 
 //----------------------------------------------------------------------//
-std::string CmdConverter::cmdToUrlHero5(Cmd cmd)
+std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
+				       CamModel model)
 {
+  std::vector<std::string> params; // empty
+  cmdToUrl(cmd, model, params);
+}
+
+//----------------------------------------------------------------------//
+std::string
+HttpCmdConverter::cmdToUrlHero5(Cmd cmd,
+			    const std::vector<std::string>& params)
+{
+  if (!validUrlParamsHero5(params))
+    {
+      assert(false);
+      return "";
+    }
+  
   switch (cmd)
     {
     case Cmd::Connect:
-      return createCmdUrl(s_h5_wifipair+"?success=1&deviceName=BushBot");
+      return prependAddress(s_h5_wifipair+"?success=1&deviceName="+params.at(0));
       
     case Cmd::SetModePhoto:
-      return createCmdUrl(s_h5_mode+"?p=1");
+      return prependAddress(s_h5_mode+"?p=1");
 
     case Cmd::SetModeVideo:
-      return createCmdUrl(s_h5_mode+"?p=0");
+      return prependAddress(s_h5_mode+"?p=0");
 
     case Cmd::SetShutterTrigger:
-      return createCmdUrl(s_h5_shutter+"?p=1");
+      return prependAddress(s_h5_shutter+"?p=1");
       
     case Cmd::SetShutterStop:
-      return createCmdUrl(s_h5_shutter+"?p=0");
+      return prependAddress(s_h5_shutter+"?p=0");
       
     case Cmd::LiveStream:
-      return createCmdUrl(s_h5_stream);
+      return prependAddress(s_h5_stream);
 
     case Cmd::Unknown:
       assert(false);
@@ -71,7 +89,7 @@ std::string CmdConverter::cmdToUrlHero5(Cmd cmd)
 }
 
 //----------------------------------------------------------------------//
-Cmd CmdConverter::urlToCmd(const std::string& url, CamModel model)
+Cmd HttpCmdConverter::urlToCmd(const std::string& url, CamModel model)
 {
   switch (model)
     {
@@ -83,34 +101,35 @@ Cmd CmdConverter::urlToCmd(const std::string& url, CamModel model)
 }
 
 //----------------------------------------------------------------------//
-Cmd CmdConverter::urlToCmdHero5(const std::string& url)
+Cmd HttpCmdConverter::urlToCmdHero5(const std::string& url)
 {
-  if (url == createCmdUrl(s_h5_wifipair+"?success=1&deviceName=BushBot"))
+  std::string tmp = prependAddress(s_h5_wifipair+"?success=1&deviceName=");
+  if (url.find(tmp) != std::string::npos)
     {
       return Cmd::Connect;
     }
 
-  if (url == createCmdUrl(s_h5_mode+"?p=1"))
+  if (url == prependAddress(s_h5_mode+"?p=1"))
     {
       return Cmd::SetModePhoto;
     }
 
-  if (url == createCmdUrl(s_h5_mode+"?p=0"))
+  if (url == prependAddress(s_h5_mode+"?p=0"))
     {
       return Cmd::SetModeVideo;
     }
 
-  if (url == createCmdUrl(s_h5_shutter+"?p=1"))
+  if (url == prependAddress(s_h5_shutter+"?p=1"))
     {
       return Cmd::SetShutterTrigger;
     }
 
-  if (url == createCmdUrl(s_h5_shutter+"?p=0"))
+  if (url == prependAddress(s_h5_shutter+"?p=0"))
     {
       return Cmd::SetShutterStop;
     }
 
-  if (url == createCmdUrl(s_h5_stream))
+  if (url == prependAddress(s_h5_stream))
     {
       return Cmd::LiveStream;
     }
@@ -119,9 +138,44 @@ Cmd CmdConverter::urlToCmdHero5(const std::string& url)
   return Cmd::Unknown;
 }
 
+//----------------------------------------------------------------------//
+bool HttpCmdConverter::validUrlParamsHero5(Cmd,
+				       const std::vector<std::string>& params)
+{
+  switch (cmd)
+    {
+    case Cmd::Connect:
+      if (params.size() != 1)
+	{
+	  assert(false);
+	  return false;
+	}
+      return true;
+      
+    case Cmd::SetModePhoto:
+    case Cmd::SetModeVideo:
+    case Cmd::SetShutterTrigger:
+    case Cmd::SetShutterStop:
+    case Cmd::LiveStream:
+      if (!params.empty())
+	{
+	  assert(false);
+	  return false;
+	}
+      return true;
+      
+    case Cmd::Unknown:
+      assert(false);
+      return false;
+    };
+
+  assert(false);
+  return "";  
+}
+
 /*
 //----------------------------------------------------------------------//
-std::string CmdConverter::cmdToMessage(Cmd cmd)
+std::string HttpCmdConverter::cmdToMessage(Cmd cmd)
 {
   switch (cmd)
     {
