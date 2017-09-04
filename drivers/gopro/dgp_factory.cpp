@@ -8,12 +8,14 @@
 using namespace D_GP;
 
 //----------------------------------------------------------------------//
-GoPro* GoProFactory::createGoPro(CamModel model, GoProOwner* o)
+GoPro* GoProFactory::createGoPro(GoProOwner* o,
+				 CamModel model,
+				 std::string& name)
 {
-  switch (type)
+  switch (model)
     {
     case CamModel::Hero5:
-      return new GoProHero5(o);
+      return new GoProHero5(o, name);
     };
 
   // LOG the model type here since it was not picked up

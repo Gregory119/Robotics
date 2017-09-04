@@ -129,11 +129,14 @@ bool Robot::processButton(const D_JS::JSEventMinimal &event)
     {
     case Y:
       std::cout << "Y" << std::endl;
+      // should automatically connect
+      /*
       if (event.value==1)
 	{
 	  std::cout << "Trying to connect." << std::endl;
 	  d_gp_cont->connect();
 	}
+      */
       break;
 
     case A:
@@ -218,7 +221,9 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
 }
 
 //----------------------------------------------------------------------//
-void Robot::handleFailedRequest(D_GP::GoProController*)
+void Robot::handleFailedRequest(D_GP::GoProController*,
+				D_GP::GoProControllerCmd cmd)
 {
+  // could re-request the failed command here, but would need a timeout to stop retrying
   std::cout << "Robot::handleFailedRequest: " << std::endl;
 }

@@ -108,7 +108,10 @@ void HttpOperations::get(const std::string& url)
 {
   if (d_running_transfers > 0)
     {
-      d_reqs.push_back(Request{RequestType::Get, url});
+      Request req;
+      req.type = RequestType::Get;
+      req.url = url;
+      d_reqs.push_back(req);
       return;
     }
 

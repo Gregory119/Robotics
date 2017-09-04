@@ -10,24 +10,21 @@ static const int s_http_timeout_ms = 3000;
 static const int s_connection_check_ms = 5000;
 
 //----------------------------------------------------------------------//
-GoProHero5::GoProHero5(GoProOwner* o)
-  : GoPro(o)
+GoProHero5::GoProHero5(GoProOwner* o, const std::string& name)
+  : GoPro(o),
+    d_timer_connect_check(KERN::KernelTimer(this))
 {
   assert(o != nullptr);
   d_http.reset(new C_HTTP::HttpOperations(this));
+  setName(name);
+  d_timer_connect_check.restartMs(0); // to avoid virtual function calls in constructor
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::connectWithName(const std::string& name)
+void GoProHero5::setName(const std::string& name)
 {
-  if (name.empty())
-    {
-      // log
-      assert(false);
-      return;
-    }
-  d_connect_name = name;
-  connect();
+  assert(!name.empty());
+  d_name = name;
 }
 
 //----------------------------------------------------------------------//
@@ -35,96 +32,78 @@ void GoProHero5::connect()
 {
   if (!d_connected)
     {
-      d_timer_connect_check.disable();
+      d_timer_connect_check.disable(); // because the http timeout will be waited for, if disconnected
       d_http->cancelBufferedReqs(); // buffered reqs won't go through if disconnected
     }
 
-  if (!d_http->init(s_http_timeout_ms))
+  if (!d_http->init(s_http_timeout_ms)) // will return true if already initialized
     {
-      d_owner->handleFailedCommand(this,Cmd::Connect);
+      d_owner->handleCommandFailed(this,Cmd::Connect);
       return;
     }
 
   std::vector<std::string> params = {d_connect_name};
-  if (!d_http->get(HttpCmdConverter::cmdToUrl(Cmd::Connect,
-					      CamModel::Hero5,
-					      params)))
-    {
-      d_owner->handleFailedCommand(this, Cmd::Connect);
-      return;
-    }
+  d_http->get(HttpCmdConverter::cmdToUrl(Cmd::Connect,
+					 CamModel::Hero5,
+					 params));
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::setMode(Mode mode)
 {
-  bool ret = false;
   switch (mode)
     {
     case Mode::Photo:
-      ret = d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetModePhoto,
-						   CamModel::Hero5));
-      break;
+      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetModePhoto,
+					     CamModel::Hero5));
+      return;
       
     case Mode::Video:
-      ret = d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetModeVideo,
-						   CamModel::Hero5));
-      break;
-    }
-  
-  if (!ret)
-    {
-      d_owner->handleFailedCommand(this,Cmd::SetMode);
+      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetModeVideo,
+					     CamModel::Hero5));
+      return;
+
+    case Mode::Unknown:
+      assert(false);
       return;
     }
+  assert(false);
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::setShutter(bool state)
 {
-  bool ret = false;
-
   if (state)
     {
-      ret = d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterTrigger,
-						   CamModel::Hero5));
+      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterTrigger,
+					     CamModel::Hero5));
     }
   else
     {
-      ret = d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterStop,
-						   CamModel::Hero5));
-    }
-
-  if (!ret)
-    {
-      d_owner->handleFailedCommand(this,Cmd::SetShutter);
-      return;
+      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterStop,
+					     CamModel::Hero5));
     }
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::handleFailed(HttpOperations* http,
+void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 			      C_HTTP::HttpOpError error)
 {
   // sent command was unsuccessful
-  Cmd cmd = HttpCmdConverter::urlToType(http->getUrl());
+  Cmd cmd = HttpCmdConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
 
   switch (error)
     {
     case C_HTTP::HttpOpError::Internal:
-      d_owner->handleFailedCommand(this,cmd);
+      d_owner->handleCommandFailed(this,cmd);
       return;
 
     case C_HTTP::HttpOpError::Timeout:
       {
-	bool connection_down = d_connected;
 	d_connected = false;
 	connect(); // Attempt to reconnect (this will occur every timeout until connected).
 	// Internally stops connection check timer.
-	if (connection_down)
-	  {
-	    d_owner->handleDisconnected(this,cmd);
-	  }
+        d_owner->handleCommandFailed(this,cmd);
       }
       return;
     }
@@ -132,12 +111,12 @@ void GoProHero5::handleFailed(HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::handleResponse(HttpOperations* http,
+void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 				C_HTTP::HttpResponseCode code,
 				const std::vector<std::string>& headers,
 				const std::vector<char>& body)
 {
-  Cmd cmd = HttpCmdConverter::urlToType(http->getUrl());
+  Cmd cmd = HttpCmdConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
   
   if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
     {
@@ -154,10 +133,10 @@ void GoProHero5::handleResponse(HttpOperations* http,
     case Cmd::Connect:
       if (connection_up)
 	{
-	  d_timer_connect_check.restartTimerMs(s_connection_check_ms);
-	  d_owner->handleCommandSuccessful(this,
-				       cmd);
+	  d_timer_connect_check.restart();
 	}
+      d_owner->handleCommandSuccessful(this,
+				       cmd);
       return;
       
     case Cmd::SetModePhoto:
@@ -183,10 +162,11 @@ void GoProHero5::handleResponse(HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
-bool GoProHero5::handleTimeOut(const KernelTimer& timer)
+bool GoProHero5::handleTimeOut(const KERN::KernelTimer& timer)
 {
   if (timer.is(d_timer_connect_check))
     {
+      d_timer_connect_check.restartMs(s_connection_check_ms);
       connect();
       return true;
     }

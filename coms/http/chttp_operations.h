@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <string>
+#include <list>
 
 /*
   HttpOperations is based on asynchronous http communication.
@@ -23,7 +24,7 @@ namespace C_HTTP
     MultipleChoices = 300, // 3xx redirections
     BadRequest = 400, // 4xx client errors
     InternalServerError = 500 // 5xx server errors
-  }
+  };
   
   enum class HttpOpError
   {
@@ -32,7 +33,8 @@ namespace C_HTTP
   };
 
   using HttpResponseCode = int;
-	
+
+  class HttpOperations;
   class HttpOperationsOwner // inherit privately
   {
   private:
@@ -52,12 +54,13 @@ namespace C_HTTP
     HttpOperations& operator=(const HttpOperations&) = delete;
     HttpOperations(const HttpOperations&) = delete;
 
-    // must be successful before using class
+    // Must be successful before using class.
+    // Will return true if already initialized.
     bool init(long timeout_sec = 30); 
 
     // example params = "name=daniel&project=curl"
     // Will return false if current message is not complete
-    bool get(const std::string& url); 
+    void get(const std::string& url); 
     std::string getUrl() { return d_url; }
 
     void cancelBufferedReqs();

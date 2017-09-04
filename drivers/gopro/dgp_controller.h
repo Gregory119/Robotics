@@ -9,6 +9,13 @@
 
 namespace D_GP
 {
+  enum class GoProControllerCmd
+  {
+    Unknown,
+    Photo,
+    ToggleRecording
+  };
+
   enum class GPStateId
     {
       Disconnected,
@@ -33,8 +40,7 @@ namespace D_GP
    
   private:
     friend GoProController;
-    // the synchronous type controller will have undefined behaviour if it is not deleted after signaling a failure
-    virtual void handleFailedRequest(GoProController*) = 0; 
+    virtual void handleFailedRequest(GoProController*, GoProControllerCmd) = 0;
   };
 
   class GoProController final : GoProOwner
@@ -53,17 +59,14 @@ namespace D_GP
     GoProController(GoProControllerOwner*, GPCtrlParams);
     ~GoProController();
 
-    void connect();
     void takePhoto();
-    void StartStopRecording();
+    void startStopRecording();
     
   private:
     //GoProOwner
     // void handleModeSet(GoPro*, Mode mode) override { d_mode = mode; } ACCOMMODATE THIS IN THE NEW INTERFACE FUNCTIONS BELOW
     void handleCommandSuccessful(GoPro*, Cmd) override;
-    // Cmd == connect => connection up: Could consider querying the status to decide on control (eg. Was the recording stopped by the user while disconnected??)
     void handleCommandFailed(GoPro*, Cmd) override;
-    void handleDisconnected(GoPro*, Cmd) override {} // for now. 
 
   private:
     void setState(GPStateId);
@@ -83,13 +86,14 @@ namespace D_GP
 
     std::unique_ptr<GoPro> d_gp;
     bool d_is_recording = false;
-    std::string d_connect_name;
     Mode d_mode = Mode::Unknown;
 
     GPStateId d_state_id = GPStateId::Disconnected;
     GPStateId d_prev_state_id = GPStateId::Disconnected;
     std::map<GPStateId, std::unique_ptr<GPState>> d_states;
     GPState* d_state = nullptr;
+
+    GoProControllerCmd d_cmd = GoProControllerCmd::Unknown;
   };
 
   class GPState

@@ -45,15 +45,15 @@ std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
 				       CamModel model)
 {
   std::vector<std::string> params; // empty
-  cmdToUrl(cmd, model, params);
+  return cmdToUrl(cmd, model, params);
 }
 
 //----------------------------------------------------------------------//
 std::string
 HttpCmdConverter::cmdToUrlHero5(Cmd cmd,
-			    const std::vector<std::string>& params)
+				const std::vector<std::string>& params)
 {
-  if (!validUrlParamsHero5(params))
+  if (!validUrlParamsHero5(cmd, params))
     {
       assert(false);
       return "";
@@ -62,22 +62,28 @@ HttpCmdConverter::cmdToUrlHero5(Cmd cmd,
   switch (cmd)
     {
     case Cmd::Connect:
-      return prependAddress(s_h5_wifipair+"?success=1&deviceName="+params.at(0));
+      return prependAddress(s_h5_wifipair+"?success=1&deviceName="+params.at(0),
+			    CamModel::Hero5);
       
     case Cmd::SetModePhoto:
-      return prependAddress(s_h5_mode+"?p=1");
+      return prependAddress(s_h5_mode+"?p=1",
+			    CamModel::Hero5);
 
     case Cmd::SetModeVideo:
-      return prependAddress(s_h5_mode+"?p=0");
+      return prependAddress(s_h5_mode+"?p=0",
+			    CamModel::Hero5);
 
     case Cmd::SetShutterTrigger:
-      return prependAddress(s_h5_shutter+"?p=1");
+      return prependAddress(s_h5_shutter+"?p=1",
+			    CamModel::Hero5);
       
     case Cmd::SetShutterStop:
-      return prependAddress(s_h5_shutter+"?p=0");
+      return prependAddress(s_h5_shutter+"?p=0",
+			    CamModel::Hero5);
       
     case Cmd::LiveStream:
-      return prependAddress(s_h5_stream);
+      return prependAddress(s_h5_stream,
+			    CamModel::Hero5);
 
     case Cmd::Unknown:
       assert(false);
@@ -103,33 +109,39 @@ Cmd HttpCmdConverter::urlToCmd(const std::string& url, CamModel model)
 //----------------------------------------------------------------------//
 Cmd HttpCmdConverter::urlToCmdHero5(const std::string& url)
 {
-  std::string tmp = prependAddress(s_h5_wifipair+"?success=1&deviceName=");
+  std::string tmp = prependAddress(s_h5_wifipair+"?success=1&deviceName=",
+				   CamModel::Hero5);
   if (url.find(tmp) != std::string::npos)
     {
       return Cmd::Connect;
     }
 
-  if (url == prependAddress(s_h5_mode+"?p=1"))
+  if (url == prependAddress(s_h5_mode+"?p=1",
+			    CamModel::Hero5))
     {
       return Cmd::SetModePhoto;
     }
 
-  if (url == prependAddress(s_h5_mode+"?p=0"))
+  if (url == prependAddress(s_h5_mode+"?p=0",
+			    CamModel::Hero5))
     {
       return Cmd::SetModeVideo;
     }
 
-  if (url == prependAddress(s_h5_shutter+"?p=1"))
+  if (url == prependAddress(s_h5_shutter+"?p=1",
+			    CamModel::Hero5))
     {
       return Cmd::SetShutterTrigger;
     }
 
-  if (url == prependAddress(s_h5_shutter+"?p=0"))
+  if (url == prependAddress(s_h5_shutter+"?p=0",
+			    CamModel::Hero5))
     {
       return Cmd::SetShutterStop;
     }
 
-  if (url == prependAddress(s_h5_stream))
+  if (url == prependAddress(s_h5_stream,
+			    CamModel::Hero5))
     {
       return Cmd::LiveStream;
     }
@@ -139,8 +151,8 @@ Cmd HttpCmdConverter::urlToCmdHero5(const std::string& url)
 }
 
 //----------------------------------------------------------------------//
-bool HttpCmdConverter::validUrlParamsHero5(Cmd,
-				       const std::vector<std::string>& params)
+bool HttpCmdConverter::validUrlParamsHero5(Cmd cmd,
+					   const std::vector<std::string>& params)
 {
   switch (cmd)
     {

@@ -2,6 +2,7 @@
 #define DGP_FACTORY_H
 
 #include "dgp_gopro.h"
+#include <string>
 
 namespace D_GP
 {
@@ -9,7 +10,7 @@ namespace D_GP
   class GoProFactory
   {
   public:
-    static GoPro* createGoPro(CamModel, GoProOwner*);
+    static GoPro* createGoPro(GoProOwner*, CamModel, std::string& name);
   };
 };
 

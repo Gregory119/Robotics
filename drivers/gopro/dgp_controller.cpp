@@ -10,8 +10,7 @@ using namespace D_GP;
 //----------------------------------------------------------------------//
 GoProController::GoProController(GoProControllerOwner* o, GPCtrlParams p)
   : d_owner(o),
-    d_gp(GoProFactory::createGoPro(p.model, this)),
-    d_connect_name(p.name),
+    d_gp(GoProFactory::createGoPro(this, p.model, p.name)),
     d_state(new StateDisconnected)
 {
   assert(o!=nullptr);
@@ -28,34 +27,19 @@ GoProController::GoProController(GoProControllerOwner* o, GPCtrlParams p)
 GoProController::~GoProController() = default;
 
 //----------------------------------------------------------------------//
-void GoProController::connect()
-{
-  setState(GPStateId::Disconnected);
-  processCurrentState();
-}
-
-//----------------------------------------------------------------------//
 void GoProController::takePhoto()
 {
+  d_cmd = GoProControllerCmd::Photo;
   setState(GPStateId::Photo);
   processCurrentState();
 }
 
 //----------------------------------------------------------------------//
-void GoProController::StartStopRecording()
+void GoProController::startStopRecording()
 {
+  d_cmd = GoProControllerCmd::ToggleRecording;
   setState(GPStateId::StartStopRec);
   processCurrentState();
-}
-
-//----------------------------------------------------------------------//
-void GoProController::handleCommandFailed(GoPro*, Cmd cmd)
-{
-  std::cout << "handleCommandFailed: " << cmdToString(cmd) << std::endl;
-
-  d_mode = Mode::Unknown; // cause any set mode to happen
-  setState(GPStateId::Disconnected);
-  d_owner->handleFailedRequest(this); // I am concerned about a command failing after a recording has started
 }
 
 //----------------------------------------------------------------------//
@@ -111,7 +95,7 @@ void StateConnected::process(GoProController& ctrl)
     case GPStateId::Disconnected:
     case GPStateId::Connected:
     case GPStateId::Photo:
-      gp.connectWithName(ctrl.d_connect_name);
+      gp.connect();
       break;
 			
     case GPStateId::StartStopRec:
@@ -119,7 +103,7 @@ void StateConnected::process(GoProController& ctrl)
 	{
 	  ctrl.toggleRecording(); // stop recording
 	}
-      gp.connectWithName(ctrl.d_connect_name);
+      gp.connect();
       break;
 
     default:
@@ -138,7 +122,7 @@ void StatePhoto::process(GoProController& ctrl)
   switch (ctrl.getPrevState())
     {
     case GPStateId::Disconnected:
-      gp.connectWithName(ctrl.d_connect_name);
+      gp.connect();
     case GPStateId::Connected:
       ctrl.setMode(Mode::Photo);
       gp.setShutter(true); // take pic
@@ -179,7 +163,7 @@ void StateVideo::process(GoProController& ctrl)
   switch (ctrl.getPrevState())
     {
     case GPStateId::Disconnected:
-      gp.connectWithName(ctrl.d_connect_name);
+      gp.connect();
     case GPStateId::Connected:
     case GPStateId::Photo:
       assert(!ctrl.d_is_recording);
@@ -211,4 +195,48 @@ void GoProController::setMode(Mode mode)
   //{
   d_gp->setMode(mode); // always just set the mode for now to ensure the correct mode is being used
       //}
+}
+
+//----------------------------------------------------------------------//
+void GoProController::handleCommandSuccessful(GoPro*, Cmd cmd)
+{
+  switch (cmd)
+    {
+    case Cmd::SetModePhoto:
+      d_mode = Mode::Photo;
+      return;
+
+    case Cmd::SetModeVideo:
+      d_mode = Mode::Video;
+      return;
+
+    case Cmd::Connect:
+    case Cmd::SetShutterTrigger:
+    case Cmd::SetShutterStop:
+    case Cmd::LiveStream:
+      return;
+
+    case Cmd::Unknown:
+      assert(false);
+      return;
+    }
+  assert(false);
+}
+
+//----------------------------------------------------------------------//
+void GoProController::handleCommandFailed(GoPro*, Cmd cmd)
+{
+  std::cout << "GoProController::handleCommandFailed " << std::endl;
+
+  d_mode = Mode::Unknown; // cause any set mode to happen
+
+  setState(GPStateId::Disconnected);
+  processCurrentState();
+
+  // do this last because owner may request a new command, resulting in a state change and process
+  if (d_cmd != GoProControllerCmd::Unknown)
+    {
+      d_owner->handleFailedRequest(this, d_cmd);
+      d_cmd = GoProControllerCmd::Unknown;
+    }
 }

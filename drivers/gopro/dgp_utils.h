@@ -4,6 +4,7 @@
 #include "dgp_types.h"
 
 #include <string>
+#include <vector>
 
 namespace D_GP
 {
@@ -26,7 +27,7 @@ namespace D_GP
     
     static Cmd urlToCmdHero5(const std::string& url);
     static std::string cmdToUrlHero5(Cmd, const std::vector<std::string>& params);
-    bool validUrlParamsHero5(Cmd, const std::vector<std::string>& params);
+    static bool validUrlParamsHero5(Cmd, const std::vector<std::string>& params);
   };
 };
 

@@ -6,9 +6,11 @@
 /*
   This is the gopro interface.
 
-  - First connect to go pro before calling other commands. 
+  - The concrete class should automatically attempt to connect after construction (using zero timer). 
   - The GoPro should automatically and continuously attempt to reconnect after a successful connection.
 */
+
+#include <string>
 
 namespace D_GP
 {
@@ -19,10 +21,9 @@ namespace D_GP
     GoProOwner& operator=(const GoProOwner&) = default;
     GoProOwner(const GoProOwner&) = default;
 
-    virtual void handleCommandFailed(GoPro*, Cmd) = 0; // eg. any failure other than a timeout
+    virtual void handleCommandFailed(GoPro*, Cmd) = 0;
     virtual void handleCommandSuccessful(GoPro*,
 					 Cmd) = 0;
-    virtual void handleDisconnected(GoPro*, Cmd) = 0; // eg. timeout on waiting for message response
     
   protected:
     GoProOwner() = default;
@@ -36,12 +37,12 @@ namespace D_GP
     GoPro& operator=(const GoPro&) = default;
     GoPro(const GoPro&) = default;
 
-    virtual void connectWithName(const std::string&) = 0;
+    virtual void setName(const std::string& name) = 0;
+    virtual void connect() = 0;
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
     virtual void startLiveStream() = 0;
     virtual void stopLiveStream() = 0;
-    virtual bool isConnected() = 0;
     
   protected:
     //only to be inherited

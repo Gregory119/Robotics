@@ -16,14 +16,15 @@ public:
     //d_gp_cont->takeMultiShot();
 
     //recording
-    d_gp_cont->StartStopRecording();
+    d_gp_cont->startStopRecording();
     sleep(5); //recording time
-    d_gp_cont->StartStopRecording();
+    d_gp_cont->startStopRecording();
   }
   
 private:
   //D_GP::GoProController
-  void handleFailedRequest(D_GP::GoProController*) override
+  void handleFailedRequest(D_GP::GoProController*,
+			   D_GP::GoProControllerCmd cmd) override
   {
     std::cout << "handleFailedRequest: " << std::endl;
   }
