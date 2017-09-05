@@ -42,6 +42,7 @@ namespace D_GP
   private:
     friend GoProController;
     virtual void handleFailedRequest(GoProController*, GoProControllerCmd) = 0;
+		virtual void handleSuccessfulRequest(GoProController*, GoProControllerCmd) = 0;
   };
 
   class GoProController final : GoProOwner
@@ -60,9 +61,9 @@ namespace D_GP
     GoProController(GoProControllerOwner*, GPCtrlParams);
     ~GoProController();
 
-		void connect();
-    void takePhoto();
-    void startStopRecording();
+		void connectReq();
+    void takePhotoReq();
+    void startStopRecordingReq();
     
   private:
     //GoProOwner
@@ -72,6 +73,7 @@ namespace D_GP
   private:
     void setState(GPStateId);
     GPStateId getPrevState() { return d_prev_state_id; }
+		GoProControllerCmd getLastRequest();
     void processCurrentState();
     void toggleRecording(); // sets to video mode
     void setMode(Mode); // set mode if different
@@ -87,15 +89,13 @@ namespace D_GP
 
     std::unique_ptr<GoPro> d_gp;
     bool d_is_recording = false;
-    Mode d_mode = Mode::Unknown;
 
     GPStateId d_state_id = GPStateId::Disconnected;
     GPStateId d_prev_state_id = GPStateId::Disconnected;
     std::map<GPStateId, std::unique_ptr<GPState>> d_states;
     GPState* d_state = nullptr;
 
-    GoProControllerCmd d_cmd = GoProControllerCmd::Unknown; // TO DO: MAKE THIS A REQUEST QUEUE
-		// SHOULD BE USING THE LAST COMMAND REQUEST WHILE PROCESSING THE CURRENT STATE
+		std::list<GoProControllerCmd> d_reqs;
   };
 
   class GPState

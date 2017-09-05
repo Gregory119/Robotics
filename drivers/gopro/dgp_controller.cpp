@@ -27,16 +27,16 @@ GoProController::GoProController(GoProControllerOwner* o, GPCtrlParams p)
 GoProController::~GoProController() = default;
 
 //----------------------------------------------------------------------//
-void GoProController::connect()
+void GoProController::connectReq()
 {
-  d_cmd = GoProControllerCmd::Connect;
-  setState(GPStateId::Disconnected);
+	d_is_recording = false; // assumption
+  d_reqs.emplace_back(GoProControllerCmd::Connect);
   processCurrentState();
 }
 
 
 //----------------------------------------------------------------------//
-void GoProController::takePhoto()
+void GoProController::takePhotoReq()
 {
   d_cmd = GoProControllerCmd::Photo;
   setState(GPStateId::Photo);
@@ -44,7 +44,7 @@ void GoProController::takePhoto()
 }
 
 //----------------------------------------------------------------------//
-void GoProController::startStopRecording()
+void GoProController::startStopRecordingReq()
 {
   d_cmd = GoProControllerCmd::ToggleRecording;
   setState(GPStateId::StartStopRec);
@@ -68,22 +68,42 @@ void GoProController::toggleRecording()
 }
 
 //----------------------------------------------------------------------//
+GoProControllerCmd GoProController::getLastRequest()
+{
+	return ctrl.d_reqs.front();
+}
+
+//----------------------------------------------------------------------//
 void StateDisconnected::process(GoProController& ctrl)
 {
   assert(ctrl.d_gp != nullptr);
-	
-  switch (ctrl.getPrevState())
+
+	GoPro& gp = *ctrl.d_gp;
+	GoProControllerCmd &req = ctrl.getLastRequest();
+	switch (req)
     {
-    case GPStateId::Disconnected:
-    case GPStateId::Connected:
-    case GPStateId::Photo:
-		case GPStateId::StartStopRec:
+		case GoProControllerCmd::Unknown:
+			assert(false);
+			return;
+			
+		case GoProControllerCmd::Connect:
+			gp.connect();
+			return;
+			
+		case GoProControllerCmd::Photo:
+			gp.connect();
+			gp.setMode(Mode::Photo);
+      gp.setShutter(true); // take pic
+			return;
+			
+		case GoProControllerCmd::ToggleRecording:
 			//NOTE: CHANGE THIS IN FUTURE TO CHECK GOPRO STATUS TO SEE WHETHER STILL RECORDING
       //if (ctrl.d_is_recording)
 			//{
 	  // ctrl.toggleRecording(); // stop recording
 			//}
-			ctrl.connect();
+			gp.connect();
+			ctrl.toggleRecording();
       return;
     };
 	assert(false);
@@ -93,8 +113,36 @@ void StateDisconnected::process(GoProController& ctrl)
 void StateConnected::process(GoProController& ctrl)
 {
   assert(ctrl.d_gp != nullptr);
-  GoPro& gp = *ctrl.d_gp;
+
+	GoPro& gp = *ctrl.d_gp;
+	GoProControllerCmd &req = ctrl.getLastRequest();
+	switch (req)
+    {
+		case GoProControllerCmd::Unknown:
+			assert(false);
+			return;
+			
+		case GoProControllerCmd::Connect:
+			gp.connect();
+			return;
+			
+		case GoProControllerCmd::Photo:
+			gp.setMode(Mode::Photo);
+      gp.setShutter(true); // take pic
+			return;
+			
+		case GoProControllerCmd::ToggleRecording:
+			ctrl.toggleRecording();
+      return;
+    };
+	assert(false);
+
+
+
+
+
 	
+  GoPro& gp = *ctrl.d_gp;
   switch (ctrl.getPrevState())
     {
     case GPStateId::Disconnected:
@@ -196,10 +244,7 @@ void GoProController::processCurrentState()
 //----------------------------------------------------------------------//
 void GoProController::setMode(Mode mode)
 {
-  //if (d_mode != mode)
-  //{
-  d_gp->setMode(mode); // always just set the mode for now to ensure the correct mode is being used
-      //}
+  d_gp->setMode(mode);
 }
 
 //----------------------------------------------------------------------//
@@ -208,14 +253,15 @@ void GoProController::handleCommandSuccessful(GoPro*, Cmd cmd)
   switch (cmd)
     {
     case Cmd::SetModePhoto:
-      d_mode = Mode::Photo;
       return;
 
     case Cmd::SetModeVideo:
-      d_mode = Mode::Video;
       return;
 
     case Cmd::Connect:
+			setState(GPStateId::Connected);
+			return;
+			
     case Cmd::SetShutterTrigger:
     case Cmd::SetShutterStop:
     case Cmd::LiveStream:
@@ -234,9 +280,8 @@ void GoProController::handleCommandFailed(GoPro*, Cmd cmd, GPError err)
 	// consider processing the type of error
   std::cout << "GoProController::handleCommandFailed " << std::endl;
 
-  d_mode = Mode::Unknown; // cause any set mode to happen
-
-  connect(); // try to reconnect
+	setState(GPStateId::Disconnected);
+  connectReq(); // try to reconnect
 
   // do this last because owner may request a new command, resulting in a state change and process
 	// POP THE FRONT REQUEST QUEUE TO SEND WITH FAILURE NOTIFICATION
