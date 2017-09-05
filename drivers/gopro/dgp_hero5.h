@@ -21,6 +21,7 @@ namespace D_GP
     explicit GoProHero5(GoProOwner* o, const std::string& name);
 
     //GoPro
+    void connect() override;
     void setMode(Mode) override;
     void setShutter(bool) override;
     void startLiveStream() override;
@@ -28,7 +29,6 @@ namespace D_GP
 
   private:
     //GoPro
-    void connect() override;
     void setName(const std::string& name) override;
     
     // C_HTTP::HttpOperationsOwner
@@ -57,8 +57,7 @@ namespace D_GP
     std::string d_name;
 
     std::string d_connect_name;
-    KERN::KernelTimer d_timer_connect_check;
-    //KERN::KernelTimer d_timer_stream_check; // STILL TO DO !!!!finish setting this up: poll the stream to keep it up
+    KERN::KernelTimer d_timer_stream_check; // STILL TO DO !!!!finish setting this up: poll the stream to keep it up
   };
 };
 #endif

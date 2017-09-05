@@ -27,6 +27,15 @@ GoProController::GoProController(GoProControllerOwner* o, GPCtrlParams p)
 GoProController::~GoProController() = default;
 
 //----------------------------------------------------------------------//
+void GoProController::connect()
+{
+  d_cmd = GoProControllerCmd::Connect;
+  setState(GPStateId::Disconnected);
+  processCurrentState();
+}
+
+
+//----------------------------------------------------------------------//
 void GoProController::takePhoto()
 {
   d_cmd = GoProControllerCmd::Photo;
@@ -68,20 +77,16 @@ void StateDisconnected::process(GoProController& ctrl)
     case GPStateId::Disconnected:
     case GPStateId::Connected:
     case GPStateId::Photo:
-      break;
-			
-    case GPStateId::StartStopRec:
-      if (ctrl.d_is_recording)
-	{
-	  ctrl.toggleRecording(); // stop recording
-	}
-      break;
-
-    default:
-      assert(false);
+		case GPStateId::StartStopRec:
+			//NOTE: CHANGE THIS IN FUTURE TO CHECK GOPRO STATUS TO SEE WHETHER STILL RECORDING
+      //if (ctrl.d_is_recording)
+			//{
+	  // ctrl.toggleRecording(); // stop recording
+			//}
+			ctrl.connect();
       return;
-      break;
     };
+	assert(false);
 }
 
 //----------------------------------------------------------------------//
@@ -224,19 +229,17 @@ void GoProController::handleCommandSuccessful(GoPro*, Cmd cmd)
 }
 
 //----------------------------------------------------------------------//
-void GoProController::handleCommandFailed(GoPro*, Cmd cmd)
+void GoProController::handleCommandFailed(GoPro*, Cmd cmd, GPError err)
 {
+	// consider processing the type of error
   std::cout << "GoProController::handleCommandFailed " << std::endl;
 
   d_mode = Mode::Unknown; // cause any set mode to happen
 
-  setState(GPStateId::Disconnected);
-  processCurrentState();
+  connect(); // try to reconnect
 
   // do this last because owner may request a new command, resulting in a state change and process
-  if (d_cmd != GoProControllerCmd::Unknown)
-    {
-      d_owner->handleFailedRequest(this, d_cmd);
-      d_cmd = GoProControllerCmd::Unknown;
-    }
+	// POP THE FRONT REQUEST QUEUE TO SEND WITH FAILURE NOTIFICATION
+	// CLEAR THE REST OF THE QUEUED MESSAGES
+	d_owner->handleFailedRequest(this, d_cmd);
 }

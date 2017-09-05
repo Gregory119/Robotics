@@ -106,6 +106,12 @@ bool HttpOperations::init(long timeout_sec)
 //----------------------------------------------------------------------//
 void HttpOperations::get(const std::string& url)
 {
+	if (!d_ready)
+		{
+			assert(false);
+			return;
+		}
+	
   if (d_running_transfers > 0)
     {
       Request req;

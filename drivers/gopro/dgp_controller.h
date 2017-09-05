@@ -12,6 +12,7 @@ namespace D_GP
   enum class GoProControllerCmd
   {
     Unknown,
+		Connect,
     Photo,
     ToggleRecording
   };
@@ -59,14 +60,14 @@ namespace D_GP
     GoProController(GoProControllerOwner*, GPCtrlParams);
     ~GoProController();
 
+		void connect();
     void takePhoto();
     void startStopRecording();
     
   private:
     //GoProOwner
-    // void handleModeSet(GoPro*, Mode mode) override { d_mode = mode; } ACCOMMODATE THIS IN THE NEW INTERFACE FUNCTIONS BELOW
     void handleCommandSuccessful(GoPro*, Cmd) override;
-    void handleCommandFailed(GoPro*, Cmd) override;
+    void handleCommandFailed(GoPro*, Cmd, GPError) override;
 
   private:
     void setState(GPStateId);
@@ -93,7 +94,8 @@ namespace D_GP
     std::map<GPStateId, std::unique_ptr<GPState>> d_states;
     GPState* d_state = nullptr;
 
-    GoProControllerCmd d_cmd = GoProControllerCmd::Unknown;
+    GoProControllerCmd d_cmd = GoProControllerCmd::Unknown; // TO DO: MAKE THIS A REQUEST QUEUE
+		// SHOULD BE USING THE LAST COMMAND REQUEST WHILE PROCESSING THE CURRENT STATE
   };
 
   class GPState

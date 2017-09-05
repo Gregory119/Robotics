@@ -14,6 +14,13 @@
 
 namespace D_GP
 {
+	enum class GPError
+	{
+		Internal,
+	  Response,
+		Timeout
+	};
+	
   class GoPro;
   class GoProOwner // inherit privately
   {
@@ -21,7 +28,8 @@ namespace D_GP
     GoProOwner& operator=(const GoProOwner&) = default;
     GoProOwner(const GoProOwner&) = default;
 
-    virtual void handleCommandFailed(GoPro*, Cmd) = 0;
+		// queued commands should be cleared on a failure
+    virtual void handleCommandFailed(GoPro*, Cmd, GPError) = 0;
     virtual void handleCommandSuccessful(GoPro*,
 					 Cmd) = 0;
     
@@ -38,7 +46,8 @@ namespace D_GP
     GoPro(const GoPro&) = default;
 
     virtual void setName(const std::string& name) = 0;
-    virtual void connect() = 0;
+		
+    virtual void connect() = 0; 
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
     virtual void startLiveStream() = 0;
