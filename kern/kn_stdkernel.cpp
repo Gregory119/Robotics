@@ -16,7 +16,7 @@ StdKernel::StdKernel()
 }
 
 //----------------------------------------------------------------------//
-void StdKernel::registerTimer(KernelTimer& new_timer)
+void StdKernel::registerTimer(CallbackTimer& new_timer)
 {
   assert(s_singleton!=nullptr);
   
@@ -32,7 +32,7 @@ void StdKernel::registerTimer(KernelTimer& new_timer)
 }
 
 //----------------------------------------------------------------------//
-void StdKernel::removeTimer(KernelTimer& t)
+void StdKernel::removeTimer(CallbackTimer& t)
 {
   assert(s_singleton!=nullptr);
   assert(!s_singleton->d_timers.empty());
@@ -49,31 +49,22 @@ void StdKernel::removeTimer(KernelTimer& t)
 }
 
 //----------------------------------------------------------------------//
-int StdKernel::process()
+void StdKernel::process()
 {
   assert(!d_timers.empty());
   
   for (const auto& timer : d_timers)
     {
       assert(timer != nullptr);
-      
-      if (!timer->processTimeOut()) //update times and process timeouts
-	{
-	  assert(false);
-	  return EXIT_FAILURE;
-	}
+      timer->processTimeOut(); //update times and process timeouts
     }
-  return EXIT_SUCCESS;
 }
 
 //----------------------------------------------------------------------//
-int StdKernel::run()
+void StdKernel::run()
 {
-  int ret = EXIT_SUCCESS;
-  while (ret == EXIT_SUCCESS)
+  while (1)
     {
-      ret = process();
+      process();
     }
-
-  return ret;
 }

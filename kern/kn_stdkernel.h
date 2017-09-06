@@ -15,15 +15,15 @@ namespace KERN
     StdKernel(const StdKernel&) = delete;
     virtual ~StdKernel() = default;
     
-    static void registerTimer(KernelTimer&);
-    static void removeTimer(KernelTimer&);
-    int run(); //updates timer values, checks timeouts, and calls KernelTimer owner handler if necessary
+    static void registerTimer(CallbackTimer&);
+    static void removeTimer(CallbackTimer&);
+    void run(); //updates timer values, checks timeouts, and calls KernelTimer owner handler if necessary
 
   private:
-    int process();
+    void process();
     
   private:
-    std::list<KernelTimer*> d_timers;
+    std::list<CallbackTimer*> d_timers;
   };
 };
 
