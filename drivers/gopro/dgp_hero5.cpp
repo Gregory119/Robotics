@@ -113,6 +113,12 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
+void GoProHero5::cancelBufferedCmds()
+{
+  d_http->cancelBufferedReqs();
+}
+
+//----------------------------------------------------------------------//
 void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 				C_HTTP::HttpResponseCode code,
 				const std::vector<std::string>& headers,

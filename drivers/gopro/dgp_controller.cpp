@@ -255,6 +255,8 @@ void GoProController::handleCommandSuccessful(GoPro*, Cmd cmd)
 void GoProController::handleCommandFailed(GoPro*, Cmd cmd, GPError err)
 {
   std::cout << "GoProController::handleCommandFailed " << std::endl;
+  // stop further consequetive failed messages that have been buffered/queued
+  d_gp->cancelBufferedCmds(); 
 
   GoProControllerReq req = d_reqs.front();
   switch (err)

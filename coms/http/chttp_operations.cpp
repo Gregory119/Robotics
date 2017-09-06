@@ -159,8 +159,8 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
       if (d_running_transfers == 0)
 	{
 	  d_timer_process.disable();
-	  processNextBufferedReq(); // next request can start while sending owner messages
 	  processMessage();
+	  processNextBufferedReq(); // next request can start after owner messages (owner may want to clear/stop the buffered messages)
 	}
 			
       return true;
