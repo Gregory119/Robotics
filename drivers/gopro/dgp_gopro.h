@@ -14,12 +14,12 @@
 
 namespace D_GP
 {
-	enum class GPError
-	{
-		Internal,
-	  Response,
-		Timeout
-	};
+  enum class GPError
+  {
+    Internal, // internal to the client of the gopro (this should not happen)
+    Response,
+    Timeout
+  };
 	
   class GoPro;
   class GoProOwner // inherit privately
@@ -28,10 +28,9 @@ namespace D_GP
     GoProOwner& operator=(const GoProOwner&) = default;
     GoProOwner(const GoProOwner&) = default;
 
-		// queued commands should be cleared on a failure
+    // queued commands should be cleared on a failure
     virtual void handleCommandFailed(GoPro*, Cmd, GPError) = 0;
-    virtual void handleCommandSuccessful(GoPro*,
-					 Cmd) = 0;
+    virtual void handleCommandSuccessful(GoPro*, Cmd) = 0;
     
   protected:
     GoProOwner() = default;

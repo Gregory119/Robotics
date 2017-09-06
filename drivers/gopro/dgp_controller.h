@@ -2,28 +2,28 @@
 #define DGP_CONTROLLER_H
 
 #include "dgp_gopro.h"
-//#include "kn_timer.h" //implement this
+#include "kn_callbacktimer.h"
 
 #include <memory>
 #include <map>
 
 namespace D_GP
 {
-  enum class GoProControllerCmd
+  enum class GoProControllerReq
   {
-    Unknown,
-		Connect,
+    Unknown, 
+    Connect,
     Photo,
-    ToggleRecording
+    ToggleRecording,
   };
 
   enum class GPStateId
-    {
-      Disconnected,
-      Connected,
-      Photo,
-      StartStopRec
-    };
+  {
+    Disconnected,
+    Connected,
+    Photo,
+    Video
+  };
   
   class GPState;
   class StateConnected;
@@ -41,8 +41,8 @@ namespace D_GP
    
   private:
     friend GoProController;
-    virtual void handleFailedRequest(GoProController*, GoProControllerCmd) = 0;
-		virtual void handleSuccessfulRequest(GoProController*, GoProControllerCmd) = 0;
+    virtual void handleFailedRequest(GoProController*, GoProControllerReq) = 0;
+    virtual void handleSuccessfulRequest(GoProController*, GoProControllerReq) = 0;
   };
 
   class GoProController final : GoProOwner
@@ -58,12 +58,13 @@ namespace D_GP
     };
     
   public:
-    GoProController(GoProControllerOwner*, GPCtrlParams);
+    GoProController(GoProControllerOwner*, const GPCtrlParams&);
     ~GoProController();
 
-		void connectReq();
+    // If this fails, it continuously tries to reconnect. Should consider setting the maximum number of retry attempts.
+    void connectReq(); 
     void takePhotoReq();
-    void startStopRecordingReq();
+    void toggleRecordingReq();
     
   private:
     //GoProOwner
@@ -72,11 +73,10 @@ namespace D_GP
 
   private:
     void setState(GPStateId);
-    GPStateId getPrevState() { return d_prev_state_id; }
-		GoProControllerCmd getLastRequest();
+    GoProControllerReq getRequest();
     void processCurrentState();
-    void toggleRecording(); // sets to video mode
-    void setMode(Mode); // set mode if different
+    bool isRecording() { return d_is_recording; }
+    void toggleRecState() { d_is_recording = !d_is_recording; }
 		
   private:
     friend GPState;
@@ -91,11 +91,12 @@ namespace D_GP
     bool d_is_recording = false;
 
     GPStateId d_state_id = GPStateId::Disconnected;
-    GPStateId d_prev_state_id = GPStateId::Disconnected;
     std::map<GPStateId, std::unique_ptr<GPState>> d_states;
     GPState* d_state = nullptr;
 
-		std::list<GoProControllerCmd> d_reqs;
+    std::list<GoProControllerReq> d_reqs;
+
+    KERN::CallbackTimer d_timer_recreate_gopro;
   };
 
   class GPState
@@ -121,6 +122,11 @@ namespace D_GP
   };
 
   class StateVideo : public GPState
+  {
+    void process(GoProController&) override;
+  };
+
+  class StateRecording : public GPState
   {
     void process(GoProController&) override;
   };

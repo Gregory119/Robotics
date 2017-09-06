@@ -29,19 +29,20 @@ void GoProHero5::setName(const std::string& name)
 //----------------------------------------------------------------------//
 void GoProHero5::connect()
 {
+  // LOG
   if (!d_connected)
     {
       d_http->cancelBufferedReqs(); // buffered reqs won't go through if disconnected
     }
 
-	// will return true if already initialized
-	bool success = d_http->init(s_http_timeout_ms);
-	if (!success)
-		{
-			// LOG
-			assert(success); // this should not happen
-			return;
-		}
+  // will return true if already initialized
+  bool success = d_http->init(s_http_timeout_ms);
+  if (!success)
+    {
+      // LOG
+      assert(false); // this should not happen
+      return;
+    }
 	
   std::vector<std::string> params = {d_connect_name};
   d_http->get(HttpCmdConverter::cmdToUrl(Cmd::Connect,
@@ -52,6 +53,7 @@ void GoProHero5::connect()
 //----------------------------------------------------------------------//
 void GoProHero5::setMode(Mode mode)
 {
+  // LOG
   switch (mode)
     {
     case Mode::Photo:
@@ -74,6 +76,7 @@ void GoProHero5::setMode(Mode mode)
 //----------------------------------------------------------------------//
 void GoProHero5::setShutter(bool state)
 {
+  // LOG
   if (state)
     {
       d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterTrigger,
@@ -96,14 +99,14 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
   switch (error)
     {
     case C_HTTP::HttpOpError::Internal:
+      // LOG
       d_owner->handleCommandFailed(this, cmd, GPError::Internal);
       return;
 
     case C_HTTP::HttpOpError::Timeout:
-      {
-	d_connected = false;
-	d_owner->handleCommandFailed(this, cmd, GPError::Timeout);
-      }
+      // LOG
+      d_connected = false;
+      d_owner->handleCommandFailed(this, cmd, GPError::Timeout);
       return;
     }
   assert(false);
