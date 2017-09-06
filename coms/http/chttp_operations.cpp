@@ -42,6 +42,7 @@ bool HttpOperations::init(long timeout_sec)
   // NB: not thread safe
   if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) 
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
@@ -53,47 +54,56 @@ bool HttpOperations::init(long timeout_sec)
   d_curl = curl_easy_init();
   if (d_curl == nullptr)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_TIMEOUT, timeout_sec) != CURLE_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_WRITEFUNCTION, respBodyWrite) != CURLE_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_WRITEDATA, this) != CURLE_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_HEADERFUNCTION, respHeaderWrite) != CURLE_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_HEADERDATA, this) != CURLE_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   d_curl_multi = curl_multi_init();
   if (d_curl_multi == nullptr)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 	
   if (curl_multi_setopt(d_curl_multi, CURLMOPT_TIMERFUNCTION, timerRestart) != CURLM_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 
   if (curl_multi_setopt(d_curl_multi, CURLMOPT_TIMERDATA, this) != CURLM_OK)
     {
+      d_timer_failed_init.restartMs(0);
       return false;
     }
 	
@@ -106,11 +116,11 @@ bool HttpOperations::init(long timeout_sec)
 //----------------------------------------------------------------------//
 void HttpOperations::get(const std::string& url)
 {
-	if (!d_ready)
-		{
-			assert(false);
-			return;
-		}
+  if (!d_ready)
+    {
+      assert(false);
+      return;
+    }
 	
   if (d_running_transfers > 0)
     {
@@ -153,6 +163,13 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 	  processMessage();
 	}
 			
+      return true;
+    }
+
+  if (d_timer_failed_init.is(timer))
+    {
+      d_timer_failed_init.disable();
+      d_owner->handleFailed(this,HttpOpError::Internal);
       return true;
     }
 	

@@ -12,7 +12,8 @@
 /*
   HttpOperations is based on asynchronous http communication.
 
-  When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end())
+  When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end()).
+  When adding more functions, MAKE SURE TO CHECK READY FLAG AT THE START.
 */
 
 namespace C_HTTP
@@ -28,7 +29,7 @@ namespace C_HTTP
   
   enum class HttpOpError
   {
-    Internal,
+    Internal, // this should not happen
     Timeout
   };
 
@@ -64,6 +65,7 @@ namespace C_HTTP
     std::string getUrl() { return d_url; }
 
     void cancelBufferedReqs();
+    bool hasBufferedReqs() { return !d_reqs.empty(); }
     
   private:
     // KERN::KernelTimerOwner
@@ -117,6 +119,7 @@ namespace C_HTTP
     int d_running_transfers = 0;
 		
     KERN::KernelTimer d_timer_process = KERN::KernelTimer(this);
+    KERN::KernelTimer d_timer_failed_init = KERN::KernelTimer(this);
 
     std::list<Request> d_reqs;
   };
