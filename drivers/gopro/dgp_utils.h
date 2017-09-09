@@ -8,7 +8,7 @@
 
 namespace D_GP
 {
-  class HttpCmdConverter
+  class CmdToUrlConverter
   {
   public:
     // GoPro Hero5 connect command takes one parameter for the connection name

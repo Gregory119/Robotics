@@ -44,9 +44,6 @@ namespace D_GP
     bool handleTimeOut(const KERN::KernelTimer&) override;
     
   private:
-    void cancel(); // stop all timers and reset values
-
-  private:
     struct Request
     {
       Cmd cmd;
@@ -59,7 +56,7 @@ namespace D_GP
     std::string d_name;
 
     std::string d_connect_name;
-    KERN::KernelTimer d_timer_stream_check; // STILL TO DO !!!!finish setting this up: poll the stream to keep it up
+    KERN::KernelTimer d_timer_stream_check;
   };
 };
 #endif

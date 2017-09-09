@@ -45,9 +45,9 @@ void GoProHero5::connect()
     }
 	
   std::vector<std::string> params = {d_connect_name};
-  d_http->get(HttpCmdConverter::cmdToUrl(Cmd::Connect,
-					 CamModel::Hero5,
-					 params));
+  d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Connect,
+					  CamModel::Hero5,
+					  params));
 }
 
 //----------------------------------------------------------------------//
@@ -57,13 +57,13 @@ void GoProHero5::setMode(Mode mode)
   switch (mode)
     {
     case Mode::Photo:
-      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetModePhoto,
-					     CamModel::Hero5));
+      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModePhoto,
+					      CamModel::Hero5));
       return;
       
     case Mode::Video:
-      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetModeVideo,
-					     CamModel::Hero5));
+      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModeVideo,
+					      CamModel::Hero5));
       return;
 
     case Mode::Unknown:
@@ -79,13 +79,13 @@ void GoProHero5::setShutter(bool state)
   // LOG
   if (state)
     {
-      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterTrigger,
-					     CamModel::Hero5));
+      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetShutterTrigger,
+					      CamModel::Hero5));
     }
   else
     {
-      d_http->get(HttpCmdConverter::cmdToUrl(Cmd::SetShutterStop,
-					     CamModel::Hero5));
+      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetShutterStop,
+					      CamModel::Hero5));
     }
 }
 
@@ -94,7 +94,7 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 			      C_HTTP::HttpOpError error)
 {
   // sent command was unsuccessful
-  Cmd cmd = HttpCmdConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
+  Cmd cmd = CmdToUrlConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
 
   switch (error)
     {
@@ -130,7 +130,7 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 				const std::vector<std::string>& headers,
 				const std::vector<char>& body)
 {
-  Cmd cmd = HttpCmdConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
+  Cmd cmd = CmdToUrlConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
   
   if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
     {
@@ -171,7 +171,8 @@ bool GoProHero5::handleTimeOut(const KERN::KernelTimer& timer)
 {
   if (timer.is(d_timer_stream_check))
     {
-      connect();
+      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::LiveStream,
+					      CamModel::Hero5));
       return true;
     }
   
@@ -182,6 +183,11 @@ bool GoProHero5::handleTimeOut(const KERN::KernelTimer& timer)
 void GoProHero5::startLiveStream()
 {
   assert(false);
+  // for now just polling stream and running omxplayer from script
+  d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::LiveStream,
+					  CamModel::Hero5));
+  d_timer_stream_check.restartMs(5000);
+  
   // STILL TO DO
   // possibly wait on state of pi analogue connection
   // send stream request command on a timer
@@ -192,6 +198,9 @@ void GoProHero5::startLiveStream()
 void GoProHero5::stopLiveStream()
 {
   assert(false);
+  // for now just stop polling
+  d_timer_stream_check.disable();
+    
   // STILL TO DO
   // stop waiting on state of pi analogue connection
   // stop requesting stream on a timer

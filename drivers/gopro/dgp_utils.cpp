@@ -12,8 +12,8 @@ const std::string s_h5_shutter = "/gp/gpControl/command/shutter";
 const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
 
 //----------------------------------------------------------------------//
-std::string HttpCmdConverter::prependAddress(const std::string& cmd,
-					 CamModel model)
+std::string CmdToUrlConverter::prependAddress(const std::string& cmd,
+					      CamModel model)
 {
   switch (model)
     {
@@ -26,9 +26,9 @@ std::string HttpCmdConverter::prependAddress(const std::string& cmd,
 }
 
 //----------------------------------------------------------------------//
-std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
-				       CamModel model,
-				       const std::vector<std::string>& params)
+std::string CmdToUrlConverter::cmdToUrl(Cmd cmd,
+					CamModel model,
+					const std::vector<std::string>& params)
 {
   switch (model)
     {
@@ -41,8 +41,8 @@ std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
 }
 
 //----------------------------------------------------------------------//
-std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
-				       CamModel model)
+std::string CmdToUrlConverter::cmdToUrl(Cmd cmd,
+					CamModel model)
 {
   std::vector<std::string> params; // empty
   return cmdToUrl(cmd, model, params);
@@ -50,8 +50,8 @@ std::string HttpCmdConverter::cmdToUrl(Cmd cmd,
 
 //----------------------------------------------------------------------//
 std::string
-HttpCmdConverter::cmdToUrlHero5(Cmd cmd,
-				const std::vector<std::string>& params)
+CmdToUrlConverter::cmdToUrlHero5(Cmd cmd,
+				 const std::vector<std::string>& params)
 {
   if (!validUrlParamsHero5(cmd, params))
     {
@@ -95,7 +95,7 @@ HttpCmdConverter::cmdToUrlHero5(Cmd cmd,
 }
 
 //----------------------------------------------------------------------//
-Cmd HttpCmdConverter::urlToCmd(const std::string& url, CamModel model)
+Cmd CmdToUrlConverter::urlToCmd(const std::string& url, CamModel model)
 {
   switch (model)
     {
@@ -107,7 +107,7 @@ Cmd HttpCmdConverter::urlToCmd(const std::string& url, CamModel model)
 }
 
 //----------------------------------------------------------------------//
-Cmd HttpCmdConverter::urlToCmdHero5(const std::string& url)
+Cmd CmdToUrlConverter::urlToCmdHero5(const std::string& url)
 {
   std::string tmp = prependAddress(s_h5_wifipair+"?success=1&deviceName=",
 				   CamModel::Hero5);
@@ -151,8 +151,8 @@ Cmd HttpCmdConverter::urlToCmdHero5(const std::string& url)
 }
 
 //----------------------------------------------------------------------//
-bool HttpCmdConverter::validUrlParamsHero5(Cmd cmd,
-					   const std::vector<std::string>& params)
+bool CmdToUrlConverter::validUrlParamsHero5(Cmd cmd,
+					    const std::vector<std::string>& params)
 {
   switch (cmd)
     {
@@ -187,22 +187,22 @@ bool HttpCmdConverter::validUrlParamsHero5(Cmd cmd,
 
 /*
 //----------------------------------------------------------------------//
-std::string HttpCmdConverter::cmdToMessage(Cmd cmd)
+std::string CmdToUrlConverter::cmdToMessage(Cmd cmd)
 {
-  switch (cmd)
-    {
-    case Cmd::Connect:
-      return "Connecting";
+switch (cmd)
+{
+case Cmd::Connect:
+return "Connecting";
       
-    case Cmd::SetMode:
-      return "Setting the mode";
-      break;
+case Cmd::SetMode:
+return "Setting the mode";
+break;
       
-    case Cmd::SetShutter:
-      return "Setting the shutter";
-      break;
-    };
-  assert(false);
-  return "";
+case Cmd::SetShutter:
+return "Setting the shutter";
+break;
+};
+assert(false);
+return "";
 }
 */
