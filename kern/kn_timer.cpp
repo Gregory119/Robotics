@@ -18,6 +18,11 @@ KernelTimer::KernelTimer(KernelTimerOwner* o)
 }
 
 //----------------------------------------------------------------------//
+KernelTimer::KernelTimer(const KernelTimer& rhs)
+  : KernelTimer(rhs.d_owner)
+{}
+
+//----------------------------------------------------------------------//
 void KernelTimer::restart()
 {
   d_callback_timer->restart();

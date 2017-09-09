@@ -5,7 +5,7 @@
 
 namespace KERN
 {
-  class KernelTimer;
+  class CallbackTimer;
   class StdKernel 
   {
     // A service that currently only processes timer timeouts

@@ -26,6 +26,7 @@ namespace D_GP
     void setShutter(bool) override;
     void startLiveStream() override;
     void stopLiveStream() override;
+    bool hasBufferedReqs() override;
     void cancelBufferedCmds() override;
 
   private:

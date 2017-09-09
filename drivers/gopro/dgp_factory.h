@@ -10,7 +10,7 @@ namespace D_GP
   class GoProFactory
   {
   public:
-    static GoPro* createGoPro(GoProOwner*, CamModel, std::string& name);
+    static GoPro* createGoPro(GoProOwner*, CamModel, const std::string& name);
   };
 };
 

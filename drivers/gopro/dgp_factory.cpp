@@ -10,7 +10,7 @@ using namespace D_GP;
 //----------------------------------------------------------------------//
 GoPro* GoProFactory::createGoPro(GoProOwner* o,
 				 CamModel model,
-				 std::string& name)
+				 const std::string& name)
 {
   switch (model)
     {

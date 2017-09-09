@@ -144,7 +144,7 @@ bool Robot::processButton(const D_JS::JSEventMinimal &event)
       if (event.value==1)
 	{
 	  std::cout << "Taking pic." << std::endl;
-	  d_gp_cont->takePhoto();
+	  d_gp_cont->takePhotoReq();
 	}
       break;
 	
@@ -153,7 +153,7 @@ bool Robot::processButton(const D_JS::JSEventMinimal &event)
       if (event.value==1)
 	{
 	  std::cout << "Start or Stop Recording" << std::endl;
-	  d_gp_cont->StartStopRecording();
+	  d_gp_cont->toggleRecordingReq();
 	}
       break;
 
@@ -222,8 +222,15 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
 
 //----------------------------------------------------------------------//
 void Robot::handleFailedRequest(D_GP::GoProController*,
-				D_GP::GoProControllerCmd cmd)
+				D_GP::GoProControllerReq req)
 {
   // could re-request the failed command here, but would need a timeout to stop retrying
   std::cout << "Robot::handleFailedRequest: " << std::endl;
+}
+
+//----------------------------------------------------------------------//
+void Robot::handleSuccessfulRequest(D_GP::GoProController*,
+				    D_GP::GoProControllerReq req)
+{
+  std::cout << "Robot::handleSuccessfulRequest: " << std::endl;
 }

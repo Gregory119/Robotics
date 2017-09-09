@@ -22,5 +22,6 @@ int main()
     }
   js_tran.start();
 
-  return k.run();
+  k.run();
+  return 0;
 }

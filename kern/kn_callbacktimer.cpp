@@ -13,15 +13,15 @@ CallbackTimer::CallbackTimer()
 }
 
 //----------------------------------------------------------------------//
-CallbackTimer::setCallback(std::function<void()> callback)
-{
-  d_callback = callback;
-}
-
-//----------------------------------------------------------------------//
 CallbackTimer::~CallbackTimer()
 {
   StdKernel::removeTimer(*this);
+}
+
+//----------------------------------------------------------------------//
+void CallbackTimer::setCallback(std::function<void()> callback)
+{
+  d_callback = callback;
 }
 
 //----------------------------------------------------------------------//
@@ -29,7 +29,7 @@ void CallbackTimer::processTimeOut()
 {
   if (!d_is_enabled)
     {
-      assert(false)
+      assert(false);
       return;
     }
   

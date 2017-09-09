@@ -51,6 +51,7 @@ namespace D_GP
     virtual void setShutter(bool) = 0;
     virtual void startLiveStream() = 0;
     virtual void stopLiveStream() = 0;
+    virtual bool hasBufferedReqs() = 0;
     virtual void cancelBufferedCmds() = 0;
     
   protected:

@@ -4,6 +4,7 @@
 #include "dgp_gopro.h"
 #include "kn_callbacktimer.h"
 
+#include <list>
 #include <memory>
 #include <map>
 

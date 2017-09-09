@@ -113,6 +113,12 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
+bool GoProHero5::hasBufferedReqs()
+{
+  return d_http->hasBufferedReqs();
+}
+
+//----------------------------------------------------------------------//
 void GoProHero5::cancelBufferedCmds()
 {
   d_http->cancelBufferedReqs();

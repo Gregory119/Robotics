@@ -90,5 +90,6 @@ int main(int argc, char* argv[])
   
   TestTimers test_timers;
   
-  return k.run();
+  k.run();
+  return 0;
 }

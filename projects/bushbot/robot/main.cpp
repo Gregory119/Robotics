@@ -23,5 +23,6 @@ int main()
       return 0;
     }
   
-  return k.run();
+  k.run();
+  return 0;
 }

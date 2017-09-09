@@ -22,7 +22,7 @@ public:
 	
 private:
   // HttpOperationsOwner
-  void handleFailed(HttpOperations*,C_HTTP::HttpOpError err) override
+  void handleFailed(C_HTTP::HttpOperations*,C_HTTP::HttpOpError err) override
   {
     switch (err)
       {
@@ -37,7 +37,8 @@ private:
     assert(false);
   }
 	
-  void handleResponse(C_HTTP::HttpResponseCode code,
+  void handleResponse(C_HTTP::HttpOperations*,
+		      C_HTTP::HttpResponseCode code,
 		      const std::vector<std::string>& headers,
 		      const std::vector<char>& body) override
   {
@@ -76,5 +77,6 @@ int main(int argc, char* argv[])
   KERN::StdKernel k;
   TestHttp http_get_test(argv[1]);
 	
-  return k.run();
+  k.run();
+  return 0;
 }

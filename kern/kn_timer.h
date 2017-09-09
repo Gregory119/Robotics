@@ -24,10 +24,11 @@ namespace KERN
   {    
   public:
     KernelTimer(KernelTimerOwner*);
-    KernelTimer(const KernelTimer&) = delete;
+    KernelTimer(const KernelTimer&);
     KernelTimer& operator=(const KernelTimer&) = delete;
 
     bool is(const KernelTimer& timer) const { return &timer == this; }
+    bool is(const std::unique_ptr<KernelTimer>& timer) const { return timer.get() == this; }
     
     void restartMs(long time_ms);
     void restartMsIfNotSet(long time_ms);
@@ -40,10 +41,10 @@ namespace KERN
     bool isSet() const { return d_callback_timer->isSet(); }
     bool isDisabled() { return d_callback_timer->isDisabled(); }
     void setTimeMs(long);
+    bool hasTimedOut();
 
   private:
     friend StdKernel;
-    bool hasTimedOut();
 
   private:
     KernelTimerOwner* d_owner = nullptr;

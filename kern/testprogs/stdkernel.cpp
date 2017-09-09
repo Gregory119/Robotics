@@ -34,7 +34,7 @@ private:
 	  }
 	return true;
       }
-    else if (timeris(d_timer2))
+    else if (timer.is(d_timer2))
       {
 	std::cout << "timer 2 has timed out with a consequetive count of " << d_timer2->getConseqTimeOuts() << ", a total count of " << d_timer2->getTotalTimeOuts() << std::endl;
 
@@ -77,5 +77,6 @@ int main(int argc, char** argv)
   
   TestTimers test_timers;
   
-  return k.run();
+  k.run();
+  return 0;
 }

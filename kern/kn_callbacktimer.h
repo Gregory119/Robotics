@@ -27,11 +27,11 @@ namespace KERN
     bool isSet() const { return d_timeout_ms>=0; }
     bool isDisabled() { return !d_is_enabled; }
     void setTimeMs(long);
+    bool hasTimedOut();
 
   private:
     friend StdKernel;
     void processTimeOut(); //update time and process timeout if it has occured
-    bool hasTimedOut();
 
   private:
     std::function<void()> d_callback;

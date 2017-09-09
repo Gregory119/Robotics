@@ -43,7 +43,8 @@ class Robot final : KERN::KernelTimerOwner,
 
  private:
   //D_GP::GoProController
-  void handleFailedRequest(D_GP::GoProController*, D_GP::GoProControllerCmd) override;
+  void handleFailedRequest(D_GP::GoProController*, D_GP::GoProControllerReq) override;
+  void handleSuccessfulRequest(D_GP::GoProController*, D_GP::GoProControllerReq) override;
 
   // KERN::KernelTimerOwner
   bool handleTimeOut(const KERN::KernelTimer& timer);

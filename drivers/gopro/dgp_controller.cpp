@@ -23,7 +23,7 @@ GoProController::GoProController(GoProControllerOwner* o,
   d_states[GPStateId::Video] = std::unique_ptr<GPState>(new StateVideo);
   d_state = d_states[GPStateId::Connected].get();
 
-  d_timer_recreate_gopro.setCallback([this](){
+  d_timer_recreate_gopro.setCallback([&](){
       d_gp.reset(GoProFactory::createGoPro(this,
 					   p.model,
 					   p.name));
@@ -75,7 +75,7 @@ void StateDisconnected::process(GoProController& ctrl)
   assert(ctrl.d_gp != nullptr);
 
   GoPro& gp = *ctrl.d_gp;
-  GoProControllerReq &req = ctrl.getRequest();
+  GoProControllerReq req = ctrl.getRequest();
   switch (req)
     {
     case GoProControllerReq::Unknown:
@@ -109,7 +109,7 @@ void StateConnected::process(GoProController& ctrl)
   assert(ctrl.d_gp != nullptr);
 
   GoPro& gp = *ctrl.d_gp;
-  GoProControllerReq &req = ctrl.getRequest();
+  GoProControllerReq req = ctrl.getRequest();
   switch (req)
     {
     case GoProControllerReq::Unknown:
@@ -128,8 +128,8 @@ void StateConnected::process(GoProController& ctrl)
 			
     case GoProControllerReq::ToggleRecording:
       gp.setMode(Mode::Video);
-      gp.setShutter(!isRecording());
-      gp.toggleRecState();
+      gp.setShutter(!ctrl.isRecording());
+      ctrl.toggleRecState();
       return;
     };
   assert(false);
@@ -141,7 +141,7 @@ void StatePhoto::process(GoProController& ctrl)
   assert(ctrl.d_gp != nullptr);
 
   GoPro& gp = *ctrl.d_gp;
-  GoProControllerReq &req = ctrl.getRequest();
+  GoProControllerReq req = ctrl.getRequest();
   switch (req)
     {
     case GoProControllerReq::Unknown:
@@ -159,8 +159,8 @@ void StatePhoto::process(GoProController& ctrl)
 			
     case GoProControllerReq::ToggleRecording:
       gp.setMode(Mode::Video);
-      gp.setShutter(!isRecording());
-      gp.toggleRecState();
+      gp.setShutter(!ctrl.isRecording());
+      ctrl.toggleRecState();
       return;
     };
   assert(false);
@@ -172,7 +172,7 @@ void StateVideo::process(GoProController& ctrl)
   assert(ctrl.d_gp != nullptr);
 
   GoPro& gp = *ctrl.d_gp;
-  GoProControllerReq &req = ctrl.getRequest();
+  GoProControllerReq req = ctrl.getRequest();
   switch (req)
     {
     case GoProControllerReq::Unknown:
@@ -190,8 +190,8 @@ void StateVideo::process(GoProController& ctrl)
       return;
 			
     case GoProControllerReq::ToggleRecording:
-      gp.setShutter(!isRecording());
-      gp.toggleRecState();
+      gp.setShutter(!ctrl.isRecording());
+      ctrl.toggleRecState();
       return;
     };
   assert(false);
