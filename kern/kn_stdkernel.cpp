@@ -6,7 +6,7 @@
 
 using namespace KERN;
 
-static StdKernel* s_singleton = nullptr;
+static StdKernel* s_singleton = nullptr; // this should be thread_local
 
 //----------------------------------------------------------------------//
 StdKernel::StdKernel()
@@ -56,7 +56,10 @@ void StdKernel::process()
   for (const auto& timer : d_timers)
     {
       assert(timer != nullptr);
-      timer->processTimeOut(); //update times and process timeouts
+      if (!timer->isDisabled()) // if enabled
+	{
+	  timer->processTimeOut(); //update times and process timeouts
+	}
     }
 }
 

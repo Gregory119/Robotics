@@ -11,9 +11,9 @@ namespace KERN
     // A service that currently only processes timer timeouts
   public:
     StdKernel();
-    StdKernel& operator=(const StdKernel&) = delete;
-    StdKernel(const StdKernel&) = delete;
     virtual ~StdKernel() = default;
+    StdKernel& operator=(const StdKernel&) = delete;
+    StdKernel(const StdKernel&) = delete;    
     
     static void registerTimer(CallbackTimer&);
     static void removeTimer(CallbackTimer&);

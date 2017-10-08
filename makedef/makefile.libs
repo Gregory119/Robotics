@@ -28,6 +28,7 @@ ifdef USES_LIBDGP
       LIBS += -lwiringPi -lpthread
       LIBSRC += $(wildcard $(LIBDGPPATH)/*.cpp)
       USES_LIBCHTTP=1
+      USES_LIBKERN=1
 endif
 
 ifdef USES_LIBCHTTP

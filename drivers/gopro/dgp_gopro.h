@@ -44,8 +44,6 @@ namespace D_GP
     GoPro& operator=(const GoPro&) = default;
     GoPro(const GoPro&) = default;
 
-    virtual void setName(const std::string& name) = 0;
-		
     virtual void connect() = 0; 
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;

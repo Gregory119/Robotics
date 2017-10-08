@@ -3,7 +3,7 @@ BASE_DIR = ../../../..
 include $(BASE_DIR)/makedef/makefile.set
 
 IS_TESTPROG=1
-TEST_NAME=simplegopro
+TEST_NAME=gp_fastcontoller
 #add -l lib names here
 USES_LIBDGP=1
 

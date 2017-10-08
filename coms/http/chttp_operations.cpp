@@ -1,6 +1,7 @@
 #include "chttp_operations.h"
 
 #include <cassert>
+#include <iostream>
 
 using namespace C_HTTP;
 
@@ -33,6 +34,7 @@ HttpOperations::~HttpOperations()
 //----------------------------------------------------------------------//
 bool HttpOperations::init(long timeout_sec)
 {
+  //std::cout << "HttpOperations::init" << std::endl;
   if (d_ready)
     {
       return true;
@@ -116,6 +118,7 @@ bool HttpOperations::init(long timeout_sec)
 //----------------------------------------------------------------------//
 void HttpOperations::get(const std::string& url)
 {
+  std::cout << "get with url = " << url << std::endl;
   if (!d_ready)
     {
       assert(false);
@@ -156,6 +159,7 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 	}
 			
       // has the transfer completed?
+      //std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
       if (d_running_transfers == 0)
 	{
 	  d_timer_process.disable();
@@ -240,6 +244,7 @@ size_t HttpOperations::respBodyWrite(char *data,
 				     size_t num_mem,
 				     void *userdata)
 {
+  //std::cout << "HttpOperations::respBodyWrite" << std::endl;
   // userdata points to this
   // incrementally store the received body data
   HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
@@ -256,6 +261,7 @@ size_t HttpOperations::respHeaderWrite(char *data,
 				       size_t num_mem,
 				       void *userdata)
 {
+  //std::cout << "HttpOperations::respHeaderWrite" << std::endl;
   // userdata points to this
   // store each header as it comes in
   size_t num_bytes = size_mem*num_mem;
@@ -270,13 +276,16 @@ int HttpOperations::timerRestart(CURLM *multi,
 				 long timeout_ms,
 				 void *userdata)
 {
+  //std::cout << "HttpOperations::timerRestart" << std::endl;
+  //std::cout << "HttpOperations::timeout_ms = " << timeout_ms << std::endl;
+  
   // userdata points to this
   HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
-  if (timeout_ms > 0)
+  if (timeout_ms >= 0 && timeout_ms << 1000) // experienced receiving large timeouts
     {
       ptr->d_timer_process.restartMs(timeout_ms);
     }
-  // not processing timeout_ms == -1 because the timer handle function with detect the timer disable 
+  // not processing timeout_ms == -1 because the timer handle function will detect the timer disable 
 
   return 0;
 }

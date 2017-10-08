@@ -29,10 +29,7 @@ namespace D_GP
     bool hasBufferedReqs() override;
     void cancelBufferedCmds() override;
 
-  private:
-    //GoPro
-    void setName(const std::string& name) override;
-    
+  private:    
     // C_HTTP::HttpOperationsOwner
     void handleFailed(C_HTTP::HttpOperations*, C_HTTP::HttpOpError) override;
     void handleResponse(C_HTTP::HttpOperations*,
@@ -53,7 +50,6 @@ namespace D_GP
   private:
     std::unique_ptr<C_HTTP::HttpOperations> d_http; 
     bool d_connected = false;
-    std::string d_name;
 
     std::string d_connect_name;
     KERN::KernelTimer d_timer_stream_check;

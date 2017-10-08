@@ -10,6 +10,10 @@ const std::string s_h5_wifipair = "/gp/gpControl/command/wireless/pair/complete"
 const std::string s_h5_mode = "/gp/gpControl/command/mode";
 const std::string s_h5_shutter = "/gp/gpControl/command/shutter";
 const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
+const std::string s_h5_param_photo_mode = "?p=1"; // DO NOT KNOW WHAT THIS NEEDS TO BE
+const std::string s_h5_param_video_mode = "?p=0";
+const std::string s_h5_param_shutter_trigger = "?p=1";
+const std::string s_h5_param_shutter_stop = "?p=0";
 
 //----------------------------------------------------------------------//
 std::string CmdToUrlConverter::prependAddress(const std::string& cmd,
@@ -66,19 +70,19 @@ CmdToUrlConverter::cmdToUrlHero5(Cmd cmd,
 			    CamModel::Hero5);
       
     case Cmd::SetModePhoto:
-      return prependAddress(s_h5_mode+"?p=1",
+      return prependAddress(s_h5_mode+s_h5_param_photo_mode,
 			    CamModel::Hero5);
 
     case Cmd::SetModeVideo:
-      return prependAddress(s_h5_mode+"?p=0",
+      return prependAddress(s_h5_mode+s_h5_param_video_mode,
 			    CamModel::Hero5);
 
     case Cmd::SetShutterTrigger:
-      return prependAddress(s_h5_shutter+"?p=1",
+      return prependAddress(s_h5_shutter+s_h5_param_shutter_trigger,
 			    CamModel::Hero5);
       
     case Cmd::SetShutterStop:
-      return prependAddress(s_h5_shutter+"?p=0",
+      return prependAddress(s_h5_shutter+s_h5_param_shutter_stop,
 			    CamModel::Hero5);
       
     case Cmd::LiveStream:
@@ -116,25 +120,25 @@ Cmd CmdToUrlConverter::urlToCmdHero5(const std::string& url)
       return Cmd::Connect;
     }
 
-  if (url == prependAddress(s_h5_mode+"?p=1",
+  if (url == prependAddress(s_h5_mode+s_h5_param_photo_mode,
 			    CamModel::Hero5))
     {
       return Cmd::SetModePhoto;
     }
 
-  if (url == prependAddress(s_h5_mode+"?p=0",
+  if (url == prependAddress(s_h5_mode+s_h5_param_video_mode,
 			    CamModel::Hero5))
     {
       return Cmd::SetModeVideo;
     }
 
-  if (url == prependAddress(s_h5_shutter+"?p=1",
+  if (url == prependAddress(s_h5_shutter+s_h5_param_shutter_trigger,
 			    CamModel::Hero5))
     {
       return Cmd::SetShutterTrigger;
     }
 
-  if (url == prependAddress(s_h5_shutter+"?p=0",
+  if (url == prependAddress(s_h5_shutter+s_h5_param_shutter_stop,
 			    CamModel::Hero5))
     {
       return Cmd::SetShutterStop;
