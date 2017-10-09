@@ -4,20 +4,22 @@
 
 using namespace D_GP;
 
-const std::string s_h5_ip_url = "http://10.5.5.9";
-const std::string s_h5_bacpac = "/bacpac/cv";
-const std::string s_h5_wifipair = "/gp/gpControl/command/wireless/pair/complete";
-const std::string s_h5_mode = "/gp/gpControl/command/mode";
-const std::string s_h5_shutter = "/gp/gpControl/command/shutter";
-const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
-const std::string s_h5_param_photo_mode = "?p=1"; // DO NOT KNOW WHAT THIS NEEDS TO BE
-const std::string s_h5_param_video_mode = "?p=0";
-const std::string s_h5_param_shutter_trigger = "?p=1";
-const std::string s_h5_param_shutter_stop = "?p=0";
+static const std::string s_h5_ip_url = "http://10.5.5.9";
+static const std::string s_h5_bacpac = "/bacpac/cv";
+static const std::string s_h5_wifipair = "/gp/gpControl/command/wireless/pair/complete";
+static const std::string s_h5_mode = "/gp/gpControl/command/mode?p=";
+static const std::string s_h5_shutter = "/gp/gpControl/command/shutter?p=";
+static const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
+static const std::string s_h5_param_photo_mode = "1";
+static const std::string s_h5_param_video_mode = "0";
+static const std::string s_h5_param_multishot_mode = "2";
+static const std::string s_h5_param_shutter_trigger = "1";
+static const std::string s_h5_param_shutter_stop = "0";
+static const std::string s_h5_status = "/gp/gpControl/status";
 
 //----------------------------------------------------------------------//
-std::string CmdToUrlConverter::prependAddress(const std::string& cmd,
-					      CamModel model)
+std::string CmdToUrlConverter::appendToAddress(const std::string& cmd,
+					       CamModel model)
 {
   switch (model)
     {
@@ -66,28 +68,36 @@ CmdToUrlConverter::cmdToUrlHero5(Cmd cmd,
   switch (cmd)
     {
     case Cmd::Connect:
-      return prependAddress(s_h5_wifipair+"?success=1&deviceName="+params.at(0),
-			    CamModel::Hero5);
+      return appendToAddress(s_h5_wifipair+"?success=1&deviceName="+params.at(0),
+			     CamModel::Hero5);
+
+    case Cmd::Status:
+      return appendToAddress(s_h5_status,
+			     CamModel::Hero5);
       
     case Cmd::SetModePhoto:
-      return prependAddress(s_h5_mode+s_h5_param_photo_mode,
-			    CamModel::Hero5);
+      return appendToAddress(s_h5_mode+s_h5_param_photo_mode,
+			     CamModel::Hero5);
 
     case Cmd::SetModeVideo:
-      return prependAddress(s_h5_mode+s_h5_param_video_mode,
-			    CamModel::Hero5);
+      return appendToAddress(s_h5_mode+s_h5_param_video_mode,
+			     CamModel::Hero5);
 
+    case Cmd::SetModeMultiShot:
+      return appendToAddress(s_h5_mode+s_h5_param_multishot_mode,
+			     CamModel::Hero5);
+      
     case Cmd::SetShutterTrigger:
-      return prependAddress(s_h5_shutter+s_h5_param_shutter_trigger,
-			    CamModel::Hero5);
+      return appendToAddress(s_h5_shutter+s_h5_param_shutter_trigger,
+			     CamModel::Hero5);
       
     case Cmd::SetShutterStop:
-      return prependAddress(s_h5_shutter+s_h5_param_shutter_stop,
-			    CamModel::Hero5);
+      return appendToAddress(s_h5_shutter+s_h5_param_shutter_stop,
+			     CamModel::Hero5);
       
     case Cmd::LiveStream:
-      return prependAddress(s_h5_stream,
-			    CamModel::Hero5);
+      return appendToAddress(s_h5_stream,
+			     CamModel::Hero5);
 
     case Cmd::Unknown:
       assert(false);
@@ -113,39 +123,45 @@ Cmd CmdToUrlConverter::urlToCmd(const std::string& url, CamModel model)
 //----------------------------------------------------------------------//
 Cmd CmdToUrlConverter::urlToCmdHero5(const std::string& url)
 {
-  std::string tmp = prependAddress(s_h5_wifipair+"?success=1&deviceName=",
-				   CamModel::Hero5);
+  std::string tmp = appendToAddress(s_h5_wifipair+"?success=1&deviceName=",
+				    CamModel::Hero5);
   if (url.find(tmp) != std::string::npos)
     {
       return Cmd::Connect;
     }
 
-  if (url == prependAddress(s_h5_mode+s_h5_param_photo_mode,
-			    CamModel::Hero5))
+  if (url == appendToAddress(s_h5_mode+s_h5_param_photo_mode,
+			     CamModel::Hero5))
     {
       return Cmd::SetModePhoto;
     }
 
-  if (url == prependAddress(s_h5_mode+s_h5_param_video_mode,
-			    CamModel::Hero5))
+  if (url == appendToAddress(s_h5_mode+s_h5_param_video_mode,
+			     CamModel::Hero5))
     {
       return Cmd::SetModeVideo;
     }
 
-  if (url == prependAddress(s_h5_shutter+s_h5_param_shutter_trigger,
-			    CamModel::Hero5))
+  if (url == appendToAddress(s_h5_mode+s_h5_param_multishot_mode,
+			     CamModel::Hero5))
+    {
+      return Cmd::SetModeVideo;
+    }
+      
+  if (url == appendToAddress(s_h5_shutter+s_h5_param_shutter_trigger,
+			     CamModel::Hero5))
     {
       return Cmd::SetShutterTrigger;
     }
 
-  if (url == prependAddress(s_h5_shutter+s_h5_param_shutter_stop,
-			    CamModel::Hero5))
+  if (url == appendToAddress(s_h5_shutter+s_h5_param_shutter_stop,
+			     CamModel::Hero5))
     {
       return Cmd::SetShutterStop;
     }
 
-  if (url == prependAddress(s_h5_stream,
-			    CamModel::Hero5))
+  if (url == appendToAddress(s_h5_stream,
+			     CamModel::Hero5))
     {
       return Cmd::LiveStream;
     }
@@ -187,6 +203,25 @@ bool CmdToUrlConverter::validUrlParamsHero5(Cmd cmd,
 
   assert(false);
   return "";  
+}
+
+//----------------------------------------------------------------------//
+Mode CmdToUrlConverter::extractModeStatus(const std::string& mode_status)
+{
+  if (mode_status == s_h5_param_photo_mode)
+    {
+      return Mode::Photo;
+    }
+
+  if (mode_status == s_h5_param_video_mode)
+    {
+      return Mode::Video;
+    }
+
+  if (mode_status == s_h5_param_multishot_mode)
+    {
+      return Mode::MultiShot;
+    }
 }
 
 /*

@@ -23,11 +23,12 @@ namespace D_GP
     //std::string cmdToMessage(Cmd); not used for now
     
   private:
-    static std::string prependAddress(const std::string& cmd, CamModel model);
+    static std::string appendToAddress(const std::string& cmd, CamModel model);
     
     static Cmd urlToCmdHero5(const std::string& url);
     static std::string cmdToUrlHero5(Cmd, const std::vector<std::string>& params);
     static bool validUrlParamsHero5(Cmd, const std::vector<std::string>& params);
+    static Mode extractModeStatus(const std::string& mode_status); // eg. mode_status = "0", "1" or "2"
   };
 };
 

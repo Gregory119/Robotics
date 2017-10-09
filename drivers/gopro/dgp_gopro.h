@@ -43,8 +43,10 @@ namespace D_GP
     virtual ~GoPro() = default;
     GoPro& operator=(const GoPro&) = default;
     GoPro(const GoPro&) = default;
+    // move constructor & operator
 
-    virtual void connect() = 0; 
+    virtual void connect() = 0;
+    virtual void status() = 0; 
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
     virtual void startLiveStream() = 0;
@@ -52,10 +54,14 @@ namespace D_GP
     virtual bool hasBufferedReqs() = 0;
     virtual void cancelBufferedCmds() = 0;
     
+    const Status& getStatus() { return d_status; }
+    
   protected:
     //only to be inherited
     explicit GoPro(GoProOwner* o);
     GoProOwner* d_owner = nullptr;
+
+    Status d_status;
   };
 };
 

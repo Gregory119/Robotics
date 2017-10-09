@@ -18,10 +18,11 @@ namespace D_GP
     KERN::KernelTimerOwner
   {
   public:
-    explicit GoProHero5(GoProOwner* o, const std::string& name);
+    GoProHero5(GoProOwner* o, const std::string& name);
 
     //GoPro
     void connect() override;
+    void status() override; 
     void setMode(Mode) override;
     void setShutter(bool) override;
     void startLiveStream() override;
@@ -39,14 +40,7 @@ namespace D_GP
 
     // KERN::KernelTimer
     bool handleTimeOut(const KERN::KernelTimer&) override;
-    
-  private:
-    struct Request
-    {
-      Cmd cmd;
-      std::vector<std::string> params;
-    };
-    
+        
   private:
     std::unique_ptr<C_HTTP::HttpOperations> d_http; 
     bool d_connected = false;

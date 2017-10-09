@@ -112,7 +112,8 @@ namespace C_HTTP
 
     std::string d_url;
 
-    bool d_ready = false;
+    bool d_is_initialised = false;
+    bool d_is_processing_req = false;
     long d_resp_code = 0;
     std::vector<char> d_resp_body; // could be download data
     std::vector<std::string> d_resp_headers; // http always has header response as text

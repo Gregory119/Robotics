@@ -27,10 +27,6 @@ void GoProHero5::connect()
 {
   // LOG
   std::cout << "GoProHero5::connect()" << std::endl;
-  if (!d_connected)
-    {
-      d_http->cancelBufferedReqs(); // buffered reqs won't go through if disconnected
-    }
 
   // will return true if already initialized
   bool success = d_http->init(s_http_timeout_ms);
@@ -40,12 +36,18 @@ void GoProHero5::connect()
       assert(false); // this should not happen
       return;
     }
-  /*
+  
   std::vector<std::string> params = {d_connect_name};
   d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Connect,
 					  CamModel::Hero5,
 					  params));
-  */
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::status()
+{
+  d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Status,
+					  CamModel::Hero5));
 }
 
 //----------------------------------------------------------------------//
@@ -105,7 +107,6 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 
     case C_HTTP::HttpOpError::Timeout:
       // LOG
-      d_connected = false;
       d_owner->handleCommandFailed(this, cmd, GPError::Timeout);
       return;
     }
@@ -131,12 +132,6 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 				const std::vector<char>& body)
 {
   std::cout << "GoProHero5::handleResponse" << std::endl;
-  // print response
-  for (const auto& header : headers)
-    {
-      std::cout << header;
-    }
-  std::cout << std::string(body.begin(), body.end()) << std::endl;
   
   Cmd cmd = CmdToUrlConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
   
@@ -147,8 +142,6 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       return;
     }
 
-  // successful response => connected
-  d_connected = true;
   switch (cmd)
     {
     case Cmd::Connect:
@@ -159,14 +152,17 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       d_owner->handleCommandSuccessful(this,
 				       cmd);
       return;
+
+    case Cmd::Status:
+      // parse status data into d_status !!!!!!!!!!!!!!!STILL TO DO!!!!!!!!!!!!!!!!!!!
+      d_owner->handleCommandSuccessful(this,
+				       cmd);
+      return;
       
     case Cmd::LiveStream:
-      // STILL TO DO
-      assert(false);
+      // nothing (internal command)
       return;
 
-      // case Cmd::Status => save to structure which can get read with a get function
-      
     case Cmd::Unknown:
       assert(false);
       return;
@@ -214,6 +210,3 @@ void GoProHero5::stopLiveStream()
   // stop requesting stream on a timer
   // stop the terminal process of omxplayer
 }
-
-//----------------------------------------------------------------------//
-//GoProHero5::

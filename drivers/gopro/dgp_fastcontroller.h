@@ -11,7 +11,9 @@
 namespace D_GP
 {
   /*
-    For reliable usage, this class still needs to check the state of the camera before performing a command. Currently, the state is assumed to only change
+    TODO: 
+    - For reliable usage, this class still needs to check the state of the camera before performing a command. Currently, the state is assumed to only change
+    - There needs to be a pairing process in which the connect command is sent. Sending it with every command from a disconnected state has caused a weird problem, whereby setting the mode does not set it to the requested mode.
   */
   
   class FastController final : GoProOwner
@@ -22,7 +24,7 @@ namespace D_GP
       Unknown, 
       Connect,
       Photo,
-      ToggleRecording,
+      ToggleRecording
     };
 
     enum class StateId
@@ -36,12 +38,15 @@ namespace D_GP
     class Owner
     {
     public:
-      Owner() = default;
-      virtual ~Owner() = default;
       Owner& operator=(const Owner&) = default;
       Owner(const Owner&) = default;
-      //add move constructors
-   
+      Owner(Owner&&) = default;
+      Owner& operator=(Owner&&) = default;
+
+    protected:
+      Owner() = default;
+      virtual ~Owner() = default;
+      
     private:
       friend FastController;
       virtual void handleFailedRequest(FastController*, Req) = 0;
@@ -61,7 +66,6 @@ namespace D_GP
   public:
     FastController(Owner*, const CtrlParams&);
 
-    // If this fails, it continuously tries to reconnect. Should consider setting the maximum number of retry attempts.
     void connectReq(); 
     void takePhotoReq();
     void toggleRecordingReq();

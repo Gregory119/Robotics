@@ -9,10 +9,12 @@ namespace D_GP
   };
   
   enum class Cmd
-  { // H5 implies hero 5
+  { 
     Connect,
+    Status,
     SetModePhoto,
     SetModeVideo,
+    SetModeMultiShot,
     SetShutterTrigger,
     SetShutterStop,
     LiveStream,
@@ -23,7 +25,15 @@ namespace D_GP
   {
     Unknown,
     Photo,
-    Video
+    Video,
+    MultiShot
+  };
+
+  struct Status
+  {
+    Mode mode = Mode::Unknown;
+    bool is_recording = false;
+    bool is_streaming = false;
   };
 };
 

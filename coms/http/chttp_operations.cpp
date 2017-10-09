@@ -16,10 +16,8 @@ HttpOperations::HttpOperations(HttpOperationsOwner* o)
 //----------------------------------------------------------------------//
 HttpOperations::~HttpOperations()
 {
-  if (d_curl_multi != nullptr)
+  if (d_curl_multi != nullptr && d_curl != nullptr)
     {
-      assert(d_curl != nullptr);
-      curl_multi_remove_handle(d_curl_multi, d_curl);
       curl_easy_cleanup(d_curl);
       curl_multi_cleanup(d_curl_multi);
     }
@@ -35,7 +33,7 @@ HttpOperations::~HttpOperations()
 bool HttpOperations::init(long timeout_sec)
 {
   //std::cout << "HttpOperations::init" << std::endl;
-  if (d_ready)
+  if (d_is_initialised)
     {
       return true;
     }
@@ -109,8 +107,7 @@ bool HttpOperations::init(long timeout_sec)
       return false;
     }
 	
-  curl_multi_add_handle(d_curl_multi, d_curl);
-  d_ready = true;
+  d_is_initialised = true;
 	
   return true;
 }
@@ -119,13 +116,13 @@ bool HttpOperations::init(long timeout_sec)
 void HttpOperations::get(const std::string& url)
 {
   std::cout << "get with url = " << url << std::endl;
-  if (!d_ready)
+  if (!d_is_initialised)
     {
       assert(false);
       return;
     }
 	
-  if (d_running_transfers > 0)
+  if (d_is_processing_req)
     {
       Request req;
       req.type = RequestType::Get;
@@ -134,9 +131,12 @@ void HttpOperations::get(const std::string& url)
       return;
     }
 
+  std::cout << "HttpOperations::get: starting to process get" << url << std::endl;
+  d_is_processing_req = true;
   d_url = url;
   curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
-  // set the timer call back
+  curl_multi_add_handle(d_curl_multi, d_curl);
+  
   d_resp_body.clear();
   d_resp_headers.clear();
   d_timer_process.restartMs(0);
@@ -159,7 +159,7 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 	}
 			
       // has the transfer completed?
-      //std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
+      std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
       if (d_running_transfers == 0)
 	{
 	  d_timer_process.disable();
@@ -183,9 +183,11 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 //----------------------------------------------------------------------//
 void HttpOperations::processNextBufferedReq()
 {
+  std::cout << "HttpOperations::processNextBufferedReq()" << std::endl;
   if (d_reqs.empty())
     {
       // nothing to do
+      std::cout << "HttpOperations::processNextBufferedReq()::return with nothing" << std::endl;
       return;
     }
 
@@ -235,7 +237,10 @@ void HttpOperations::processMessage()
     }
 
   curl_easy_getinfo(d_curl,CURLINFO_RESPONSE_CODE,&d_resp_code);
-  d_owner->handleResponse(this, d_resp_code, d_resp_headers, d_resp_body); 
+  d_owner->handleResponse(this, d_resp_code, d_resp_headers, d_resp_body);
+  
+  curl_multi_remove_handle(d_curl_multi, d_curl);
+  d_is_processing_req = false;
 }
 
 //----------------------------------------------------------------------//
@@ -281,11 +286,14 @@ int HttpOperations::timerRestart(CURLM *multi,
   
   // userdata points to this
   HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
-  if (timeout_ms >= 0 && timeout_ms << 1000) // experienced receiving large timeouts
+  if (timeout_ms >= 0 && timeout_ms < 1000) // experienced receiving large timeouts
     {
       ptr->d_timer_process.restartMs(timeout_ms);
     }
-  // not processing timeout_ms == -1 because the timer handle function will detect the timer disable 
+  else if (timeout_ms < 0)
+    {
+      // do nothing (the timer disables when transfer is complete)
+    }
 
   return 0;
 }
@@ -293,5 +301,6 @@ int HttpOperations::timerRestart(CURLM *multi,
 //----------------------------------------------------------------------//
 void HttpOperations::cancelBufferedReqs()
 {
+  std::cout << "HttpOperations::cancelBufferedReqs()" << std::endl;
   d_reqs.clear();
 }
