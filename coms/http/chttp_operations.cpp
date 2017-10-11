@@ -127,7 +127,7 @@ void HttpOperations::get(const std::string& url)
       Request req;
       req.type = RequestType::Get;
       req.url = url;
-      d_reqs.push_back(req);
+      d_buf_reqs.push_back(req);
       return;
     }
 
@@ -184,14 +184,14 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 void HttpOperations::processNextBufferedReq()
 {
   std::cout << "HttpOperations::processNextBufferedReq()" << std::endl;
-  if (d_reqs.empty())
+  if (d_buf_reqs.empty())
     {
       // nothing to do
       std::cout << "HttpOperations::processNextBufferedReq()::return with nothing" << std::endl;
       return;
     }
 
-  Request& req = d_reqs.front();
+  Request& req = d_buf_reqs.front();
   switch (req.type)
     {
     case RequestType::Get:
@@ -204,7 +204,7 @@ void HttpOperations::processNextBufferedReq()
       break;
     }
   
-  d_reqs.pop_front();
+  d_buf_reqs.pop_front();
 }
 
 //----------------------------------------------------------------------//
@@ -237,10 +237,10 @@ void HttpOperations::processMessage()
     }
 
   curl_easy_getinfo(d_curl,CURLINFO_RESPONSE_CODE,&d_resp_code);
-  d_owner->handleResponse(this, d_resp_code, d_resp_headers, d_resp_body);
-  
-  curl_multi_remove_handle(d_curl_multi, d_curl);
   d_is_processing_req = false;
+  curl_multi_remove_handle(d_curl_multi, d_curl);
+
+  d_owner->handleResponse(this, d_resp_code, d_resp_headers, d_resp_body);
 }
 
 //----------------------------------------------------------------------//
@@ -302,5 +302,5 @@ int HttpOperations::timerRestart(CURLM *multi,
 void HttpOperations::cancelBufferedReqs()
 {
   std::cout << "HttpOperations::cancelBufferedReqs()" << std::endl;
-  d_reqs.clear();
+  d_buf_reqs.clear();
 }

@@ -64,8 +64,9 @@ namespace C_HTTP
     void get(const std::string& url); 
     std::string getUrl() { return d_url; }
 
+    bool isProcessingReq() { return d_is_processing_req; }
     void cancelBufferedReqs();
-    bool hasBufferedReqs() { return !d_reqs.empty(); }
+    bool hasBufferedReqs() { return !d_buf_reqs.empty(); }
     
   private:
     // KERN::KernelTimerOwner
@@ -122,7 +123,7 @@ namespace C_HTTP
     KERN::KernelTimer d_timer_process = KERN::KernelTimer(this);
     KERN::KernelTimer d_timer_failed_init = KERN::KernelTimer(this);
 
-    std::list<Request> d_reqs;
+    std::list<Request> d_buf_reqs;
   };
 };
 
