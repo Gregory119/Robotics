@@ -41,6 +41,7 @@ void GoProHero5::connect()
   d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Connect,
 					  CamModel::Hero5,
 					  params));
+  d_cmd_reqs.push_back(Cmd::Connect);
 }
 
 //----------------------------------------------------------------------//
@@ -48,6 +49,7 @@ void GoProHero5::status()
 {
   d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Status,
 					  CamModel::Hero5));
+  d_cmd_reqs.push_back(Cmd::Status);
 }
 
 //----------------------------------------------------------------------//
@@ -60,11 +62,19 @@ void GoProHero5::setMode(Mode mode)
     case Mode::Photo:
       d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModePhoto,
 					      CamModel::Hero5));
+      d_cmd_reqs.push_back(Cmd::SetModePhoto);
       return;
       
     case Mode::Video:
       d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModeVideo,
 					      CamModel::Hero5));
+      d_cmd_reqs.push_back(Cmd::SetModeVideo);
+      return;
+
+    case Mode::Video:
+      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModeMultiShot,
+					      CamModel::Hero5));
+      d_cmd_reqs.push_back(Cmd::SetModeMultiShot);
       return;
 
     case Mode::Unknown:
@@ -72,6 +82,7 @@ void GoProHero5::setMode(Mode mode)
       return;
     }
   assert(false);
+  d_owner->handleCommandFailed(this, Cmd::Unknown, GPError::Internal);
 }
 
 //----------------------------------------------------------------------//
@@ -83,11 +94,13 @@ void GoProHero5::setShutter(bool state)
     {
       d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetShutterTrigger,
 					      CamModel::Hero5));
+      d_cmd_reqs.push_back(Cmd::SetShutterTrigger);
     }
   else
     {
       d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetShutterStop,
 					      CamModel::Hero5));
+      d_cmd_reqs.push_back(Cmd::SetShutterStop);
     }
 }
 
@@ -122,6 +135,21 @@ bool GoProHero5::hasBufferedReqs()
 //----------------------------------------------------------------------//
 void GoProHero5::cancelBufferedCmds()
 {
+  if (!d_http->hasBufferedReqs())
+    {
+      return;
+    }
+
+  // Why not to clear the reqs list at this point:
+  // If a request is being processed here, and there are no buffers,
+  // then the request being processed is the front command request.
+  // This request must not be cleared because it is needed for the handle call backs.
+#ifndef RELEASE
+  if (!d_cmd_reqs.empty())
+    {
+      assert(d_cmd_reqs.size() == 1);
+    }
+#endif
   d_http->cancelBufferedReqs();
 }
 
@@ -132,8 +160,10 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 				const std::vector<char>& body)
 {
   std::cout << "GoProHero5::handleResponse" << std::endl;
-  
-  Cmd cmd = CmdToUrlConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
+
+  assert(!d_cmd_reqs.empty());
+  Cmd cmd = d_cmd_reqs.front();
+  d_cmd_reqs.pop_front();
   
   if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
     {
@@ -154,9 +184,19 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       return;
 
     case Cmd::Status:
-      // parse status data into d_status !!!!!!!!!!!!!!!STILL TO DO!!!!!!!!!!!!!!!!!!!
-      d_owner->handleCommandSuccessful(this,
-				       cmd);
+      {
+	std::string body = std::string(body.begin(),body.end());
+	if (parseStatus(body))
+	  {
+	    d_owner->handleCommandSuccessful(this,
+					     cmd);
+	    return;
+	  }
+	// LOG
+	std::cout << "GoProHero5::handleResponse - failed to parse response. Response body was: \n"
+		  << body << std::endl;
+	d_owner->handleCommandFailed(this, cmd, GPError::ResponseData);
+      }
       return;
       
     case Cmd::LiveStream:
@@ -168,6 +208,53 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       return;
     }
   assert(false);
+}
+
+//----------------------------------------------------------------------//
+bool GoProHero5::parseStatus(const std::string& body)
+{
+  if (body.empty())
+    {
+      return false;
+    }
+
+  // all appear first in the 'status' JSON node
+  size_t pos_mode = body.find("\"43\":"); 
+  size_t pos_rec = body.find("\"8\":");
+  size_t pos_stream = body.find("\"32\":"); 
+
+  if (pos_mode == std::string::npos ||
+      pos_rec == std::string::npos ||
+      pos_stream == std::string::npos)
+    {
+      return false;
+    }
+
+  try
+    {
+      d_status.mode = std::stoi(body.substr(pos_mode+5,1));
+      
+      int rec = std::stoi(body.substr(pos_rec+5,1));
+      if (rec != 1 && rec != 0)
+	{
+	  return false;
+	}
+      d_status.is_recording = (rec != 0);
+
+      int stream = std::stoi(body.substr(pos_stream+5,1));
+      if (stream != 1 && stream != 0)
+	{
+	  return false;
+	}
+      d_status.is_streaming = (stream != 0);
+    }
+  catch (...)
+    {
+      d_status.clear();
+      return false;
+    }
+  
+  return true;
 }
 
 //----------------------------------------------------------------------//
@@ -190,6 +277,7 @@ void GoProHero5::startLiveStream()
   // for now just polling stream and running omxplayer from script
   d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::LiveStream,
 					  CamModel::Hero5));
+  d_cmd_reqs.push_back(Cmd::StartLiveStream);
   d_timer_stream_check.restartMs(5000);
   
   // STILL TO DO
@@ -204,6 +292,8 @@ void GoProHero5::stopLiveStream()
   assert(false);
   // for now just stop polling
   d_timer_stream_check.disable();
+  d_owner->handleCommandSuccessful(this,
+				   Cmd::StopLiveStream);
     
   // STILL TO DO
   // stop waiting on state of pi analogue connection

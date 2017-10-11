@@ -40,13 +40,18 @@ namespace D_GP
 
     // KERN::KernelTimer
     bool handleTimeOut(const KERN::KernelTimer&) override;
-        
+
+  private:
+    bool parseStatus(const std::string& body);
+    
   private:
     std::unique_ptr<C_HTTP::HttpOperations> d_http; 
     bool d_connected = false;
 
     std::string d_connect_name;
     KERN::KernelTimer d_timer_stream_check;
+    std::list<Cmd> d_cmd_reqs;
+    Cmd d_non = Cmd::Unknown;
   };
 };
 #endif

@@ -135,6 +135,13 @@ void FastController::handleCommandFailed(GoPro*, Cmd cmd, GPError err)
       d_reqs.pop_front(); // last request failed
       // otherwise, assume the same state
       break;
+
+    case GPError::ResponseData:
+      // LOG
+      // DO NOT WANT THIS TO HAPPEN
+      d_reqs.pop_front(); // last request failed
+      // otherwise, assume the same state
+      break;
       
     case GPError::Internal:
       // LOG

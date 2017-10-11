@@ -23,28 +23,21 @@ namespace D_GP
   public:
     enum class Req
     {
-      Unknown, 
-      ToggleMode,
+      Unknown,
+      Connect,
+      NextMode,
       Trigger,
-      StartLiveStream,
-      StopLiveStream
-    };
-
-    enum class State
-    {
-      Photo,
-      VideoRecOn,
-      VideoRecOff,
-      MultiShot
+      StartStream,
+      StopStream
     };
 
     class Owner
     {
     public:
-      Owner& operator=(const Owner&) = default;
-      Owner(const Owner&) = default;
-      Owner(Owner&&) = default;
-      Owner& operator=(Owner&&) = default;
+      Owner& operator=(const Owner&) = delete;
+      Owner(const Owner&) = delete;
+      Owner(Owner&&) = delete;
+      Owner& operator=(Owner&&) = delete;
 
     protected:
       Owner() = default; // enforce inheritance
@@ -80,9 +73,6 @@ namespace D_GP
     void handleCommandSuccessful(GoPro*, Cmd) override;
     void handleCommandFailed(GoPro*, Cmd, GPError) override;
 
-  private:
-    void requestStatus();
-    
   private:		
     Owner* d_owner = nullptr;
 

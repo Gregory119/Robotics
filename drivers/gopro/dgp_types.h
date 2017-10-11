@@ -17,7 +17,8 @@ namespace D_GP
     SetModeMultiShot,
     SetShutterTrigger,
     SetShutterStop,
-    LiveStream,
+    StartLiveStream,
+    StopLiveStream,
     Unknown
   };
 
@@ -31,6 +32,7 @@ namespace D_GP
 
   struct Status
   {
+    void clear() { this* = Status(); }
     Mode mode = Mode::Unknown;
     bool is_recording = false;
     bool is_streaming = false;
