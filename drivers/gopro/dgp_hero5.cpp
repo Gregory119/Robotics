@@ -38,51 +38,72 @@ void GoProHero5::connect()
     }
   
   std::vector<std::string> params = {d_connect_name};
-  d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Connect,
-					  CamModel::Hero5,
-					  params));
-  d_cmd_reqs.push_back(Cmd::Connect);
+  d_http->get(Utils::cmdToUrl(GoPro::Cmd::Connect,
+			      CamModel::Hero5,
+			      params));
+  d_cmd_reqs.push_back(GoPro::Cmd::Connect);
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::status()
 {
-  d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::Status,
-					  CamModel::Hero5));
-  d_cmd_reqs.push_back(Cmd::Status);
+  requestCmd(GoPro::Cmd::Status);
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::setMode(Mode mode)
+void GoProHero5::setMode(Mode mode, int sub_mode)
 {
   // LOG
   std::cout << "GoProHero5::setMode()" << std::endl;
   switch (mode)
     {
-    case Mode::Photo:
-      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModePhoto,
-					      CamModel::Hero5));
-      d_cmd_reqs.push_back(Cmd::SetModePhoto);
+    case Mode::VideoNormal:
+      requestCmd(GoPro::Cmd::SetModeVideoNormal);
       return;
       
-    case Mode::Video:
-      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModeVideo,
-					      CamModel::Hero5));
-      d_cmd_reqs.push_back(Cmd::SetModeVideo);
+    case Mode::VideoTimeLapse:
+      requestCmd(GoPro::Cmd::SetModeVideoTimeLapse);
       return;
-
-    case Mode::Video:
-      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetModeMultiShot,
-					      CamModel::Hero5));
-      d_cmd_reqs.push_back(Cmd::SetModeMultiShot);
+      
+    case Mode::VideoPlusPhoto:
+      requestCmd(GoPro::Cmd::SetModeVideoPlusPhoto);
       return;
-
+      
+    case Mode::VideoLooping:
+      requestCmd(GoPro::Cmd::SetModeVideoLooping);
+      return;
+      
+    case Mode::PhotoSingle:
+      requestCmd(GoPro::Cmd::SetModePhotoSingle);
+      return;
+      
+    case Mode::PhotoContinuous:
+      requestCmd(GoPro::Cmd::SetModePhotoContinuous);
+      return;
+      
+    case Mode::PhotoNight:
+      requestCmd(GoPro::Cmd::SetModePhotoNight);
+      return;
+      
+    case Mode::MultiShotBurst:
+      requestCmd(GoPro::Cmd::SetModeMultiShotBurst);
+      return;
+      
+    case Mode::MultiTimeLapse:
+      requestCmd(GoPro::Cmd::SetModeMultiShotTimeLapse);
+      return;
+      
+    case Mode::MultiNightLapse:
+      requestCmd(GoPro::Cmd::SetModeMultiShotNightLapse);
+      return;
+	
     case Mode::Unknown:
       assert(false);
+      d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GPError::Internal);
       return;
     }
   assert(false);
-  d_owner->handleCommandFailed(this, Cmd::Unknown, GPError::Internal);
+  d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GPError::Internal);
 }
 
 //----------------------------------------------------------------------//
@@ -92,15 +113,15 @@ void GoProHero5::setShutter(bool state)
   std::cout << "GoProHero5::setShutter()" << std::endl;
   if (state)
     {
-      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetShutterTrigger,
+      d_http->get(Utils::cmdToUrl(GoPro::Cmd::SetShutterTrigger,
 					      CamModel::Hero5));
-      d_cmd_reqs.push_back(Cmd::SetShutterTrigger);
+      d_cmd_reqs.push_back(GoPro::Cmd::SetShutterTrigger);
     }
   else
     {
-      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::SetShutterStop,
+      d_http->get(Utils::cmdToUrl(GoPro::Cmd::SetShutterStop,
 					      CamModel::Hero5));
-      d_cmd_reqs.push_back(Cmd::SetShutterStop);
+      d_cmd_reqs.push_back(GoPro::Cmd::SetShutterStop);
     }
 }
 
@@ -109,7 +130,7 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 			      C_HTTP::HttpOpError error)
 {
   // sent command was unsuccessful
-  Cmd cmd = CmdToUrlConverter::urlToCmd(http->getUrl(), CamModel::Hero5);
+  GoPro::Cmd cmd = Utils::urlToCmd(http->getUrl(), CamModel::Hero5);
 
   switch (error)
     {
@@ -162,7 +183,7 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
   std::cout << "GoProHero5::handleResponse" << std::endl;
 
   assert(!d_cmd_reqs.empty());
-  Cmd cmd = d_cmd_reqs.front();
+  GoPro::Cmd cmd = d_cmd_reqs.front();
   d_cmd_reqs.pop_front();
   
   if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
@@ -174,19 +195,19 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 
   switch (cmd)
     {
-    case Cmd::Connect:
-    case Cmd::SetModePhoto:
-    case Cmd::SetModeVideo:
-    case Cmd::SetShutterTrigger:
-    case Cmd::SetShutterStop:
+    case GoPro::Cmd::Connect:
+    case GoPro::Cmd::SetModePhoto:
+    case GoPro::Cmd::SetModeVideo:
+    case GoPro::Cmd::SetShutterTrigger:
+    case GoPro::Cmd::SetShutterStop:
       d_owner->handleCommandSuccessful(this,
 				       cmd);
       return;
 
-    case Cmd::Status:
+    case GoPro::Cmd::Status:
       {
 	std::string body = std::string(body.begin(),body.end());
-	if (parseStatus(body))
+	if (d_status.loadStr(body, CamModel::Hero5))
 	  {
 	    d_owner->handleCommandSuccessful(this,
 					     cmd);
@@ -199,11 +220,11 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       }
       return;
       
-    case Cmd::LiveStream:
+    case GoPro::Cmd::LiveStream:
       // nothing (internal command)
       return;
 
-    case Cmd::Unknown:
+    case GoPro::Cmd::Unknown:
       assert(false);
       return;
     }
@@ -211,58 +232,11 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
-bool GoProHero5::parseStatus(const std::string& body)
-{
-  if (body.empty())
-    {
-      return false;
-    }
-
-  // all appear first in the 'status' JSON node
-  size_t pos_mode = body.find("\"43\":"); 
-  size_t pos_rec = body.find("\"8\":");
-  size_t pos_stream = body.find("\"32\":"); 
-
-  if (pos_mode == std::string::npos ||
-      pos_rec == std::string::npos ||
-      pos_stream == std::string::npos)
-    {
-      return false;
-    }
-
-  try
-    {
-      d_status.mode = std::stoi(body.substr(pos_mode+5,1));
-      
-      int rec = std::stoi(body.substr(pos_rec+5,1));
-      if (rec != 1 && rec != 0)
-	{
-	  return false;
-	}
-      d_status.is_recording = (rec != 0);
-
-      int stream = std::stoi(body.substr(pos_stream+5,1));
-      if (stream != 1 && stream != 0)
-	{
-	  return false;
-	}
-      d_status.is_streaming = (stream != 0);
-    }
-  catch (...)
-    {
-      d_status.clear();
-      return false;
-    }
-  
-  return true;
-}
-
-//----------------------------------------------------------------------//
 bool GoProHero5::handleTimeOut(const KERN::KernelTimer& timer)
 {
   if (timer.is(d_timer_stream_check))
     {
-      d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::LiveStream,
+      d_http->get(Utils::cmdToUrl(GoPro::Cmd::LiveStream,
 					      CamModel::Hero5));
       return true;
     }
@@ -275,9 +249,9 @@ void GoProHero5::startLiveStream()
 {
   assert(false);
   // for now just polling stream and running omxplayer from script
-  d_http->get(CmdToUrlConverter::cmdToUrl(Cmd::LiveStream,
+  d_http->get(Utils::cmdToUrl(GoPro::Cmd::LiveStream,
 					  CamModel::Hero5));
-  d_cmd_reqs.push_back(Cmd::StartLiveStream);
+  d_cmd_reqs.push_back(GoPro::Cmd::StartLiveStream);
   d_timer_stream_check.restartMs(5000);
   
   // STILL TO DO
@@ -293,10 +267,18 @@ void GoProHero5::stopLiveStream()
   // for now just stop polling
   d_timer_stream_check.disable();
   d_owner->handleCommandSuccessful(this,
-				   Cmd::StopLiveStream);
+				   GoPro::Cmd::StopLiveStream);
     
   // STILL TO DO
   // stop waiting on state of pi analogue connection
   // stop requesting stream on a timer
   // stop the terminal process of omxplayer
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::requestCmd(GoPro::Cmd cmd)
+{
+  d_http->get(Utils::cmdToUrl(cmd,
+			      CamModel::Hero5));
+  d_cmd_reqs.push_back(cmd);
 }

@@ -79,8 +79,8 @@ namespace D_GP
     
   private:
     //GoProOwner
-    void handleCommandSuccessful(GoPro*, Cmd) override;
-    void handleCommandFailed(GoPro*, Cmd, GPError) override;
+    void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
+    void handleCommandFailed(GoPro*, GoPro::Cmd, GPError) override;
 
   private:
     void setState(StateId);

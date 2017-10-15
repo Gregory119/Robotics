@@ -1,0 +1,5 @@
+==============================================================
+XML parsers
+==============================================================
+Discussion on options (possibly pugixml)
+- https://stackoverflow.com/questions/170686/what-is-the-best-open-xml-parser-for-c

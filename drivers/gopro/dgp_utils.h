@@ -8,7 +8,7 @@
 
 namespace D_GP
 {
-  class CmdToUrlConverter
+  class Utils
   {
   public:
     // GoPro Hero5 connect command takes one parameter for the connection name
@@ -18,17 +18,15 @@ namespace D_GP
 				const std::vector<std::string>& params);
     static std::string cmdToUrl(Cmd,
 				CamModel);
-    static Cmd urlToCmd(const std::string& url,
-			CamModel);
-    //std::string cmdToMessage(Cmd); not used for now
+
+    // returns an Unknown mode on failure
+    static Mode extractModeStatus(int mode, int sub_mode);
     
   private:
     static std::string appendToAddress(const std::string& cmd, CamModel model);
     
-    static Cmd urlToCmdHero5(const std::string& url);
     static std::string cmdToUrlHero5(Cmd, const std::vector<std::string>& params);
     static bool validUrlParamsHero5(Cmd, const std::vector<std::string>& params);
-    static Mode extractModeStatus(const std::string& mode_status); // eg. mode_status = "0", "1" or "2"
   };
 };
 

@@ -11,11 +11,7 @@
 namespace D_GP
 {
   /*
-    This class is simply used to change the camera mode, trigger, and start/stop a live stream. It assumes that the camera is already paired with the device.
-
-    TODO: 
-    - For reliable usage, this class still needs to check the state of the camera before performing a command (consider recording status). 
-    - There needs to be a pairing process in which the connect command is sent. This can be done with a bluetooth based app that sets the wifi password. 
+    This class is simply used to change the camera mode, trigger, and start/stop a live stream.
   */
   
   class ModeController final : GoProOwner
@@ -23,12 +19,12 @@ namespace D_GP
   public:
     enum class Req
     {
-      Unknown,
       Connect,
       NextMode,
       Trigger,
       StartStream,
-      StopStream
+      StopStream,
+      Unknown
     };
 
     class Owner
@@ -62,17 +58,22 @@ namespace D_GP
   public:
     ModeController(Owner*, const CtrlParams&);
 
-    void connectReq(); 
+    void connect(); 
     void nextMode();
     void trigger();
-    void startLive();
-    void stopLive();
+    void startStream();
+    void stopStream();
 
   private:
     //GoProOwner
-    void handleCommandSuccessful(GoPro*, Cmd) override;
-    void handleCommandFailed(GoPro*, Cmd, GPError) override;
+    void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
+    void handleCommandFailed(GoPro*, GoPro::Cmd, GPError) override;
 
+  private:
+    void processStatus();
+    bool processNextMode();
+    void sendFailedRequest();
+    
   private:		
     Owner* d_owner = nullptr;
 

@@ -73,7 +73,7 @@ void FastController::processCurrentState()
 }
 
 //----------------------------------------------------------------------//
-void FastController::handleCommandSuccessful(GoPro*, Cmd cmd)
+void FastController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 {
   std::cout << "D_GP::FastController::handleCommandSuccessful " << std::endl;
   if (!d_gp->hasBufferedReqs())
@@ -84,44 +84,61 @@ void FastController::handleCommandSuccessful(GoPro*, Cmd cmd)
   
   switch (cmd)
     {
-    case Cmd::SetModePhoto:
+    case GoPro::Cmd::Status:
+      assert(false); // STILL TO DO
+      return;
+      
+    case GoPro::Cmd::SetModePhotoSingle:
       setState(StateId::Photo);
       return;
-
-    case Cmd::SetModeVideo:
+  
+    case GoPro::Cmd::SetModeVideoNormal:
       setState(StateId::Video);
       return;
 
-    case Cmd::Connect:
+    case GoPro::Cmd::Connect:
       setState(StateId::Connected);
       return;
 			
-    case Cmd::SetShutterTrigger:
+    case GoPro::Cmd::SetShutterTrigger:
       if (d_state_id == StateId::Video)
 	{
 	  d_is_recording = true;
 	}
       return;
       
-    case Cmd::SetShutterStop:
+    case GoPro::Cmd::SetShutterStop:
       if (d_state_id == StateId::Video)
 	{
 	  d_is_recording = false;
 	}
       return;
       
-    case Cmd::LiveStream:
+    case GoPro::Cmd::LiveStream:
       return;
 
-    case Cmd::Unknown:
+    case GoPro::Cmd::SetModePhotoContinuous:
+    case GoPro::Cmd::SetModePhotoNight:
+    case GoPro::Cmd::VideoTimeLapse:
+    case GoPro::Cmd::VideoPlusPhoto:
+    case GoPro::Cmd::VideoLooping:
+    case GoPro::Cmd::MultiShotBurst:
+    case GoPro::Cmd::MultiTimeLapse:
+    case GoPro::Cmd::MultiNightLapse:
+    case GoPro::Cmd::Unknown:
       assert(false);
+      d_gp->cancelBufferedCmds();
+      d_reqs.clear();
+      d_owner->handleFailedRequest(this, Req::Unknown);
       return;
     }
-  assert(false);
+  d_gp->cancelBufferedCmds();
+  d_reqs.clear();
+  d_owner->handleFailedRequest(this, Req::Unknown);
 }
 
 //----------------------------------------------------------------------//
-void FastController::handleCommandFailed(GoPro*, Cmd cmd, GPError err)
+void FastController::handleCommandFailed(GoPro*, GoPro::Cmd cmd, GPError err)
 {
   std::cout << "D_GP::FastController::handleCommandFailed " << std::endl;
   // stop further consequetive failed messages that have been buffered/queued
@@ -184,7 +201,7 @@ void FastController::StateDisconnected::process(FastController& ctrl)
       gp.connect();
       // TO DO: Need to check if currently recording before taking a photo. 
       // If currently recording, the recording would be stopped before changing to photo mode, otherwise it will not work (camera responds with an error).
-      gp.setMode(Mode::Photo);
+      gp.setMode(Mode::PhotoSingle);
       // If a trigger is called here (to take a picture), the camera does not change mode in time, and so a trigger is set for the current mode
       return;
 			
@@ -193,7 +210,7 @@ void FastController::StateDisconnected::process(FastController& ctrl)
       gp.connect();
       // TO DO: Need to check if currently recording before toggling recording. 
       // If currently recording, the recording would be stopped.
-      gp.setMode(Mode::Video);
+      gp.setMode(Mode::VideoNormal);
       return;
     };
   assert(false);
@@ -219,12 +236,12 @@ void FastController::StateConnected::process(FastController& ctrl)
       return;
 			
     case Req::Photo:
-      gp.setMode(Mode::Photo);
+      gp.setMode(Mode::PhotoSingle);
       // If a trigger is called here (to take a picture), the camera does not change mode in time, and so a trigger is set for the current mode
       return;
 			
     case Req::ToggleRecording:
-      gp.setMode(Mode::Video);
+      gp.setMode(Mode::VideoNormal);
       gp.setShutter(!ctrl.isRecording());
       ctrl.toggleRecState();
       return;
@@ -256,7 +273,7 @@ void FastController::StatePhoto::process(FastController& ctrl)
       return;
 			
     case Req::ToggleRecording:
-      gp.setMode(Mode::Video);
+      gp.setMode(Mode::VideoNormal);
       gp.setShutter(!ctrl.isRecording());
       ctrl.toggleRecState();
       return;
@@ -284,7 +301,7 @@ void FastController::StateVideo::process(FastController& ctrl)
       return;
 			
     case Req::Photo:
-      gp.setMode(Mode::Photo);
+      gp.setMode(Mode::PhotoSingle);
       gp.setShutter(true); // take pic
       return;
 			

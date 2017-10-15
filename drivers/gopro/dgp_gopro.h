@@ -32,8 +32,8 @@ namespace D_GP
     GoProOwner&& operator=(GoProOwner&&) = delete;
 
     // queued commands should be cleared on a failure
-    virtual void handleCommandFailed(GoPro*, Cmd, GPError) = 0;
-    virtual void handleCommandSuccessful(GoPro*, Cmd) = 0;
+    virtual void handleCommandFailed(GoPro*, GoPro::Cmd, GPError) = 0;
+    virtual void handleCommandSuccessful(GoPro*, GoPro::Cmd) = 0;
     
   protected:
     GoProOwner() = default;
@@ -42,6 +42,28 @@ namespace D_GP
   
   class GoPro
   {
+  public:
+    enum class Cmd
+    { 
+      Connect,
+      Status,
+      SetModePhotoSingle,
+      SetModePhotoContinuous,
+      SetModePhotoNight,
+      SetModeVideoNormal,
+      SetModeVideoTimeLapse,
+      SetModeVideoPlusPhoto,
+      SetModeVideoLooping,
+      SetModeMultiShotBurst,
+      SetModeMultiShotTimeLapse,
+      SetModeMultiShotNightLapse,
+      SetShutterTrigger,
+      SetShutterStop,
+      StartLiveStream,
+      StopLiveStream,
+      Unknown
+    };
+
   public:
     virtual ~GoPro() = default;
     GoPro& operator=(const GoPro&) = default;
@@ -56,6 +78,7 @@ namespace D_GP
     virtual void stopLiveStream() = 0;
     virtual bool hasBufferedReqs() = 0;
     virtual void cancelBufferedCmds() = 0;
+    // Can add additional virtual functions which have asserts in their definition. The GoPro that supports the command will have it defined.
     
     const Status& getStatus() { return d_status; }
     

@@ -5,37 +5,37 @@ namespace D_GP
 {
   enum class CamModel
   {
-    Hero5
-  };
-  
-  enum class Cmd
-  { 
-    Connect,
-    Status,
-    SetModePhoto,
-    SetModeVideo,
-    SetModeMultiShot,
-    SetShutterTrigger,
-    SetShutterStop,
-    StartLiveStream,
-    StopLiveStream,
+    Hero5,
     Unknown
   };
-
+  
   enum class Mode
   {
-    Unknown,
-    Photo,
-    Video,
-    MultiShot
+    VideoNormal,
+    VideoTimeLapse,
+    VideoPlusPhoto,
+    VideoLooping,
+    PhotoSingle,
+    PhotoContinuous,
+    PhotoNight,
+    MultiShotBurst,
+    MultiTimeLapse,
+    MultiNightLapse,
+    Unknown
   };
+  //video => photo => burst(multishot) => timelapse (multishot) => video - this sequence could be customised with the app
 
   struct Status
   {
     void clear() { this* = Status(); }
-    Mode mode = Mode::Unknown;
-    bool is_recording = false;
-    bool is_streaming = false;
+    bool loadStr(const std::string&, CamModel);
+    
+    Mode d_mode = Mode::Unknown;
+    bool d_is_recording = false;
+    bool d_is_streaming = false;
+
+  private:
+    bool loadStrHero5(const std::string&);
   };
 };
 

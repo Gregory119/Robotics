@@ -42,7 +42,7 @@ namespace D_GP
     bool handleTimeOut(const KERN::KernelTimer&) override;
 
   private:
-    bool parseStatus(const std::string& body);
+    void requestCmd(GoPro::Cmd);
     
   private:
     std::unique_ptr<C_HTTP::HttpOperations> d_http; 
@@ -50,8 +50,8 @@ namespace D_GP
 
     std::string d_connect_name;
     KERN::KernelTimer d_timer_stream_check;
-    std::list<Cmd> d_cmd_reqs;
-    Cmd d_non = Cmd::Unknown;
+    std::list<GoPro::Cmd> d_cmd_reqs;
+    GoPro::Cmd d_non = GoPro::Cmd::Unknown;
   };
 };
 #endif
