@@ -5,7 +5,7 @@
 using namespace D_GP;
 
 //----------------------------------------------------------------------//
-GoPro::GoPro(GoProOwner* o)
+GoPro::GoPro(GoPro::Owner* o)
 {
   assert(o!=nullptr);
   d_owner = o;

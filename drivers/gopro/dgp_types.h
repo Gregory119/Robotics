@@ -1,6 +1,8 @@
 #ifndef DGP_TYPES_H
 #define DGP_TYPES_H
 
+#include <string>
+
 namespace D_GP
 {
   enum class CamModel
@@ -15,7 +17,7 @@ namespace D_GP
     VideoTimeLapse,
     VideoPlusPhoto,
     VideoLooping,
-    PhotoSingle,
+    PhotoSingle, // Seems to be discontinued
     PhotoContinuous,
     PhotoNight,
     MultiShotBurst,
@@ -27,8 +29,9 @@ namespace D_GP
 
   struct Status
   {
-    void clear() { this* = Status(); }
+    void clear() { *this = Status(); }
     bool loadStr(const std::string&, CamModel);
+    void print();
     
     Mode d_mode = Mode::Unknown;
     bool d_is_recording = false;

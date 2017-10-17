@@ -4,12 +4,12 @@
 
 using namespace D_GP;
 
-static constexpr char s_h5_ip_url[] = "http://10.5.5.9";
-static constexpr char s_h5_bacpac[] = "/bacpac/cv";
-static constexpr char s_h5_wifipair[] = "/gp/gpControl/command/wireless/pair/complete";
-static constexpr char s_h5_mode[] = "/gp/gpControl/command/sub_mode?";
-static constexpr char s_h5_shutter[] = "/gp/gpControl/command/shutter?p=";
-static constexpr char s_h5_stream[] = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
+static const std::string s_h5_ip_url = "http://10.5.5.9";
+static const std::string s_h5_bacpac = "/bacpac/cv";
+static const std::string s_h5_wifipair = "/gp/gpControl/command/wireless/pair/complete";
+static const std::string s_h5_mode = "/gp/gpControl/command/sub_mode?";
+static const std::string s_h5_shutter = "/gp/gpControl/command/shutter?p=";
+static const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
 
 //----------------------------------------------------------------------//
 std::string Utils::appendToAddress(const std::string& cmd,
@@ -19,6 +19,10 @@ std::string Utils::appendToAddress(const std::string& cmd,
     {
     case CamModel::Hero5:
       return s_h5_ip_url + cmd;
+
+    case CamModel::Unknown:
+      assert(false);
+      return "";
     }
 
   assert(false);
@@ -34,6 +38,10 @@ std::string Utils::cmdToUrl(GoPro::Cmd cmd,
     {
     case CamModel::Hero5:
       return cmdToUrlHero5(cmd, params);
+
+    case CamModel::Unknown:
+      assert(false);
+      return "";
     }
   
   assert(false);
@@ -68,28 +76,32 @@ Utils::cmdToUrlHero5(GoPro::Cmd cmd,
     case GoPro::Cmd::Status:
       return appendToAddress("/gp/gpControl/status",
 			     CamModel::Hero5);
-
-    case GoPro::Cmd::SetModePhotoSingle:
+      
+    case GoPro::Cmd::SetModeVideoNormal:
       return appendToAddress(s_h5_mode+"mode=0&sub_mode=0",
 			     CamModel::Hero5);
       
-    case GoPro::Cmd::SetModePhotoContinuous:
+    case GoPro::Cmd::SetModeVideoTimeLapse:
       return appendToAddress(s_h5_mode+"mode=0&sub_mode=1",
 			     CamModel::Hero5);
       
-    case GoPro::Cmd::SetModePhotoNight:
+    case GoPro::Cmd::SetModeVideoPlusPhoto:
       return appendToAddress(s_h5_mode+"mode=0&sub_mode=2",
 			     CamModel::Hero5);
+
+    case GoPro::Cmd::SetModeVideoLooping:
+      return appendToAddress(s_h5_mode+"mode=0&sub_mode=3",
+			     CamModel::Hero5);
       
-    case GoPro::Cmd::SetModeVideoNormal:
+    case GoPro::Cmd::SetModePhotoSingle:
       return appendToAddress(s_h5_mode+"mode=1&sub_mode=0",
 			     CamModel::Hero5);
       
-    case GoPro::Cmd::SetModeVideoTimeLapse:
+    case GoPro::Cmd::SetModePhotoContinuous:
       return appendToAddress(s_h5_mode+"mode=1&sub_mode=1",
 			     CamModel::Hero5);
       
-    case GoPro::Cmd::SetModeVideoPlusPhoto:
+    case GoPro::Cmd::SetModePhotoNight:
       return appendToAddress(s_h5_mode+"mode=1&sub_mode=2",
 			     CamModel::Hero5);
       
@@ -113,10 +125,11 @@ Utils::cmdToUrlHero5(GoPro::Cmd cmd,
       return appendToAddress(s_h5_shutter+"0",
 			     CamModel::Hero5);
       
-    case GoPro::Cmd::LiveStream:
+    case GoPro::Cmd::StartLiveStream:
       return appendToAddress(s_h5_stream,
 			     CamModel::Hero5);
 
+    case GoPro::Cmd::StopLiveStream: // no url for this
     case GoPro::Cmd::Unknown:
       assert(false);
       return "";
@@ -147,19 +160,21 @@ bool Utils::validUrlParamsHero5(GoPro::Cmd cmd,
     case GoPro::Cmd::SetModeVideoNormal:
     case GoPro::Cmd::SetModeVideoTimeLapse:
     case GoPro::Cmd::SetModeVideoPlusPhoto:
+    case GoPro::Cmd::SetModeVideoLooping:
     case GoPro::Cmd::SetModeMultiShotBurst:
     case GoPro::Cmd::SetModeMultiShotTimeLapse:
     case GoPro::Cmd::SetModeMultiShotNightLapse:
     case GoPro::Cmd::SetShutterTrigger:
     case GoPro::Cmd::SetShutterStop:
-    case GoPro::Cmd::LiveStream:
+    case GoPro::Cmd::StartLiveStream:
+    case GoPro::Cmd::StopLiveStream:
       if (!params.empty())
 	{
 	  assert(false);
 	  return false;
 	}
       return true;
-      
+
     case GoPro::Cmd::Unknown:
       assert(false);
       return false;

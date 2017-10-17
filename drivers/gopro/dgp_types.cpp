@@ -2,6 +2,7 @@
 #include "dgp_utils.h"
 
 #include <cassert>
+#include <iostream>
 
 using namespace D_GP;
 
@@ -10,8 +11,12 @@ bool Status::loadStr(const std::string& body, CamModel model)
 {
   switch (model)
     {
-      case CamModel::Hero5:
-	return loadStrHero5(body);
+    case CamModel::Hero5:
+      return loadStrHero5(body);
+
+    case CamModel::Unknown:
+      assert(false);
+      return false;
     };
   assert(false);
   return false;
@@ -37,30 +42,17 @@ bool Status::loadStrHero5(const std::string& body)
       pos_rec == std::string::npos ||
       pos_stream == std::string::npos)
     {
+      // LOG
       return false;
     }
 
   try
     {
       int mode = -1;
-      try
-	{
-	  mode = std::stoi(body.substr(pos_mode+5,1));
-	}
-      catch (...)
-	{
-	  return false;
-	}
+      mode = std::stoi(body.substr(pos_mode+5,1));
 
       int sub_mode = -1;
-      try
-	{
-	  sub_mode = std::stoi(body.substr(pos_mode+5,1));
-	}
-      catch (...)
-	{
-	  return false;
-	}
+      sub_mode = std::stoi(body.substr(pos_sub_mode+5,1));
       
       d_mode = Utils::extractModeStatus(mode, sub_mode);
       if (d_mode == Mode::Unknown)
@@ -68,8 +60,8 @@ bool Status::loadStrHero5(const std::string& body)
 	  // already in cleared state
 	  return false;
 	}
-      
-      int rec = std::stoi(body.substr(pos_rec+5,1));
+
+      int rec = std::stoi(body.substr(pos_rec+4,1));
       if (rec != 1 && rec != 0)
 	{
 	  clear();
@@ -92,4 +84,13 @@ bool Status::loadStrHero5(const std::string& body)
     }
   
   return true;
+}
+
+//----------------------------------------------------------------------//
+void Status::print()
+{
+  std::cout << "Status:\n"
+	    << "d_mode = " << static_cast<int>(d_mode) << "\n"
+	    << "d_is_recording = " << d_is_recording << "\n"
+	    << "d_is_streaming = " << d_is_streaming << std::endl;
 }

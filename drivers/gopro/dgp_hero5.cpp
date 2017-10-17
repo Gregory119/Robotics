@@ -11,15 +11,33 @@ static const int s_http_timeout_ms = 3000;
 static const int s_connection_check_ms = 5000;
 
 //----------------------------------------------------------------------//
-GoProHero5::GoProHero5(GoProOwner* o, const std::string& name)
-  : GoPro(o),
-    d_timer_stream_check(KERN::KernelTimer(this))
+GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
+  : GoPro(o)
 {
   assert(o != nullptr);
   d_http.reset(new C_HTTP::HttpOperations(this));
 
   assert(!name.empty());
   d_connect_name = name;
+
+  d_timer_stream.setCallback([this](){
+      // do not push back request (these are internal requests to keep the stream going)
+      d_http->get(Utils::cmdToUrl(GoPro::Cmd::StartLiveStream,
+				  CamModel::Hero5));
+      // use omxplayer to output video on analog connection
+    });
+
+  d_timer_init_failed.setCallback([=](){ // by value, this and d_owner
+      // needed to not call virtual function from constructor
+      d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GoPro::Error::Internal);
+    });
+  if (!d_http->init(s_http_timeout_ms))
+    {
+      // LOG
+      d_timer_init_failed.restartMs(0);
+      assert(false); // this should not happen
+      return;
+    }
 }
 
 //----------------------------------------------------------------------//
@@ -27,15 +45,6 @@ void GoProHero5::connect()
 {
   // LOG
   std::cout << "GoProHero5::connect()" << std::endl;
-
-  // will return true if already initialized
-  bool success = d_http->init(s_http_timeout_ms);
-  if (!success)
-    {
-      // LOG
-      assert(false); // this should not happen
-      return;
-    }
   
   std::vector<std::string> params = {d_connect_name};
   d_http->get(Utils::cmdToUrl(GoPro::Cmd::Connect,
@@ -51,7 +60,7 @@ void GoProHero5::status()
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::setMode(Mode mode, int sub_mode)
+void GoProHero5::setMode(Mode mode)
 {
   // LOG
   std::cout << "GoProHero5::setMode()" << std::endl;
@@ -99,11 +108,11 @@ void GoProHero5::setMode(Mode mode, int sub_mode)
 	
     case Mode::Unknown:
       assert(false);
-      d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GPError::Internal);
+      d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GoPro::Error::Internal);
       return;
     }
   assert(false);
-  d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GPError::Internal);
+  d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GoPro::Error::Internal);
 }
 
 //----------------------------------------------------------------------//
@@ -130,18 +139,19 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 			      C_HTTP::HttpOpError error)
 {
   // sent command was unsuccessful
-  GoPro::Cmd cmd = Utils::urlToCmd(http->getUrl(), CamModel::Hero5);
-
+  GoPro::Cmd cmd = d_cmd_reqs.front();
+  d_cmd_reqs.pop_front();
+  
   switch (error)
     {
     case C_HTTP::HttpOpError::Internal:
       // LOG
-      d_owner->handleCommandFailed(this, cmd, GPError::Internal);
+      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Internal);
       return;
 
     case C_HTTP::HttpOpError::Timeout:
       // LOG
-      d_owner->handleCommandFailed(this, cmd, GPError::Timeout);
+      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Timeout);
       return;
     }
   assert(false);
@@ -158,19 +168,29 @@ void GoProHero5::cancelBufferedCmds()
 {
   if (!d_http->hasBufferedReqs())
     {
+      // Why not to clear the reqs list at this point:
+      // If a request is being processed here, and there are no buffers,
+      // then the request being processed is the front command request.
+      // This request must not be cleared because it is needed for the handle call backs.
+#ifndef RELEASE
+      if (d_http->isProcessingReq())
+	{
+	  assert(d_cmd_reqs.size() == 1);
+	}
+      else
+	{
+	  assert(d_cmd_reqs.empty());
+	}
+#endif
       return;
     }
 
-  // Why not to clear the reqs list at this point:
-  // If a request is being processed here, and there are no buffers,
-  // then the request being processed is the front command request.
-  // This request must not be cleared because it is needed for the handle call backs.
-#ifndef RELEASE
-  if (!d_cmd_reqs.empty())
+  if (d_http->isProcessingReq())
     {
-      assert(d_cmd_reqs.size() == 1);
+      assert(d_cmd_reqs.size() > 1); // one processing and at least one buffered
+      d_cmd_reqs.erase(++d_cmd_reqs.begin(),d_cmd_reqs.end());
     }
-#endif
+  
   d_http->cancelBufferedReqs();
 }
 
@@ -189,41 +209,64 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
   if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
     {
       // not successful
-      d_owner->handleCommandFailed(this, cmd, GPError::Response);
+      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Response);
       return;
     }
 
   switch (cmd)
     {
     case GoPro::Cmd::Connect:
-    case GoPro::Cmd::SetModePhoto:
-    case GoPro::Cmd::SetModeVideo:
+    case GoPro::Cmd::SetModePhotoSingle:
+    case GoPro::Cmd::SetModePhotoContinuous:
+    case GoPro::Cmd::SetModePhotoNight:
+    case GoPro::Cmd::SetModeVideoNormal:
+    case GoPro::Cmd::SetModeVideoTimeLapse:
+    case GoPro::Cmd::SetModeVideoPlusPhoto:
+    case GoPro::Cmd::SetModeVideoLooping:
+    case GoPro::Cmd::SetModeMultiShotBurst:
+    case GoPro::Cmd::SetModeMultiShotTimeLapse:
+    case GoPro::Cmd::SetModeMultiShotNightLapse:
     case GoPro::Cmd::SetShutterTrigger:
     case GoPro::Cmd::SetShutterStop:
       d_owner->handleCommandSuccessful(this,
 				       cmd);
       return;
 
+    case GoPro::Cmd::StartLiveStream:
+      if (d_cmd_reqs.front() == GoPro::Cmd::StartLiveStream)
+	{
+	  GoPro::Cmd cmd = d_cmd_reqs.front();
+	  d_cmd_reqs.pop_front(); // completed last request
+	  d_owner->handleCommandSuccessful(this, cmd);
+	}
+      // else continue streaming with timer requests
+      return;
+      
     case GoPro::Cmd::Status:
       {
-	std::string body = std::string(body.begin(),body.end());
-	if (d_status.loadStr(body, CamModel::Hero5))
+	if (body.size() == 0)
 	  {
+	    d_owner->handleCommandSuccessful(this,
+					     cmd);
+	    return;
+	  }
+	
+	std::string body_str = std::string(body.begin(),body.end());
+	if (d_status.loadStr(body_str, CamModel::Hero5))
+	  {
+	    d_status.print();
 	    d_owner->handleCommandSuccessful(this,
 					     cmd);
 	    return;
 	  }
 	// LOG
 	std::cout << "GoProHero5::handleResponse - failed to parse response. Response body was: \n"
-		  << body << std::endl;
-	d_owner->handleCommandFailed(this, cmd, GPError::ResponseData);
+		  << body_str << std::endl;
+	d_owner->handleCommandFailed(this, cmd, GoPro::Error::ResponseData);
       }
       return;
-      
-    case GoPro::Cmd::LiveStream:
-      // nothing (internal command)
-      return;
 
+    case GoPro::Cmd::StopLiveStream: // should not be handled here
     case GoPro::Cmd::Unknown:
       assert(false);
       return;
@@ -232,47 +275,18 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
-bool GoProHero5::handleTimeOut(const KERN::KernelTimer& timer)
-{
-  if (timer.is(d_timer_stream_check))
-    {
-      d_http->get(Utils::cmdToUrl(GoPro::Cmd::LiveStream,
-					      CamModel::Hero5));
-      return true;
-    }
-  
-  return false;
-}
-
-//----------------------------------------------------------------------//
 void GoProHero5::startLiveStream()
 {
   assert(false);
-  // for now just polling stream and running omxplayer from script
-  d_http->get(Utils::cmdToUrl(GoPro::Cmd::LiveStream,
-					  CamModel::Hero5));
-  d_cmd_reqs.push_back(GoPro::Cmd::StartLiveStream);
-  d_timer_stream_check.restartMs(5000);
-  
-  // STILL TO DO
-  // possibly wait on state of pi analogue connection
-  // send stream request command on a timer
-  // start a terminal process of omxplayer to send udp stream to the pi analogue output
+  requestCmd(GoPro::Cmd::StartLiveStream);
+  d_timer_stream.restartMs(5000);
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::stopLiveStream()
 {
-  assert(false);
-  // for now just stop polling
-  d_timer_stream_check.disable();
-  d_owner->handleCommandSuccessful(this,
-				   GoPro::Cmd::StopLiveStream);
-    
-  // STILL TO DO
-  // stop waiting on state of pi analogue connection
-  // stop requesting stream on a timer
-  // stop the terminal process of omxplayer
+  d_timer_stream.disable();
+  d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
 }
 
 //----------------------------------------------------------------------//

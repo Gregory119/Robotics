@@ -8,7 +8,7 @@
 using namespace D_GP;
 
 //----------------------------------------------------------------------//
-GoPro* GoProFactory::createGoPro(GoProOwner* o,
+GoPro* GoProFactory::createGoPro(GoPro::Owner* o,
 				 CamModel model,
 				 const std::string& name)
 {
@@ -16,8 +16,13 @@ GoPro* GoProFactory::createGoPro(GoProOwner* o,
     {
     case CamModel::Hero5:
       return new GoProHero5(o, name);
+
+    case CamModel::Unknown:
+      assert(false);
+      return nullptr;
     };
 
   // LOG the model type here since it was not picked up
   assert(false);
+  return nullptr;
 }

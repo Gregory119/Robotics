@@ -14,6 +14,7 @@ ModeController::ModeController(Owner* o,
     d_gp(GoProFactory::createGoPro(this, p.model, p.name))
 {
   assert(o!=nullptr);
+  assert(d_gp!=nullptr);
 }
 
 //----------------------------------------------------------------------//
@@ -39,14 +40,14 @@ void ModeController::trigger()
 }
 
 //----------------------------------------------------------------------//
-void ModeController::startLive()
+void ModeController::startStream()
 {
   d_gp->status();
   d_reqs.push_back(Req::StartStream);
 }
 
 //----------------------------------------------------------------------//
-void ModeController::stopLive()
+void ModeController::stopStream()
 {
   d_gp->status();
   d_reqs.push_back(Req::StopStream);
@@ -76,7 +77,8 @@ void ModeController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
     case GoPro::Cmd::SetModeMultiShotNightLapse:
     case GoPro::Cmd::SetShutterTrigger:
     case GoPro::Cmd::SetShutterStop:
-    case GoPro::Cmd::LiveStream:
+    case GoPro::Cmd::StartLiveStream:
+    case GoPro::Cmd::StopLiveStream:
       {
 	Req req = d_reqs.front();
 	d_reqs.pop_front(); // completed last request
@@ -105,7 +107,7 @@ void ModeController::sendFailedRequest()
 //----------------------------------------------------------------------//
 void ModeController::handleCommandFailed(GoPro*,
 					 GoPro::Cmd cmd,
-					 GPError err)
+					 GoPro::Error err)
 {
   std::cout << "D_GP::ModeController::handleCommandFailed " << std::endl;
   // stop further consequetive failed messages that have been buffered/queued
@@ -162,13 +164,13 @@ bool ModeController::processNextMode()
       d_gp->setShutter(false);
     }
   
-  switch (status.mode)
+  switch (status.d_mode)
     {
     case Mode::VideoNormal:
     case Mode::VideoTimeLapse:
     case Mode::VideoPlusPhoto:
     case Mode::VideoLooping:
-      d_gp->setMode(Mode::PhotoSingle);
+      d_gp->setMode(Mode::PhotoContinuous);
       return true;
     
     case Mode::PhotoSingle:

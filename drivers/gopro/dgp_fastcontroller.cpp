@@ -14,6 +14,7 @@ FastController::FastController(Owner* o,
     d_gp(GoProFactory::createGoPro(this, p.model, p.name))
 {
   assert(o!=nullptr);
+  assert(d_gp != nullptr);
   
   // add list of possible states
   d_states[StateId::Disconnected] = std::unique_ptr<StateInterface>(new StateDisconnected);
@@ -114,17 +115,16 @@ void FastController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 	}
       return;
       
-    case GoPro::Cmd::LiveStream:
-      return;
-
+    case GoPro::Cmd::StartLiveStream:
+    case GoPro::Cmd::StopLiveStream:
     case GoPro::Cmd::SetModePhotoContinuous:
     case GoPro::Cmd::SetModePhotoNight:
-    case GoPro::Cmd::VideoTimeLapse:
-    case GoPro::Cmd::VideoPlusPhoto:
-    case GoPro::Cmd::VideoLooping:
-    case GoPro::Cmd::MultiShotBurst:
-    case GoPro::Cmd::MultiTimeLapse:
-    case GoPro::Cmd::MultiNightLapse:
+    case GoPro::Cmd::SetModeVideoTimeLapse:
+    case GoPro::Cmd::SetModeVideoPlusPhoto:
+    case GoPro::Cmd::SetModeVideoLooping:
+    case GoPro::Cmd::SetModeMultiShotBurst:
+    case GoPro::Cmd::SetModeMultiShotTimeLapse:
+    case GoPro::Cmd::SetModeMultiShotNightLapse:
     case GoPro::Cmd::Unknown:
       assert(false);
       d_gp->cancelBufferedCmds();
@@ -138,7 +138,7 @@ void FastController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 }
 
 //----------------------------------------------------------------------//
-void FastController::handleCommandFailed(GoPro*, GoPro::Cmd cmd, GPError err)
+void FastController::handleCommandFailed(GoPro*, GoPro::Cmd cmd, GoPro::Error err)
 {
   std::cout << "D_GP::FastController::handleCommandFailed " << std::endl;
   // stop further consequetive failed messages that have been buffered/queued
@@ -147,20 +147,20 @@ void FastController::handleCommandFailed(GoPro*, GoPro::Cmd cmd, GPError err)
   Req req = d_reqs.front();
   switch (err)
     {
-    case GPError::Response:
+    case GoPro::Error::Response:
       // LOG
       d_reqs.pop_front(); // last request failed
       // otherwise, assume the same state
       break;
 
-    case GPError::ResponseData:
+    case GoPro::Error::ResponseData:
       // LOG
       // DO NOT WANT THIS TO HAPPEN
       d_reqs.pop_front(); // last request failed
       // otherwise, assume the same state
       break;
       
-    case GPError::Internal:
+    case GoPro::Error::Internal:
       // LOG
       d_timer_recreate_gopro.restartMs(5000); // can't reset gopro while in its callback.
       d_reqs.clear();
@@ -168,7 +168,7 @@ void FastController::handleCommandFailed(GoPro*, GoPro::Cmd cmd, GPError err)
       setState(StateId::Disconnected);
       break;
       
-    case GPError::Timeout:
+    case GoPro::Error::Timeout:
       // LOG
       d_reqs.clear();
       d_is_recording = false;

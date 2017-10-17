@@ -2,7 +2,6 @@
 #define DGP_FASTCONTROLLER_H
 
 #include "dgp_gopro.h"
-#include "kn_callbacktimer.h"
 
 #include <list>
 #include <memory>
@@ -12,9 +11,10 @@ namespace D_GP
 {
   /*
     This class is simply used to change the camera mode, trigger, and start/stop a live stream.
+    TODO: When needed, create a gopro streamer to handle different streaming implementations
   */
   
-  class ModeController final : GoProOwner
+  class ModeController final : GoPro::Owner
   {
   public:
     enum class Req
@@ -41,8 +41,8 @@ namespace D_GP
       
     private:
       friend ModeController;
-      virtual void handleFailedRequest(FastController*, Req) = 0;
-      virtual void handleSuccessfulRequest(FastController*, Req) = 0;
+      virtual void handleFailedRequest(ModeController*, Req) = 0;
+      virtual void handleSuccessfulRequest(ModeController*, Req) = 0;
     };
     
   public:
@@ -65,9 +65,9 @@ namespace D_GP
     void stopStream();
 
   private:
-    //GoProOwner
+    //GoPro::Owner
     void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
-    void handleCommandFailed(GoPro*, GoPro::Cmd, GPError) override;
+    void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) override;
 
   private:
     void processStatus();

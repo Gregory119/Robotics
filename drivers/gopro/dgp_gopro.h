@@ -14,35 +14,17 @@
 
 namespace D_GP
 {
-  enum class GPError
-  {
-    Internal, // internal to the client of the gopro (this should not happen)
-    Response, // gopro responded with error message
-    ResponseData, // gopro response data was unexpected
-    Timeout // a timeout occured after waiting for a gopro response
-  };
-	
-  class GoPro;
-  class GoProOwner // inherit privately
-  {
-  public:
-    GoProOwner(const GoProOwner&) = delete;
-    GoProOwner& operator=(const GoProOwner&) = delete;
-    GoProOwner(GoProOwner&&) = delete;
-    GoProOwner&& operator=(GoProOwner&&) = delete;
-
-    // queued commands should be cleared on a failure
-    virtual void handleCommandFailed(GoPro*, GoPro::Cmd, GPError) = 0;
-    virtual void handleCommandSuccessful(GoPro*, GoPro::Cmd) = 0;
-    
-  protected:
-    GoProOwner() = default;
-    ~GoProOwner() = default;
-  };
-  
   class GoPro
   {
   public:
+    enum class Error
+    {
+      Internal, // internal to the client of the gopro (this should not happen)
+      Response, // gopro responded with error message
+      ResponseData, // gopro response data was unexpected
+      Timeout // a timeout occured after waiting for a gopro response
+    };
+    
     enum class Cmd
     { 
       Connect,
@@ -64,6 +46,23 @@ namespace D_GP
       Unknown
     };
 
+    class Owner // inherit privately
+    {
+    public:
+      Owner(const Owner&) = delete;
+      Owner& operator=(const Owner&) = delete;
+      Owner(Owner&&) = delete;
+      Owner&& operator=(Owner&&) = delete;
+
+      // queued commands should be cleared on a failure
+      virtual void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) = 0;
+      virtual void handleCommandSuccessful(GoPro*, GoPro::Cmd) = 0;
+    
+    protected:
+      Owner() = default;
+      ~Owner() = default;
+    };
+    
   public:
     virtual ~GoPro() = default;
     GoPro& operator=(const GoPro&) = default;
@@ -84,8 +83,8 @@ namespace D_GP
     
   protected:
     //only to be inherited
-    explicit GoPro(GoProOwner* o);
-    GoProOwner* d_owner = nullptr;
+    explicit GoPro(Owner* o);
+    Owner* d_owner = nullptr;
 
     Status d_status;
   };

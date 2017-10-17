@@ -67,6 +67,7 @@ namespace C_HTTP
     bool isProcessingReq() { return d_is_processing_req; }
     void cancelBufferedReqs();
     bool hasBufferedReqs() { return !d_buf_reqs.empty(); }
+    // TO DO: ADD FUNCTION TO CANCEL ALL BUFFERED AND PROCESSING REQUESTS
     
   private:
     // KERN::KernelTimerOwner

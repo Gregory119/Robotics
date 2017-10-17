@@ -16,7 +16,7 @@ namespace D_GP
     - There needs to be a pairing process in which the connect command is sent. Sending it with every command from a disconnected state has caused a weird problem, whereby setting the mode does not set it to the requested mode.
   */
   
-  class FastController final : GoProOwner
+  class FastController final : GoPro::Owner
   {
   public:
     enum class Req
@@ -78,9 +78,9 @@ namespace D_GP
     class StateVideo;
     
   private:
-    //GoProOwner
+    //GoPro::Owner
     void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
-    void handleCommandFailed(GoPro*, GoPro::Cmd, GPError) override;
+    void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) override;
 
   private:
     void setState(StateId);

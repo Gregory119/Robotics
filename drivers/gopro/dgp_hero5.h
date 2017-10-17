@@ -3,7 +3,7 @@
 
 #include "chttp_operations.h"
 #include "dgp_gopro.h"
-#include "kn_timer.h"
+#include "kn_callbacktimer.h"
 
 #include <memory>
 
@@ -14,19 +14,21 @@ namespace D_GP
   // Accommodates multiple simultaneous requests by buffering them.
   
   class GoProHero5 final : public GoPro,
-    C_HTTP::HttpOperationsOwner,
-    KERN::KernelTimerOwner
+    C_HTTP::HttpOperationsOwner
   {
   public:
-    GoProHero5(GoProOwner* o, const std::string& name);
+    GoProHero5(GoPro::Owner* o, const std::string& name);
 
     //GoPro
     void connect() override;
     void status() override; 
     void setMode(Mode) override;
     void setShutter(bool) override;
+
+    // The stream lasts about 6 seconds. It will not end if another start stream request is made within this time.
     void startLiveStream() override;
     void stopLiveStream() override;
+    
     bool hasBufferedReqs() override;
     void cancelBufferedCmds() override;
 
@@ -38,9 +40,6 @@ namespace D_GP
 			const std::vector<std::string>& headers,
 			const std::vector<char>& body) override;
 
-    // KERN::KernelTimer
-    bool handleTimeOut(const KERN::KernelTimer&) override;
-
   private:
     void requestCmd(GoPro::Cmd);
     
@@ -49,9 +48,11 @@ namespace D_GP
     bool d_connected = false;
 
     std::string d_connect_name;
-    KERN::KernelTimer d_timer_stream_check;
     std::list<GoPro::Cmd> d_cmd_reqs;
     GoPro::Cmd d_non = GoPro::Cmd::Unknown;
+
+    KERN::CallbackTimer d_timer_stream;
+    KERN::CallbackTimer d_timer_init_failed;
   };
 };
 #endif

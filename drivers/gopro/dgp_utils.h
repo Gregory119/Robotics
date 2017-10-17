@@ -2,6 +2,7 @@
 #define DGP_UTILS_H
 
 #include "dgp_types.h"
+#include "dgp_gopro.h"
 
 #include <string>
 #include <vector>
@@ -13,10 +14,10 @@ namespace D_GP
   public:
     // GoPro Hero5 connect command takes one parameter for the connection name
     // Parameters must be provided in the order that they appear in the url
-    static std::string cmdToUrl(Cmd,
+    static std::string cmdToUrl(GoPro::Cmd,
 				CamModel,
 				const std::vector<std::string>& params);
-    static std::string cmdToUrl(Cmd,
+    static std::string cmdToUrl(GoPro::Cmd,
 				CamModel);
 
     // returns an Unknown mode on failure
@@ -25,8 +26,8 @@ namespace D_GP
   private:
     static std::string appendToAddress(const std::string& cmd, CamModel model);
     
-    static std::string cmdToUrlHero5(Cmd, const std::vector<std::string>& params);
-    static bool validUrlParamsHero5(Cmd, const std::vector<std::string>& params);
+    static std::string cmdToUrlHero5(GoPro::Cmd, const std::vector<std::string>& params);
+    static bool validUrlParamsHero5(GoPro::Cmd, const std::vector<std::string>& params);
   };
 };
 

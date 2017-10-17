@@ -131,7 +131,7 @@ void HttpOperations::get(const std::string& url)
       return;
     }
 
-  std::cout << "HttpOperations::get: starting to process get" << url << std::endl;
+  //std::cout << "HttpOperations::get: starting to process get" << url << std::endl;
   d_is_processing_req = true;
   d_url = url;
   curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
@@ -159,7 +159,7 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 	}
 			
       // has the transfer completed?
-      std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
+      //std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
       if (d_running_transfers == 0)
 	{
 	  d_timer_process.disable();
@@ -183,11 +183,9 @@ bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
 //----------------------------------------------------------------------//
 void HttpOperations::processNextBufferedReq()
 {
-  std::cout << "HttpOperations::processNextBufferedReq()" << std::endl;
   if (d_buf_reqs.empty())
     {
       // nothing to do
-      std::cout << "HttpOperations::processNextBufferedReq()::return with nothing" << std::endl;
       return;
     }
 
@@ -301,6 +299,6 @@ int HttpOperations::timerRestart(CURLM *multi,
 //----------------------------------------------------------------------//
 void HttpOperations::cancelBufferedReqs()
 {
-  std::cout << "HttpOperations::cancelBufferedReqs()" << std::endl;
+  //std::cout << "HttpOperations::cancelBufferedReqs()" << std::endl;
   d_buf_reqs.clear();
 }
