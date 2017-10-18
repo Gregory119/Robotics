@@ -78,6 +78,19 @@ void CallbackTimer::restartMsIfNotSet(long time_ms)
 }
 
 //----------------------------------------------------------------------//
+void CallbackTimer::restartMsIfNotSetElseDisabled(long time_ms)
+{
+  if (!isSet())
+    {
+      restartMs(time_ms);
+    }
+  else if (isDisabled()) // is set, but disabled
+    {
+      restart();
+    }
+}
+
+//----------------------------------------------------------------------//
 void CallbackTimer::disable()
 {
   d_is_enabled = false;

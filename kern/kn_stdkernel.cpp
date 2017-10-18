@@ -18,6 +18,12 @@ StdKernel::StdKernel()
 //----------------------------------------------------------------------//
 void StdKernel::registerTimer(CallbackTimer& new_timer)
 {
+  // each callback timer holds it own deadline timer
+  // - starting the timer will recreate the deadline timer with the set time, followed by setting the callback function which is then used to set the boost timer function handler (with a check for an error)
+  // the kernel holds an io service singleton which is used to create the deadline timer
+  // - the kernel will call the run function on the io service
+  // - the kernel will create a long duration continuous timer to always keep the io service run function busy
+  
   assert(s_singleton!=nullptr);
   
   //check if it already exists (debug)
