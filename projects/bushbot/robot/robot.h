@@ -1,8 +1,8 @@
 #ifndef ROBOT_H
 #define ROBOT_H
 
-#include "kn_timer.h"
-#include "dgp_controller.h"
+#include "kn_asiocallbacktimer.h"
+#include "dgp_fastcontroller.h"
 #include "djs_serialjoystick.h"
 //#include "utl_mapping.h"
 
@@ -13,8 +13,7 @@ namespace CTRL
   class Servo;
 };
 
-class Robot final : KERN::KernelTimerOwner,
-  D_GP::GoProControllerOwner
+class Robot final : D_GP::FastController::Owner
 {
  public:
   struct Params
@@ -42,14 +41,14 @@ class Robot final : KERN::KernelTimerOwner,
   bool init(const std::string& serial_port, int baud=9600);
 
  private:
-  //D_GP::GoProController
+  // D_GP::FastController
   void handleFailedRequest(D_GP::GoProController*, D_GP::GoProControllerReq) override;
   void handleSuccessfulRequest(D_GP::GoProController*, D_GP::GoProControllerReq) override;
 
-  // KERN::KernelTimerOwner
-  bool handleTimeOut(const KERN::KernelTimer& timer);
-
  private:
+  // timer callbacks
+  void process();
+  
   bool processEvent(const D_JS::JSEventMinimal &event);
   bool processButton(const D_JS::JSEventMinimal &event);
   bool processAxis(const D_JS::JSEventMinimal &event);
@@ -65,8 +64,8 @@ class Robot final : KERN::KernelTimerOwner,
   std::unique_ptr<CTRL::Servo> d_motor;
   std::unique_ptr<D_GP::GoProController> d_gp_cont;
   
-  std::unique_ptr<KERN::KernelTimer> d_process_timer;
-  std::unique_ptr<KERN::KernelTimer> d_watchdog_timer;
+  KERN::AsioCallbackTimer d_process_timer;
+  KERN::AsioCallbackTimer d_watchdog_timer;
 
   UTIL::Map d_rt_map;
   UTIL::Map d_lt_map;

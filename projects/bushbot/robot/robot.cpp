@@ -51,7 +51,14 @@ Robot::Robot(Params& params)
   d_steering->moveToMidPos();
 
   //timers
-  d_process_timer->restartMs(0);
+  d_process_timer.setCallback([this](){
+      process();
+    });
+  d_watchdog_timer.setCallback([this](){
+      stopMoving();
+    });
+  
+  d_process_timer->restartMs(1);
   d_watchdog_timer->restartMs(1000);
   std::cout << "constructed" << std::endl;
 }
@@ -68,29 +75,15 @@ bool Robot::init(const std::string& serial_port,
 }
 
 //----------------------------------------------------------------------//
-bool Robot::handleTimeOut(const KERN::KernelTimer& timer)
+void Robot::process()
 {
-  if (timer.is(d_process_timer))
+  if (d_js_receiver.readSerialEvent(d_js_event))
     {
-      if (d_js_receiver.readSerialEvent(d_js_event))
+      if (processEvent(d_js_event))
 	{
-	  if (processEvent(d_js_event))
-	    {
-	      d_watchdog_timer->restart(); 
-	    }
+	  d_watchdog_timer->restart(); 
 	}
-      
-      return true;
     }
-
-  if (timer.is(d_watchdog_timer)) // signal loss or interference
-    {
-      stopMoving();
-      
-      return true;
-    }
-  
-  return false;
 }
 
 //-----------------------------------------------------------------------//

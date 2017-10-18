@@ -7,7 +7,7 @@
 
 using namespace D_JS;
 
-const unsigned char s_js_serial_chars = 6;
+const unsigned char s_js_serial_chars = 5;
 
 const unsigned JoystickTransmitter::s_u32_max_digits = 10;
 const unsigned JoystickTransmitter::s_s16_max_digits = 5;

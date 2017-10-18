@@ -46,7 +46,16 @@ void AsioCallbackTimer::restartMs(long time_ms)
   setTimeMs(time_ms);
 
   // will cancel a pending timeout unless it has already timed out (callback is being called or is queued to be called)
-  d_timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
+  try
+    {
+      d_timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
+    }
+  catch (...)
+    {
+      // LOG
+      assert(false);
+      return;
+    }
   d_timer->async_wait([&](const boost::system::error_code& e){
       timerCallBack(e,d_timer.get());
     });
@@ -58,23 +67,42 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
 {
   if (err == boost::asio::error::operation_aborted)
     {
-      // cancelled to be restarted
+      // cancelled timers that have not yet expired
+      return;
+    }
+
+  if (!d_is_enabled) 
+    {
+      // to catch timers that have already expired and have been queued, but need to be cancelled
       return;
     }
   
   assert(t != nullptr);
   ++d_count_conseq_timeouts;
-  d_user_callback(); // could be disabled here
+  d_user_callback();
   
-  if (d_is_enabled) // schedule to call again
+  if (!d_is_enabled) 
     {
-      assert(isSet());
-      d_timer->expires_from_now(boost::posix_time::milliseconds(d_timeout_ms));
-
-      d_timer->async_wait([&](const boost::system::error_code& e){
-	  timerCallBack(e,d_timer.get());
-	});
+      // to catch disables requested in the user callback function
+      return;
     }
+
+  // schedule to call again
+  assert(isSet());
+  try
+    {
+      d_timer->expires_from_now(boost::posix_time::milliseconds(d_timeout_ms));
+    }
+  catch (...)
+    {
+      // LOG
+      assert(false);
+      return;
+    }
+
+  d_timer->async_wait([&](const boost::system::error_code& e){
+      timerCallBack(e,d_timer.get());
+    });
 }
 		  
 //----------------------------------------------------------------------//
@@ -102,6 +130,16 @@ void AsioCallbackTimer::restartMsIfNotSetElseDisabled(long time_ms)
 //----------------------------------------------------------------------//
 void AsioCallbackTimer::disable()
 {
+  try
+    {
+      d_timer->cancel(); // forces the completion of any asynchronous wait operations
+    }
+  catch (...)
+    {
+      // not sure how to deal with this, but at least disable the timer
+      // LOG
+      assert(false);
+    }
   d_is_enabled = false;
   d_count_conseq_timeouts = 0;
 }
