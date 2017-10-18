@@ -1,7 +1,7 @@
 #ifndef CHTTP_OPERATIONS_H
 #define CHTTP_OPERATIONS_H
 
-#include "kn_timer.h"
+#include "kn_asiocallbacktimer.h"
 
 #include <curl/curl.h>
 #include <string>
@@ -47,7 +47,7 @@ namespace C_HTTP
 				const std::vector<char>& body) = 0;
   };
 	
-  class HttpOperations final : KERN::KernelTimerOwner
+  class HttpOperations final
   {
   public:
     explicit HttpOperations(HttpOperationsOwner* o);
@@ -55,9 +55,9 @@ namespace C_HTTP
     HttpOperations& operator=(const HttpOperations&) = delete;
     HttpOperations(const HttpOperations&) = delete;
 
-    // Must be successful before using class.
-    // Will return true if already initialized.
-    bool init(long timeout_sec = 30); 
+    // Must be called before using class.
+    // On failure, handleFailed will be called on a zero timeout
+    void init(long timeout_sec = 30); 
 
     // example params = "name=daniel&project=curl"
     // Will return false if current message is not complete
@@ -70,8 +70,9 @@ namespace C_HTTP
     // TO DO: ADD FUNCTION TO CANCEL ALL BUFFERED AND PROCESSING REQUESTS
     
   private:
-    // KERN::KernelTimerOwner
-    bool handleTimeOut(const KERN::KernelTimer&) override;
+    // Timer callbacks
+    void process();
+    void failedInit();
 
     // Curl callbacks
     static size_t respBodyWrite(char *ptr,
@@ -121,8 +122,8 @@ namespace C_HTTP
     std::vector<std::string> d_resp_headers; // http always has header response as text
     int d_running_transfers = 0;
 		
-    KERN::KernelTimer d_timer_process = KERN::KernelTimer(this);
-    KERN::KernelTimer d_timer_failed_init = KERN::KernelTimer(this);
+    KERN::AsioCallbackTimer d_timer_process;
+    KERN::AsioCallbackTimer d_timer_failed_init;
 
     std::list<Request> d_buf_reqs;
   };

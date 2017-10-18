@@ -11,6 +11,13 @@ HttpOperations::HttpOperations(HttpOperationsOwner* o)
 {
   assert(o != nullptr);
   d_resp_headers.reserve(10*30); // assuming 10 headers each with 30 characters (assuming digest auth)
+
+  d_timer_process.setCallback([this](){
+      process();
+    });
+  d_timer_failed_init.setCallback([this](){
+      failedInit();
+    });
 }
 
 //----------------------------------------------------------------------//
@@ -30,12 +37,13 @@ HttpOperations::~HttpOperations()
 }
 
 //----------------------------------------------------------------------//
-bool HttpOperations::init(long timeout_sec)
+void HttpOperations::init(long timeout_sec)
 {
   //std::cout << "HttpOperations::init" << std::endl;
   if (d_is_initialised)
     {
-      return true;
+      assert(false);
+      return;
     }
 
   // multiple calls have the same affect as one call
@@ -43,7 +51,7 @@ bool HttpOperations::init(long timeout_sec)
   if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) 
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (d_curl != nullptr)
@@ -55,61 +63,59 @@ bool HttpOperations::init(long timeout_sec)
   if (d_curl == nullptr)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_TIMEOUT, timeout_sec) != CURLE_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_WRITEFUNCTION, respBodyWrite) != CURLE_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_WRITEDATA, this) != CURLE_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_HEADERFUNCTION, respHeaderWrite) != CURLE_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_HEADERDATA, this) != CURLE_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   d_curl_multi = curl_multi_init();
   if (d_curl_multi == nullptr)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 	
   if (curl_multi_setopt(d_curl_multi, CURLMOPT_TIMERFUNCTION, timerRestart) != CURLM_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 
   if (curl_multi_setopt(d_curl_multi, CURLMOPT_TIMERDATA, this) != CURLM_OK)
     {
       d_timer_failed_init.restartMs(0);
-      return false;
+      return;
     }
 	
   d_is_initialised = true;
-	
-  return true;
 }
 
 //----------------------------------------------------------------------//
@@ -143,41 +149,34 @@ void HttpOperations::get(const std::string& url)
 }
 
 //----------------------------------------------------------------------//
-bool HttpOperations::handleTimeOut(const KERN::KernelTimer& timer)
+void HttpOperations::process()
 {
-  if (d_timer_process.is(timer))
-    {
-      CURLMcode res_multi = curl_multi_perform(d_curl_multi, &d_running_transfers);
+  CURLMcode res_multi = curl_multi_perform(d_curl_multi, &d_running_transfers);
 
-      if (res_multi != CURLM_OK)
-	{
-	  // LOG THIS: the exact error details should be logged here
-	  assert(false); // this should not happen
-	  d_timer_process.disable();
-	  d_owner->handleFailed(this,HttpOpError::Internal);
-	  return true;
-	}
-			
-      // has the transfer completed?
-      //std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
-      if (d_running_transfers == 0)
-	{
-	  d_timer_process.disable();
-	  processMessage();
-	  processNextBufferedReq(); // next request can start after owner messages (owner may want to clear/stop the buffered messages)
-	}
-			
-      return true;
-    }
-
-  if (d_timer_failed_init.is(timer))
+  if (res_multi != CURLM_OK)
     {
-      d_timer_failed_init.disable();
+      // LOG THIS: the exact error details should be logged here
+      assert(false); // this should not happen
+      d_timer_process.disable();
       d_owner->handleFailed(this,HttpOpError::Internal);
-      return true;
+      return;
     }
-	
-  return false;
+			
+  // has the transfer completed?
+  //std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
+  if (d_running_transfers == 0)
+    {
+      d_timer_process.disable();
+      processMessage();
+      processNextBufferedReq(); // next request can start after owner messages (owner may want to clear/stop the buffered messages)
+    }		
+}
+
+//----------------------------------------------------------------------//
+void HttpOperations::failedInit()
+{
+  d_timer_failed_init.disable();
+  d_owner->handleFailed(this,HttpOpError::Internal);
 }
 
 //----------------------------------------------------------------------//
