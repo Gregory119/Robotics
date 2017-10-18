@@ -1,0 +1,9 @@
+======================================================================
+Scripts to Run Software From Startup
+======================================================================
+
+- copy the service file, start_camstreamer.service, to /lib/systemd/system/
+- copy the bash script, start_camstreamer.sh, to /usr/startscripts/
+- $ systemctl daemon-reload
+- $ systemctl enable start_bushbot.service
+- copy the project binary files to /camstreamer/
