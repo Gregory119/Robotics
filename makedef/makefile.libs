@@ -51,7 +51,7 @@ endif
 ifdef USES_LIBKERN
       LIBKERNPATH = $(BASE_DIR)/kern
       INCLUDES += -I$(LIBKERNPATH)
-      LIBS += 
+      LIBS += -lboost_system -lpthread
       LIBSRC += $(wildcard $(LIBKERNPATH)/*.cpp)
       USES_LIBCORE=1
 endif

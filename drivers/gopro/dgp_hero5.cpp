@@ -21,23 +21,12 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   d_connect_name = name;
 
   d_timer_stream.setCallback([this](){
-      // do not push back request (these are internal requests to keep the stream going)
-      d_http->get(Utils::cmdToUrl(GoPro::Cmd::StartLiveStream,
-				  CamModel::Hero5));
+      startLiveStream();
       // use omxplayer to output video on analog connection
     });
 
-  d_timer_init_failed.setCallback([=](){ // by value, this and d_owner
-      // needed to not call virtual function from constructor
-      d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GoPro::Error::Internal);
-    });
-  if (!d_http->init(s_http_timeout_ms))
-    {
-      // LOG
-      d_timer_init_failed.restartMs(0);
-      assert(false); // this should not happen
-      return;
-    }
+  // Will call failure callback if failed
+  d_http->init(s_http_timeout_ms);
 }
 
 //----------------------------------------------------------------------//
@@ -233,10 +222,9 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       return;
 
     case GoPro::Cmd::StartLiveStream:
-      if (d_cmd_reqs.front() == GoPro::Cmd::StartLiveStream)
+      if (!d_is_streaming)
 	{
-	  GoPro::Cmd cmd = d_cmd_reqs.front();
-	  d_cmd_reqs.pop_front(); // completed last request
+	  d_is_streaming = true;
 	  d_owner->handleCommandSuccessful(this, cmd);
 	}
       // else continue streaming with timer requests
@@ -277,15 +265,18 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 //----------------------------------------------------------------------//
 void GoProHero5::startLiveStream()
 {
-  assert(false);
   requestCmd(GoPro::Cmd::StartLiveStream);
-  d_timer_stream.restartMs(5000);
+  if (!d_is_streaming)
+    {
+      d_timer_stream.restartMsIfNotSetElseDisabled(5000);
+    }
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::stopLiveStream()
 {
   d_timer_stream.disable();
+  d_is_streaming = false;
   d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
 }
 

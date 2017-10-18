@@ -2,7 +2,7 @@
 #define DGP_FASTCONTROLLER_H
 
 #include "dgp_gopro.h"
-#include "kn_callbacktimer.h"
+#include "kn_asiocallbacktimer.h"
 
 #include <list>
 #include <memory>
@@ -107,7 +107,7 @@ namespace D_GP
 
     std::list<Req> d_reqs;
 
-    KERN::CallbackTimer d_timer_recreate_gopro;
+    KERN::AsioCallbackTimer d_timer_recreate_gopro;
   };
 
   class FastController::StateInterface

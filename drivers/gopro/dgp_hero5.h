@@ -3,7 +3,7 @@
 
 #include "chttp_operations.h"
 #include "dgp_gopro.h"
-#include "kn_callbacktimer.h"
+#include "kn_asiocallbacktimer.h"
 
 #include <memory>
 
@@ -51,8 +51,9 @@ namespace D_GP
     std::list<GoPro::Cmd> d_cmd_reqs;
     GoPro::Cmd d_non = GoPro::Cmd::Unknown;
 
-    KERN::CallbackTimer d_timer_stream;
-    KERN::CallbackTimer d_timer_init_failed;
+    KERN::AsioCallbackTimer d_timer_stream;
+
+    bool d_is_streaming = false;
   };
 };
 #endif

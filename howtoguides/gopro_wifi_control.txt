@@ -19,7 +19,20 @@ Stop (Video/Timelapse): http://10.5.5.9/gp/gpControl/command/shutter?p=0
 To stream live video wirelessly:
 send the following command repeatively on an interval less than 6 seconds: http://10.5.5.9/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart
 you can stream with ffplay with the command: ffplay -fflags nobuffer udp://:8554
-send stream to pi analog out with: omxplayer --threshold 0 udp://:8554
+send stream to pi analog out with: omxplayer --live 0 -o local udp://:8554
+send stream to pi hdmi out with: omxplayer --live -o hdmi udp://:8554
+
+set the live video settings as follows:
+most wifi dongles will support 150 Mbps
+bit rate to 5.8 Mbps: http://10.5.5.9/gp/gpControl/setting/62/5800000
+try the following resolutions:
+480: http://10.5.5.9/gp/gpControl/setting/64/4
+480 3:4: http://10.5.5.9/gp/gpControl/setting/64/5
+480 1:2: http://10.5.5.9/gp/gpControl/setting/64/6
+720 (1280x720) : http://10.5.5.9/gp/gpControl/setting/64/7
+720 3:4 (960x720) http://10.5.5.9/gp/gpControl/setting/64/8
+720 1:2 (640x720) http://10.5.5.9/gp/gpControl/setting/64/9
+
 check this for composite configuration: http://www.raspberrypi-spy.co.uk/2014/07/raspberry-pi-model-b-3-5mm-audiovideo-jack/
 info found at https://github.com/KonradIT/goprowifihack/blob/master/HERO4/Livestreaming.md
 

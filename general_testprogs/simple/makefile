@@ -6,7 +6,7 @@ IS_TESTPROG=1
 #creating test program name with ccp file in this directory
 TEST_NAME = simple
 
-LIBS += -lboost_timer -lboost_chrono -lboost_system
+LIBS += -lboost_system -lpthread #-lboost_timer -lboost_chrono 
 
 include $(BASE_DIR)/makedef/makefile.libs
 include $(BASE_DIR)/makedef/makefile.rules

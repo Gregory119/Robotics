@@ -11,7 +11,6 @@ namespace D_GP
 {
   /*
     This class is simply used to change the camera mode, trigger, and start/stop a live stream.
-    TODO: When needed, create a gopro streamer to handle different streaming implementations
   */
   
   class ModeController final : GoPro::Owner

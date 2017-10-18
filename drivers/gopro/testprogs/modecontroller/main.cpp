@@ -1,6 +1,6 @@
 #include "dgp_modecontroller.h"
 
-#include "kn_stdkernel.h"
+#include "kn_asiokernel.h"
 
 #include <iostream>
 //#include <cstdlib> //exit success/failure
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
       return EXIT_SUCCESS;
     }
 
-  KERN::StdKernel k;
+  KERN::AsioKernel k;
   Test test;
 
   if (std::string(argv[argc-1]) == "connect")

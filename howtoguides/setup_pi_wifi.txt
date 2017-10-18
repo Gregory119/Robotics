@@ -18,6 +18,10 @@ References:
            psk="fta43ea9"
   }
 
+for GoPro:
+ssid="GP24627965"
+psk="climb3708"
+
 for adsl:
 ssid="TP-LINK_AC5344"
 psk="19242316"
