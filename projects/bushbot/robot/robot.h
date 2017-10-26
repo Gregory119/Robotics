@@ -42,8 +42,8 @@ class Robot final : D_GP::FastController::Owner
 
  private:
   // D_GP::FastController
-  void handleFailedRequest(D_GP::GoProController*, D_GP::GoProControllerReq) override;
-  void handleSuccessfulRequest(D_GP::GoProController*, D_GP::GoProControllerReq) override;
+  void handleFailedRequest(D_GP::FastController*, D_GP::FastController::Req) override;
+  void handleSuccessfulRequest(D_GP::FastController*, D_GP::FastController::Req) override;
 
  private:
   // timer callbacks
@@ -62,7 +62,7 @@ class Robot final : D_GP::FastController::Owner
   unsigned d_motor_num = 0;
   std::unique_ptr<CTRL::Servo> d_steering;
   std::unique_ptr<CTRL::Servo> d_motor;
-  std::unique_ptr<D_GP::GoProController> d_gp_cont;
+  std::unique_ptr<D_GP::FastController> d_gp_cont;
   
   KERN::AsioCallbackTimer d_process_timer;
   KERN::AsioCallbackTimer d_watchdog_timer;

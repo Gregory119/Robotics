@@ -12,6 +12,7 @@ libs:
 	$(MAKE) -C utils
 	$(MAKE) -C core
 	$(MAKE) -C control
+	$(MAKE) -C peripherals
 
 testprogs:
 	$(MAKE) testprogs -C utils

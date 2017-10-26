@@ -1,6 +1,6 @@
 #include "chttp_operations.h"
 
-#include "kn_stdkernel.h"
+#include "kn_asiokernel.h"
 
 #include <cassert>
 #include <iostream>
@@ -12,11 +12,7 @@ public:
   {
     d_http.reset(new C_HTTP::HttpOperations(static_cast<C_HTTP::HttpOperationsOwner*>(this)));
 
-    if (!d_http->init(60))
-      {
-	std::cout << "Failed to init http." << std::endl;
-      }
-
+    d_http->init(60);
     d_http->get(url);
   }
 	
@@ -27,7 +23,7 @@ private:
     switch (err)
       {
       case C_HTTP::HttpOpError::Internal:
-	std::cout << "Got an internal error." << std::endl;
+	std::cout << "Got an internal error. This should never happen." << std::endl;
 	return;
 
       case C_HTTP::HttpOpError::Timeout:
@@ -74,7 +70,7 @@ int main(int argc, char* argv[])
       return 0;
     }
 
-  KERN::StdKernel k;
+  KERN::AsioKernel k;
   TestHttp http_get_test(argv[1]);
 	
   k.run();

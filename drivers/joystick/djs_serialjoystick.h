@@ -4,7 +4,7 @@
 #include "djs_common.h"
 #include "djs_joystick.h"
 
-#include "kn_timer.h"
+#include "kn_asiocallbacktimer.h"
 #include "utl_mapping.h"
 
 #include <thread>
@@ -12,8 +12,7 @@
 namespace D_JS
 {
   class JoystickReceiver;  
-  class JoystickTransmitter : JoyStickOwner,
-    KERN::KernelTimerOwner
+  class JoystickTransmitter : JoyStickOwner
   {
   public:
     JoystickTransmitter();
@@ -32,38 +31,11 @@ namespace D_JS
     void start();
     
   private:
-    // KERN::KernelTimerOwner
-    bool handleTimeOut(const KERN::KernelTimer& timer);
-    
-  private:
     virtual void handleEvent(const JSEvent &event) override; 
     virtual void handleReadError() override;
     void sendEvent(const JSEvent &event);
     void resendLastEvent();
-
-  private:
-    //----------------------------------------------------------------------//
-    template <typename T>
-      char mapToChar(T value, 
-		     unsigned max_digits)
-      {
-	char ret = 0;
-
-	if (max_digits == s_u32_max_digits)
-	  {
-	    s_time_to_uchar_map.map(value, ret);
-	  }
-	else if (max_digits == s_s16_max_digits)
-	  {
-	    s_value_to_char_map.map(value, ret);
-	  }
-	else if (max_digits == s_u8_max_digits)
-	  {
-	    ret = value;
-	  }
-
-	return ret;
-      }
+    template <typename T> char mapToChar(T value, unsigned max_digits);
 
   private:
     friend JoystickReceiver; //allow access to the static private constants
@@ -83,11 +55,34 @@ namespace D_JS
     static const UTIL::Map s_value_to_char_map;
 
     bool d_enable_resend_event = false;
-    KERN::KernelTimer d_resend_timer;
+    KERN::AsioCallbackTimer d_resend_timer;
     long d_resend_time_ms = 60000;
     bool d_resend_only_axis = true;
   };
 
+  //----------------------------------------------------------------------//
+  template <typename T>
+    char JoystickTransmitter::mapToChar(T value, 
+					unsigned max_digits)
+    {
+      char ret = 0;
+
+      if (max_digits == s_u32_max_digits)
+	{
+	  s_time_to_uchar_map.map(value, ret);
+	}
+      else if (max_digits == s_s16_max_digits)
+	{
+	  s_value_to_char_map.map(value, ret);
+	}
+      else if (max_digits == s_u8_max_digits)
+	{
+	  ret = value;
+	}
+
+      return ret;
+    }
+  
   class JoystickReceiver
   {
   public:

@@ -1,11 +1,11 @@
 #include "djs_serialjoystick.h"
-#include "kn_stdkernel.h"
+#include "kn_asiokernel.h"
 
 #include <iostream>
 
 int main()
 {
-  KERN::StdKernel k;
+  KERN::AsioKernel k;
   
   int baud = 9600;
   std::string serial = "/dev/ttyAMA0";

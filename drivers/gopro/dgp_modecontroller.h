@@ -1,5 +1,5 @@
-#ifndef DGP_FASTCONTROLLER_H
-#define DGP_FASTCONTROLLER_H
+#ifndef DGP_MODECONTROLLER_H
+#define DGP_MODECONTROLLER_H
 
 #include "dgp_gopro.h"
 
@@ -44,7 +44,6 @@ namespace D_GP
       virtual void handleSuccessfulRequest(ModeController*, Req) = 0;
     };
     
-  public:
     struct CtrlParams
     {
       CtrlParams& setType(CamModel m) { model = m; return *this; }
@@ -56,6 +55,7 @@ namespace D_GP
     
   public:
     ModeController(Owner*, const CtrlParams&);
+    void setOwner(Owner* o) { d_owner = o; }
 
     void connect(); 
     void nextMode();

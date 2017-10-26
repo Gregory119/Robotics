@@ -3,7 +3,7 @@
 
 #include "ctrl_rcstepvelocitymanager.h"
 #include "utl_mapping.h"
-#include "kn_timer.h"
+#include "kn_asiocallbacktimer.h"
 
 #include <cstdint>
 #include <memory>
@@ -13,7 +13,7 @@
 
 namespace CTRL
 {
-  class Servo : KERN::KernelTimerOwner
+  class Servo
   {
     // Interface for servo controllers
     // All position values must be in the same units
@@ -57,10 +57,6 @@ namespace CTRL
     std::mutex d_m; // for now for thread safety, but need to create shared pipe reader/writer
     
   private:
-    // KERN::KernelTimerOwner
-    bool handleTimeOut(const KERN::KernelTimer& timer);
-
-  private:
     void setReqPosDirect(int pos);
     void updateIncPos();
 
@@ -93,7 +89,7 @@ namespace CTRL
     UTIL::Map d_pos_to_vel_map;
 
     std::unique_ptr<RCStepVelocityManager> d_velocity_man;
-    std::unique_ptr<KERN::KernelTimer> d_vel_inc_timer;
+    KERN::AsioCallbackTimer d_vel_inc_timer;
   };
 };
 

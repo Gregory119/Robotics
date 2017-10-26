@@ -1,13 +1,13 @@
 #include "servonums.h"
 #include "robot.h"
 
-#include "kn_stdkernel.h"
+#include "kn_asiokernel.h"
 
 #include <iostream>
 
 int main()
 {
-  KERN::StdKernel k;
+  KERN::AsioKernel k;
   
   Robot::Params params(SERVONUM::steering,
 		       SERVONUM::motor);

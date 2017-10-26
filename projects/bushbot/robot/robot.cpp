@@ -15,11 +15,9 @@ Robot::Robot(Params& params)
   : d_steer_num(params.steering_num),
     d_motor_num(params.motor_num),
     d_motor(new CTRL::HardServo(d_motor_num)),
-    d_gp_cont(new D_GP::GoProController
-	      (this, D_GP::GoProController::GPCtrlParams()
+    d_gp_cont(new D_GP::FastController
+	      (this, D_GP::FastController::CtrlParams()
 	       .setName("Robot"))),
-    d_process_timer(new KERN::KernelTimer(this)),
-    d_watchdog_timer(new KERN::KernelTimer(this)),
     d_rt_map(UTIL::Map(D_JS::axis_max, 
 		       D_JS::axis_min, 
 		       d_motor->getMaxInputPos(), 
@@ -58,8 +56,8 @@ Robot::Robot(Params& params)
       stopMoving();
     });
   
-  d_process_timer->restartMs(1);
-  d_watchdog_timer->restartMs(1000);
+  d_process_timer.restartMs(1);
+  d_watchdog_timer.restartMs(1000);
   std::cout << "constructed" << std::endl;
 }
 
@@ -81,7 +79,7 @@ void Robot::process()
     {
       if (processEvent(d_js_event))
 	{
-	  d_watchdog_timer->restart(); 
+	  d_watchdog_timer.restart(); 
 	}
     }
 }
@@ -214,16 +212,16 @@ bool Robot::processAxis(const D_JS::JSEventMinimal &event)
 }
 
 //----------------------------------------------------------------------//
-void Robot::handleFailedRequest(D_GP::GoProController*,
-				D_GP::GoProControllerReq req)
+void Robot::handleFailedRequest(D_GP::FastController*,
+				D_GP::FastController::Req req)
 {
   // could re-request the failed command here, but would need a timeout to stop retrying
   std::cout << "Robot::handleFailedRequest: " << std::endl;
 }
 
 //----------------------------------------------------------------------//
-void Robot::handleSuccessfulRequest(D_GP::GoProController*,
-				    D_GP::GoProControllerReq req)
+void Robot::handleSuccessfulRequest(D_GP::FastController*,
+				    D_GP::FastController::Req req)
 {
   std::cout << "Robot::handleSuccessfulRequest: " << std::endl;
 }

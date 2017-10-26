@@ -130,6 +130,11 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
   // sent command was unsuccessful
   GoPro::Cmd cmd = d_cmd_reqs.front();
   d_cmd_reqs.pop_front();
+
+  if (cmd == GoPro::Cmd::StartLiveStream)
+    {
+      stopLiveStream();
+    }
   
   switch (error)
     {

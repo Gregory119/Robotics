@@ -21,8 +21,16 @@ const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,255,0);
 // JoystickTransmitter
 //----------------------------------------------------------------------//
 JoystickTransmitter::JoystickTransmitter()
-  : d_resend_timer(KERN::KernelTimer(this))
-{}
+{
+  d_resend_timer.setCallback([this](){
+      if (d_enable_resend_event)
+	{
+	  resendLastEvent();
+	}
+      // else do nothing
+      // only used to keep running in order to process the threaded joystick events
+    });
+}
 
 //----------------------------------------------------------------------//
 bool JoystickTransmitter::init(const std::string& serial_port,
@@ -144,23 +152,6 @@ void JoystickTransmitter::handleReadError()
 {
   std::lock_guard<std::mutex> lock(d_m);
   d_js->stop();
-}
-
-//----------------------------------------------------------------------//
-bool JoystickTransmitter::handleTimeOut(const KERN::KernelTimer& timer)
-{
-  if (timer.is(d_resend_timer))
-    {
-      if (d_enable_resend_event)
-				{
-					resendLastEvent();
-				}
-      // else
-      // do nothing
-      // only used to keep running in order to process the threaded joystick events
-      return true;
-    }
-  return false;
 }
 
 //----------------------------------------------------------------------//

@@ -1,18 +1,16 @@
 #include "ctrl_rcstepvelocitymanager.h"
 
-#include "kn_stdkernel.h"
-#include "kn_timer.h"
+#include "kn_asiokernel.h"
+#include "kn_asiocallbacktimer.h"
 
 #include <iostream>
 
 #include <memory>
 
-class TestTimers : KERN::KernelTimerOwner
+class TestTimers
 {
 public:
   TestTimers()
-    : d_timer(new KERN::KernelTimer(this)),
-      d_input_timer(new KERN::KernelTimer(this))
   {
     CTRL::RCStepVelocityManager::VelocityLimitParams params;
     params.abs_max_velocity = 255;
@@ -20,73 +18,72 @@ public:
     params.time_step_ms = 500;
     
     d_man.reset(new CTRL::RCStepVelocityManager(params));
-    d_timer->restartMs(params.time_step_ms);
+    d_timer.setCallback([this](){
+	processTimer();
+      });
+    d_timer.restartMs(params.time_step_ms);
 
-    d_input_timer->restartMs(7500);
+    d_input_timer.setCallback([this](){
+	processInputTimer();
+      });
+    d_input_timer.restartMs(7500);
   }
 
 private:
-  bool handleTimeOut(const KERN::KernelTimer& timer)
+  void processTimer()
   {
-    if (timer.is(d_timer))
+    std::cout << "Requested velocity = " << d_req_velocity << std::endl;
+    int vel = d_man->stepToVelocity(d_req_velocity);
+    std::cout << "New output velocity = " << vel << std::endl;
+    if (d_input_timer.isDisabled())
       {
-				std::cout << "Requested velocity = " << d_req_velocity << std::endl;
-				int vel = d_man->stepToVelocity(d_req_velocity);
-				std::cout << "New output velocity = " << vel << std::endl;
-				if (d_input_timer->isDisabled())
-					{
-						d_timer->disable();
-					}
-				return true;
+	d_timer.disable();
       }
+  }
 
-    if (timer.is(d_input_timer))
+  void processInputTimer()
+  {
+    if (d_input_timer.getConseqTimeOuts() == 1)
       {
-				if (d_input_timer->getConseqTimeOuts() == 1)
-					{
-						d_req_velocity = 0;
-					}
-				else if (d_input_timer->getConseqTimeOuts() == 2)
-					{
-						d_req_velocity = 120;
-					}
-				else if (d_input_timer->getConseqTimeOuts() == 3)
-					{
-						d_req_velocity = -120;
-					}
-				else if (d_input_timer->getConseqTimeOuts() == 4)
-					{
-						d_req_velocity = 0;
-					}
-				else if (d_input_timer->getConseqTimeOuts() == 5)
-					{
-						d_req_velocity = -120;
-					}
-				else if (d_input_timer->getConseqTimeOuts() == 6)
-					{
-						d_req_velocity = 120;
-					}
-				else
-					{
-						d_input_timer->disable();
-					}
-				return true;
+	d_req_velocity = 0;
       }
-
-    return false;
+    else if (d_input_timer.getConseqTimeOuts() == 2)
+      {
+	d_req_velocity = 120;
+      }
+    else if (d_input_timer.getConseqTimeOuts() == 3)
+      {
+	d_req_velocity = -120;
+      }
+    else if (d_input_timer.getConseqTimeOuts() == 4)
+      {
+	d_req_velocity = 0;
+      }
+    else if (d_input_timer.getConseqTimeOuts() == 5)
+      {
+	d_req_velocity = -120;
+      }
+    else if (d_input_timer.getConseqTimeOuts() == 6)
+      {
+	d_req_velocity = 120;
+      }
+    else
+      {
+	d_input_timer.disable();
+      }
   }
 
 private:
   int d_req_velocity = 120;
   
-  std::unique_ptr<KERN::KernelTimer> d_timer;
-  std::unique_ptr<KERN::KernelTimer> d_input_timer;
+  KERN::AsioCallbackTimer d_timer;
+  KERN::AsioCallbackTimer d_input_timer;
   std::unique_ptr<CTRL::RCStepVelocityManager> d_man;
 };
 
 int main(int argc, char* argv[])
 {
-  KERN::StdKernel k;
+  KERN::AsioKernel k;
   
   TestTimers test_timers;
   

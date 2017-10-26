@@ -62,6 +62,19 @@ void AsioCallbackTimer::restartMs(long time_ms)
 }
 
 //----------------------------------------------------------------------//
+void AsioCallbackTimer::restart(std::chrono::milliseconds time)
+{
+  restartMs(time.count());
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::singleShot(std::chrono::milliseconds time)
+{
+  restart(time);
+  d_is_single_shot = true;
+}
+
+//----------------------------------------------------------------------//
 void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
 				      boost::asio::deadline_timer* t)
 {
@@ -81,7 +94,7 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
   ++d_count_conseq_timeouts;
   d_user_callback();
   
-  if (!d_is_enabled) 
+  if (!d_is_enabled || d_is_single_shot) 
     {
       // to catch disables requested in the user callback function
       return;

@@ -82,7 +82,10 @@ void ModeController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
       {
 	Req req = d_reqs.front();
 	d_reqs.pop_front(); // completed last request
-	d_owner->handleSuccessfulRequest(this, req);
+	if (d_owner != nullptr)
+	  {
+	    d_owner->handleSuccessfulRequest(this, req);
+	  }
       }
       return;
       
@@ -101,7 +104,10 @@ void ModeController::sendFailedRequest()
   d_gp->cancelBufferedCmds();
   Req req = d_reqs.front();
   d_reqs.clear();
-  d_owner->handleFailedRequest(this, req);
+  if (d_owner != nullptr)
+    {
+      d_owner->handleFailedRequest(this, req);
+    }
 }
 
 //----------------------------------------------------------------------//

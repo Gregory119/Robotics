@@ -13,6 +13,13 @@ ifndef MAKESETTINGS
       $(error makefile.set must be included before this makefile)
 endif
 
+ifdef USES_LIBWIRINGPI
+      LIBWIRINGPIPATH = $(BASE_DIR)/peripherals/wiringpi/
+      INCLUDES += -I$(LIBWIRINGPIPATH)
+      LIBS += -lwiringPi
+      LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
+endif
+
 ifdef USES_LIBCONTROL
       LIBCONTROLPATH = $(BASE_DIR)/control
       INCLUDES += -I$(LIBCONTROLPATH)
@@ -75,6 +82,12 @@ OBJ += $(LIBSRC:.cpp=.o)
 
 makelibs:
 #make prerequisite libraries
+
+ifdef USES_LIBWIRINGPI
+ifneq "$(LIBNAME)" "WIRINGPI"
+	$(MAKE) -C $(LIBWIRINGPIPATH)
+endif
+endif
 ifdef USES_LIBCONTROL
 ifneq "$(LIBNAME)" "CONTROL"
 	$(MAKE) -C $(LIBCONTROLPATH)

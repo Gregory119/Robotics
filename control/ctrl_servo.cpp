@@ -11,9 +11,15 @@ Servo::Servo()
     d_pos_to_vel_map(UTIL::Map(d_max_pos,
 			       d_min_pos,
 			       d_max_pos - d_mid_pos,
-			       d_mid_pos - d_max_pos)),
-    d_vel_inc_timer(new KERN::KernelTimer(this))
-{}
+			       d_mid_pos - d_max_pos))
+{
+  d_vel_inc_timer.setCallback([&](){
+      assert(d_velocity_man != nullptr);
+      //std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
+      updateIncPos();
+      updateMove();
+    });
+}
 
 //----------------------------------------------------------------------//
 Servo::~Servo() = default;
@@ -66,7 +72,7 @@ void Servo::setVelocityParams(int min_time_for_max_velocity_ms,
   
   d_velocity_man.reset(new RCStepVelocityManager(p));
 
-  d_vel_inc_timer->restartMs(p.time_step_ms);
+  d_vel_inc_timer.restartMs(p.time_step_ms);
 }
 
 //----------------------------------------------------------------------//
@@ -85,22 +91,6 @@ void Servo::updateIncPos()
   //std::cout << "set_pos = " << (int)set_pos << std::endl;
   //std::cout.flush();
   setSetPos(set_pos);
-}
-
-//----------------------------------------------------------------------//
-bool Servo::handleTimeOut(const KERN::KernelTimer& timer)
-{
-  assert(d_velocity_man != nullptr);
-  
-  if (timer.is(d_vel_inc_timer))
-    {
-      //std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
-      updateIncPos();
-      updateMove();
-      return true;
-    }
-  
-  return false;
 }
 
 //----------------------------------------------------------------------//

@@ -163,7 +163,7 @@ void HttpOperations::process()
     }
 			
   // has the transfer completed?
-  //std::cout << "HttpOperations::handleTimeOut " << "d_running_transfers = " << d_running_transfers << std::endl;
+  //std::cout << "HttpOperations::process " << "d_running_transfers = " << d_running_transfers << std::endl;
   if (d_running_transfers == 0)
     {
       d_timer_process.disable();
