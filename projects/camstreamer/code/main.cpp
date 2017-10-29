@@ -1,4 +1,3 @@
-#include "pipins.h"
 #include "camstreamer.h"
 
 #include "kn_asiokernel.h"
@@ -7,31 +6,24 @@
 #include <wiringPi.h>
 #include <iostream>
 
+// TO DO:
+// - cam streamer class (map pin inputs to gopro control)
+// - start script to use omxplayer
+// - test
+
+// - wrap LED driver control and use in camstreamer
+// - installer script using USB
+// - optimize gopro streaming settings
+//   - increase bitrate to reduce dropped packets
+//   - sniff gopro app command for keeping stream up (the restart one causes the stream to stop temporarily)
+
 int main()
 {
   wiringPiSetup(); // terminates on failure
+  // led will use hard drive reads on failure (default)
 
   KERN::AsioKernel k;
-
-  // cam streamer pins
-  // CamStreamer::Params params(SERVONUM::steering,
-  // SERVONUM::motor);
-  
-  // TO DO:
-  // - cam streamer class (map pins inputs to gopro control)
-  // - start script to use omxplayer
-  // - wrap pin control wiringPi
-  // - wrap LED driver control
-  // - installer script using USB
-  // - optimize gopro streaming settings
-  
-  // create cam streamer
-  // initializes pin modes
-  // start pinging a request to check for active wifi (this can be the connect command to assist with pairing) - signal this state with the green LED
-  // pinging stops once connected (signal with LED), starts streaming, and reads pins in short intervals to check a change in state
-  // pin state changes (signal with LED) trigger camera requests
-  // if a request fails, then reset control and start the pinging again
-  CamStreamer streamer(params);
+  CamStreamer cam_streamer;
   
   k.run();
   return 0;

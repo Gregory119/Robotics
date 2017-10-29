@@ -23,21 +23,21 @@ HttpOperations::HttpOperations(HttpOperationsOwner* o)
 //----------------------------------------------------------------------//
 HttpOperations::~HttpOperations()
 {
-  if (d_curl_multi != nullptr && d_curl != nullptr)
+  if ( d_curl != nullptr)
     {
       curl_easy_cleanup(d_curl);
+    }
+
+  if (d_curl_multi != nullptr)
+    {
       curl_multi_cleanup(d_curl_multi);
     }
-  else
-    {
-      assert(d_curl == nullptr);
-    }
-	
+  	
   curl_global_cleanup();
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::init(long timeout_sec)
+void HttpOperations::init(std::chrono::seconds timeout)
 {
   //std::cout << "HttpOperations::init" << std::endl;
   if (d_is_initialised)
@@ -66,7 +66,7 @@ void HttpOperations::init(long timeout_sec)
       return;
     }
 
-  if (curl_easy_setopt(d_curl, CURLOPT_TIMEOUT, timeout_sec) != CURLE_OK)
+  if (curl_easy_setopt(d_curl, CURLOPT_TIMEOUT, timeout.count()) != CURLE_OK)
     {
       d_timer_failed_init.restartMs(0);
       return;
@@ -214,12 +214,15 @@ void HttpOperations::processMessage()
 
   if (msg->msg != CURLMSG_DONE)
     {
+      // LOG
       assert(false); // not sure why this would happen
+      d_is_processing_req = false;
       return;
     }
 
   if (msg->data.result == CURLE_OPERATION_TIMEDOUT)
     {
+      d_is_processing_req = false;
       d_owner->handleFailed(this,HttpOpError::Timeout);
       return;
     }
@@ -228,7 +231,8 @@ void HttpOperations::processMessage()
   if (msg->data.result != CURLE_OK)
     {
       // LOG THIS: the exact error details should be logged here
-      assert(false); // this should not happen
+      // this will happen when failing to connect/initialize etc
+      d_is_processing_req = false;
       d_owner->handleFailed(this,HttpOpError::Internal);
       return;
     }

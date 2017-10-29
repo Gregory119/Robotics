@@ -5,8 +5,8 @@
 
 #include "kn_asiocallbacktimer.h"
 #include "kn_deleteontimeout.h"
+#include "wp_pins.h"
 
-#include <wp_pins.h>
 #include <memory>
 
 class CamStreamer final : D_GP::ModeController::Owner
@@ -19,8 +19,8 @@ class CamStreamer final : D_GP::ModeController::Owner
   void processPins();
 
  private:
-  void handleFailedRequest(ModeController*, ModeController::Req) override;
-  void handleSuccessfulRequest(ModeController*, ModeController::Req) override;
+  void handleFailedRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
+  void handleSuccessfulRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
 
  private:
   void restartGPController();
@@ -37,12 +37,13 @@ class CamStreamer final : D_GP::ModeController::Owner
   bool d_pin_trigger_val = false;
   bool d_pin_connect_val = false;
 
-  ModeController::CtrlParams d_gpcont_params;;
+  D_GP::ModeController::CtrlParams d_gpcont_params;
 
   KERN::AsioCallbackTimer d_check_pins;
   KERN::AsioCallbackTimer d_reset_gp;
     
   KERN::DeleteOnTimeout<D_GP::ModeController> d_delete_gpcont;
+  // hold a led controller
 };
 
 #endif

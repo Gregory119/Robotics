@@ -3,6 +3,7 @@
 
 #include "kn_asiocallbacktimer.h"
 
+#include <chrono>
 #include <curl/curl.h>
 #include <string>
 #include <vector>
@@ -57,7 +58,7 @@ namespace C_HTTP
 
     // Must be called before using class.
     // On failure, handleFailed will be called on a zero timeout
-    void init(long timeout_sec = 30); 
+    void init(std::chrono::seconds timeout = std::chrono::seconds(30)); 
 
     // example params = "name=daniel&project=curl"
     // Will return false if current message is not complete

@@ -57,7 +57,8 @@ void ModeController::stopStream()
 void ModeController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 {
   std::cout << "D_GP::ModeController::handleCommandSuccessful " << std::endl;
-
+  assert(!d_reqs.empty());
+  
   switch (cmd)
     {
     case GoPro::Cmd::Status:

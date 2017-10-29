@@ -30,7 +30,7 @@ namespace D_GP
     void stopLiveStream() override;
     
     bool hasBufferedReqs() override;
-    void cancelBufferedCmds() override;
+    void cancelBufferedCmds() override; // will not stop a command currently being processed
 
   private:    
     // C_HTTP::HttpOperationsOwner
@@ -42,6 +42,7 @@ namespace D_GP
 
   private:
     void requestCmd(GoPro::Cmd);
+    void internalStopLiveStream(); // does not notify owner
     
   private:
     std::unique_ptr<C_HTTP::HttpOperations> d_http; 

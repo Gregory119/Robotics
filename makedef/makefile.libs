@@ -14,7 +14,7 @@ ifndef MAKESETTINGS
 endif
 
 ifdef USES_LIBWIRINGPI
-      LIBWIRINGPIPATH = $(BASE_DIR)/peripherals/wiringpi/
+      LIBWIRINGPIPATH = $(BASE_DIR)/peripherals/wiringpi
       INCLUDES += -I$(LIBWIRINGPIPATH)
       LIBS += -lwiringPi
       LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
@@ -23,10 +23,11 @@ endif
 ifdef USES_LIBCONTROL
       LIBCONTROLPATH = $(BASE_DIR)/control
       INCLUDES += -I$(LIBCONTROLPATH)
-      LIBS += -lpthread -lwiringPi
+      LIBS += -lpthread
       LIBSRC += $(wildcard $(LIBCONTROLPATH)/*.cpp)
       USES_LIBUTILS=1
       USES_LIBKERN=1
+      USES_LIBWIRINGPI=1
 endif
 
 ifdef USES_LIBDGP

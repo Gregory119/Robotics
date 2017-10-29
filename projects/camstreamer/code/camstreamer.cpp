@@ -1,6 +1,5 @@
 #include "camstreamer.h"
 
-
 #include <wiringPi.h>
 
 //----------------------------------------------------------------------//
@@ -40,7 +39,6 @@ CamStreamer::CamStreamer()
   d_reset_gp.setCallback([this](){
       restartGPController();
     });
-  d_reset_gp.restart(std::chrono::seconds(5));
 }
 
 //----------------------------------------------------------------------//
@@ -77,18 +75,22 @@ void CamStreamer::processPins()
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleFailedRequest(ModeController* ctrl,
-				      ModeController::Req req)
+void CamStreamer::handleFailedRequest(D_GP::ModeController* ctrl,
+				      D_GP::ModeController::Req req)
 {
+  std::cout << "CamStreamer::handleFailedRequest" << std::endl;
   // disable any other callbacks
-  ctrl.setOwner(nullptr);
-  // delete on timeout
+  ctrl->setOwner(nullptr);
+  // delete on timeout 
   d_delete_gpcont.deletePtr(d_gp_controller);
+  d_reset_gp.singleShot(std::chrono::seconds(5));
+  
+  // led => display not connected
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleSuccessfulRequest(ModeController*,
-					  ModeController::Req)
+void CamStreamer::handleSuccessfulRequest(D_GP::ModeController*,
+					  D_GP::ModeController::Req)
 {
-  // YAY!!
+  // led => display connected
 }

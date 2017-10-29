@@ -34,5 +34,6 @@ clean:
 	$(MAKE) clean -C control
 	$(MAKE) clean -C makedef
 	$(MAKE) clean -C projects
+	$(MAKE) clean -C peripherals
 	$(MAKE) clean -C general_testprogs
 	$(RM) *~ *.d* *.o* *# *.core

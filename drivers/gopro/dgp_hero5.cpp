@@ -3,12 +3,10 @@
 #include "dgp_utils.h"
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
 
 using namespace D_GP;
-
-static const int s_http_timeout_ms = 3000;
-static const int s_connection_check_ms = 5000;
 
 //----------------------------------------------------------------------//
 GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
@@ -21,12 +19,23 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   d_connect_name = name;
 
   d_timer_stream.setCallback([this](){
+      // do not request stream if a stream request response has not been received
+      if (!d_cmd_reqs.empty())
+	  
+	{
+	  auto it = std::find(d_cmd_reqs.begin(),
+			      d_cmd_reqs.end(),
+			      GoPro::Cmd::StartLiveStream);
+	  if (it != d_cmd_reqs.end())
+	    {
+	      return;
+	    }
+	}
       startLiveStream();
-      // use omxplayer to output video on analog connection
     });
 
   // Will call failure callback if failed
-  d_http->init(s_http_timeout_ms);
+  d_http->init(std::chrono::seconds(10));
 }
 
 //----------------------------------------------------------------------//
@@ -133,7 +142,7 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
 
   if (cmd == GoPro::Cmd::StartLiveStream)
     {
-      stopLiveStream();
+      internalStopLiveStream();
     }
   
   switch (error)
@@ -280,9 +289,15 @@ void GoProHero5::startLiveStream()
 //----------------------------------------------------------------------//
 void GoProHero5::stopLiveStream()
 {
+  internalStopLiveStream();
+  d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::internalStopLiveStream()
+{
   d_timer_stream.disable();
   d_is_streaming = false;
-  d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
 }
 
 //----------------------------------------------------------------------//
