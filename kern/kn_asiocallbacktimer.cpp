@@ -128,7 +128,7 @@ void AsioCallbackTimer::restartMsIfNotSet(long time_ms)
 }
 
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::restartMsIfNotSetElseDisabled(long time_ms)
+void AsioCallbackTimer::restartMsIfNotSetOrDisabled(long time_ms)
 {
   if (!isSet()) // implies disabled
     {

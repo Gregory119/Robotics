@@ -10,6 +10,7 @@ static const std::string s_h5_wifipair = "/gp/gpControl/command/wireless/pair/co
 static const std::string s_h5_mode = "/gp/gpControl/command/sub_mode?";
 static const std::string s_h5_shutter = "/gp/gpControl/command/shutter?p=";
 static const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart";
+static const std::string s_h5_bitrate = "/gp/gpControl/setting/62/";
 
 //----------------------------------------------------------------------//
 std::string Utils::appendToAddress(const std::string& cmd,
@@ -120,6 +121,10 @@ Utils::cmdToUrlHero5(GoPro::Cmd cmd,
     case GoPro::Cmd::SetShutterTrigger:
       return appendToAddress(s_h5_shutter+"1",
 			     CamModel::Hero5);
+
+    case GoPro::Cmd::SetBitRate:
+      return appendToAddress(s_h5_bitrate+params.at(0),
+			     CamModel::Hero5);
       
     case GoPro::Cmd::SetShutterStop:
       return appendToAddress(s_h5_shutter+"0",
@@ -146,6 +151,7 @@ bool Utils::validUrlParamsHero5(GoPro::Cmd cmd,
   switch (cmd)
     {
     case GoPro::Cmd::Connect:
+    case GoPro::Cmd::SetBitRate:
       if (params.size() != 1)
 	{
 	  assert(false);

@@ -121,7 +121,7 @@ void HttpOperations::init(std::chrono::seconds timeout)
 //----------------------------------------------------------------------//
 void HttpOperations::get(const std::string& url)
 {
-  std::cout << "get with url = " << url << std::endl;
+  std::cout << "HttpOperations::get - url = " << url << std::endl;
   if (!d_is_initialised)
     {
       assert(false);
@@ -130,6 +130,7 @@ void HttpOperations::get(const std::string& url)
 	
   if (d_is_processing_req)
     {
+      //std::cout << "HttpOperations::get - buffering url = " << url << std::endl;
       Request req;
       req.type = RequestType::Get;
       req.url = url;

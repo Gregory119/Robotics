@@ -118,46 +118,44 @@ void GoProHero5::setShutter(bool state)
 {
   // LOG
   std::cout << "GoProHero5::setShutter()" << std::endl;
+  GoPro::Cmd cmd = GoPro::Cmd::SetShutterStop;
   if (state)
     {
-      d_http->get(Utils::cmdToUrl(GoPro::Cmd::SetShutterTrigger,
-					      CamModel::Hero5));
-      d_cmd_reqs.push_back(GoPro::Cmd::SetShutterTrigger);
+      cmd = GoPro::Cmd::SetShutterTrigger;
     }
-  else
+  // else request to stop shutter
+  d_http->get(Utils::cmdToUrl(cmd,
+			      CamModel::Hero5));
+  d_cmd_reqs.push_back(cmd);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::setBitRatePerSecond(unsigned bitrate)
+{
+  std::vector<std::string> params = {std::to_string(bitrate)};
+  GoPro::Cmd cmd = GoPro::Cmd::SetBitRate;
+  d_http->get(Utils::cmdToUrl(cmd,
+			      CamModel::Hero5,
+			      params));
+  d_cmd_reqs.push_back(cmd);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::startLiveStream()
+{
+  std::cout << "GoProHero5::startLiveStream()" << std::endl;
+  requestCmd(GoPro::Cmd::StartLiveStream);
+  if (!d_is_streaming)
     {
-      d_http->get(Utils::cmdToUrl(GoPro::Cmd::SetShutterStop,
-					      CamModel::Hero5));
-      d_cmd_reqs.push_back(GoPro::Cmd::SetShutterStop);
+      d_timer_stream.restartMsIfNotSetOrDisabled(5000);
     }
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
-			      C_HTTP::HttpOpError error)
+void GoProHero5::stopLiveStream()
 {
-  // sent command was unsuccessful
-  GoPro::Cmd cmd = d_cmd_reqs.front();
-  d_cmd_reqs.pop_front();
-
-  if (cmd == GoPro::Cmd::StartLiveStream)
-    {
-      internalStopLiveStream();
-    }
-  
-  switch (error)
-    {
-    case C_HTTP::HttpOpError::Internal:
-      // LOG
-      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Internal);
-      return;
-
-    case C_HTTP::HttpOpError::Timeout:
-      // LOG
-      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Timeout);
-      return;
-    }
-  assert(false);
+  internalStopLiveStream();
+  d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
 }
 
 //----------------------------------------------------------------------//
@@ -231,6 +229,7 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
     case GoPro::Cmd::SetModeMultiShotNightLapse:
     case GoPro::Cmd::SetShutterTrigger:
     case GoPro::Cmd::SetShutterStop:
+    case GoPro::Cmd::SetBitRate:
       d_owner->handleCommandSuccessful(this,
 				       cmd);
       return;
@@ -277,20 +276,31 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::startLiveStream()
+void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
+			      C_HTTP::HttpOpError error)
 {
-  requestCmd(GoPro::Cmd::StartLiveStream);
-  if (!d_is_streaming)
-    {
-      d_timer_stream.restartMsIfNotSetElseDisabled(5000);
-    }
-}
+  // sent command was unsuccessful
+  GoPro::Cmd cmd = d_cmd_reqs.front();
+  d_cmd_reqs.pop_front();
 
-//----------------------------------------------------------------------//
-void GoProHero5::stopLiveStream()
-{
-  internalStopLiveStream();
-  d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
+  if (cmd == GoPro::Cmd::StartLiveStream)
+    {
+      internalStopLiveStream();
+    }
+  
+  switch (error)
+    {
+    case C_HTTP::HttpOpError::Internal:
+      // LOG
+      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Internal);
+      return;
+
+    case C_HTTP::HttpOpError::Timeout:
+      // LOG
+      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Timeout);
+      return;
+    }
+  assert(false);
 }
 
 //----------------------------------------------------------------------//

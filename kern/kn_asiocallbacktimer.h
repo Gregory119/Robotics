@@ -20,7 +20,7 @@ namespace KERN
     void restartMs(long time_ms);
     void restart(std::chrono::milliseconds);
     void restartMsIfNotSet(long time_ms);
-    void restartMsIfNotSetElseDisabled(long time_ms);
+    void restartMsIfNotSetOrDisabled(long time_ms);
     void restart(); // re-enable with the already set time
     void singleShot(std::chrono::milliseconds);
     void disable();

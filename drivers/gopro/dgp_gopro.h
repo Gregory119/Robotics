@@ -43,6 +43,7 @@ namespace D_GP
       SetShutterStop,
       StartLiveStream,
       StopLiveStream,
+      SetBitRate,
       Unknown
     };
 
@@ -73,6 +74,7 @@ namespace D_GP
     virtual void status() = 0; 
     virtual void setMode(Mode) = 0;
     virtual void setShutter(bool) = 0;
+    virtual void setBitRatePerSecond(unsigned) = 0;
     virtual void startLiveStream() = 0;
     virtual void stopLiveStream() = 0;
     virtual bool hasBufferedReqs() = 0;

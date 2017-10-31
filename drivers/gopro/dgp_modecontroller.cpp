@@ -89,6 +89,10 @@ void ModeController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 	  }
       }
       return;
+
+    case GoPro::Cmd::SetBitRate:
+      // used as part of the start stream request
+      return;
       
     case GoPro::Cmd::Unknown:
       assert(false);
@@ -141,6 +145,7 @@ void ModeController::processStatus()
     case Req::StartStream:
       if (!d_gp->getStatus().d_is_streaming)
 	{
+	  d_gp->setBitRatePerSecond(4000000); // 5.8 Mbps
 	  d_gp->startLiveStream();
 	}
       return;

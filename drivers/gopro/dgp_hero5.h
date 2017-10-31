@@ -24,6 +24,7 @@ namespace D_GP
     void status() override; 
     void setMode(Mode) override;
     void setShutter(bool) override;
+    void setBitRatePerSecond(unsigned) override;
 
     // The stream lasts about 6 seconds. It will not end if another start stream request is made within this time.
     void startLiveStream() override;
