@@ -183,7 +183,8 @@ void HttpOperations::failedInit()
 //----------------------------------------------------------------------//
 void HttpOperations::processNextBufferedReq()
 {
-  if (d_buf_reqs.empty())
+  if (d_buf_reqs.empty() ||
+      d_is_processing_req) // do not want to move first buffered request to the back of the buffer
     {
       // nothing to do
       return;
