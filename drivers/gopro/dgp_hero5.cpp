@@ -19,7 +19,7 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   d_connect_name = name;
 
   d_timer_stream.setCallback([this](){
-      // do not request stream if a stream request response has not been received
+      // do not request stream to stay up if a stream request response has not been received
       if (!d_cmd_reqs.empty())
 	  
 	{
@@ -28,10 +28,11 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
 			      GoPro::Cmd::StartLiveStream);
 	  if (it != d_cmd_reqs.end())
 	    {
+	      // still waiting on the response to the request to start the live stream
 	      return;
 	    }
 	}
-      startLiveStream();
+      maintainStream();
     });
 
   // Will call failure callback if failed
@@ -235,12 +236,8 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       return;
 
     case GoPro::Cmd::StartLiveStream:
-      if (!d_is_streaming)
-	{
-	  d_is_streaming = true;
-	  d_owner->handleCommandSuccessful(this, cmd);
-	}
-      // else continue streaming with timer requests
+      d_is_streaming = true;
+      d_owner->handleCommandSuccessful(this, cmd);
       return;
       
     case GoPro::Cmd::Status:
@@ -267,6 +264,10 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       }
       return;
 
+    case GoPro::Cmd::MaintainStream:
+      // nothing to do
+      return;
+      
     case GoPro::Cmd::StopLiveStream: // should not be handled here
     case GoPro::Cmd::Unknown:
       assert(false);
@@ -308,6 +309,15 @@ void GoProHero5::internalStopLiveStream()
 {
   d_timer_stream.disable();
   d_is_streaming = false;
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::maintainStream()
+{
+  // using the status command to maintain the stream
+  d_http->get(Utils::cmdToUrl(GoPro::Cmd::Status,
+			      CamModel::Hero5));
+  d_cmd_reqs.push_back(GoPro::Cmd::MaintainStream);
 }
 
 //----------------------------------------------------------------------//

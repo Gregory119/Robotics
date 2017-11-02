@@ -44,6 +44,7 @@ namespace D_GP
   private:
     void requestCmd(GoPro::Cmd);
     void internalStopLiveStream(); // does not notify owner
+    void maintainStream();
     
   private:
     std::unique_ptr<C_HTTP::HttpOperations> d_http; 

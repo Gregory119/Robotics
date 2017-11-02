@@ -51,12 +51,23 @@ Android debugger (adb) was used to mv tcpdump to a system file location on the p
 
 How to install android debug tools:
 http://www.howtogeek.com/125769/how-to-install-and-use-abd-the-android-debug-bridge-utility/
+ - install java
+   - download and extract to a folder (/usr/local/java...)
+   - set the JAVA_HOME environment variable in /etc/bash.bashrc to the java directory
+ - download the adb sdk command line tools only and extract them
+ - run /tools/bin/sdkmanager --list to list the available packages to install
+ - run "./sdkmanager platform_tools" to install the Android SDK Platform Tools (should automatically download to "Downloads")
+ - $ ./adb devices to list devices (may need to disable then re-enable usb debugging on phone)
 
 How to install tcpdump on phone using android debug tools:
 https://josetrochecoder.wordpress.com/2013/11/04/installing-tcpdump-for-android/
 
 tcpdump was then run remotely from a shell on the pc. The Batch mode capture option described in the following link was used:
 https://wladimir-tm4pda.github.io/porting/tcpdump.html
+ - create a shell terminal and run tcpdump to a file on the device: $ ./adb shell tcpdump -i any -s 0 -w /sdcard/capture.pcap
+ - transfer the capture file to the PC to evaluate with WireShark:  $ ./adb pull /sdcard/capture.pcap
+ - install wireshark: $ apt-get install wireshark
+ - evaluate with wireshark: $ wireshark capture.pcap
 
 HTTP wireshark methods were filtered for to view the pairing process:
 send: http://10.5.5.9/bacpac/cv
@@ -71,3 +82,5 @@ receive: HTTP/1.1 200 OK
 send: http://10.5.5.9/gp/gpControl/info
 receive: HTTP/1.1 200 OK
 	 and json object with status data
+
+The status command is used to keep the stream up

@@ -28,7 +28,7 @@ apt-get install build-essential
   - $ git clone https://github.com/raspberrypi/tools
   
 - add toolchain bin directory to the PATH environment variable [2] to allow tool execution from any directory:
-  - create a file /etc/profile.d/bash.rc for system-wide variables [3]
+  - create a file /etc/profile.d/bash.rc for system-wide variables [3] or on Debian systems /etc/bash.bashrc (Xubuntu and ubuntu)
   - add the following lines:
   export PITOOLCHAIN=/rasppi_xcompile/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
   export PATH=$PATH:$PITOOLCHAIN
