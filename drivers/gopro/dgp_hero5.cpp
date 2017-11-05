@@ -10,31 +10,32 @@ using namespace D_GP;
 
 //----------------------------------------------------------------------//
 GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
-  : GoPro(o)
+  : GoPro(o),
+    d_http(new C_HTTP::HttpOperations(this))
 {
   assert(o != nullptr);
-  d_http.reset(new C_HTTP::HttpOperations(this));
-
   assert(!name.empty());
   d_connect_name = name;
 
   d_timer_stream.setCallback([this](){
-      // do not request stream to stay up if a stream request response has not been received
+      // do not request to maintain stream if already waiting on a maintain stream response
       if (!d_cmd_reqs.empty())
-	  
+	      
 	{
 	  auto it = std::find(d_cmd_reqs.begin(),
 			      d_cmd_reqs.end(),
-			      GoPro::Cmd::StartLiveStream);
+			      GoPro::Cmd::MaintainStream);
 	  if (it != d_cmd_reqs.end())
 	    {
-	      // still waiting on the response to the request to start the live stream
+	      // still waiting on the response to maintain the live stream
 	      return;
 	    }
 	}
       maintainStream();
     });
 
+  d_http->appendHeaders({"Connection: Keep-Alive"});
+  
   // Will call failure callback if failed
   d_http->init(std::chrono::seconds(10));
 }
@@ -148,7 +149,7 @@ void GoProHero5::startLiveStream()
   requestCmd(GoPro::Cmd::StartLiveStream);
   if (!d_is_streaming)
     {
-      d_timer_stream.restartMsIfNotSetOrDisabled(5000);
+      d_timer_stream.restartMsIfNotSetOrDisabled(1000);
     }
 }
 
@@ -242,10 +243,9 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
       
     case GoPro::Cmd::Status:
       {
-	if (body.size() == 0)
+	if (body.empty())
 	  {
-	    d_owner->handleCommandSuccessful(this,
-					     cmd);
+	    d_owner->handleCommandFailed(this, cmd, GoPro::Error::Response);
 	    return;
 	  }
 	

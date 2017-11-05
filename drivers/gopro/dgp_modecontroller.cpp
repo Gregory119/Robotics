@@ -145,7 +145,7 @@ void ModeController::processStatus()
     case Req::StartStream:
       if (!d_gp->getStatus().d_is_streaming)
 	{
-	  d_gp->setBitRatePerSecond(4000000); // 5.8 Mbps
+	  d_gp->setBitRatePerSecond(2400000); // 2.4 Mbps
 	  d_gp->startLiveStream();
 	}
       return;

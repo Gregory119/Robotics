@@ -14,8 +14,7 @@ CamStreamer::CamStreamer()
 
   // extract gopro type from xml (app setting)
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
-  d_gp_controller.reset(new D_GP::ModeController(this,d_gpcont_params));
-  d_gp_controller->startStream();
+  restartGPController();
 
   // initialize pins
   pinMode(d_pin_mode_num, INPUT);
@@ -45,6 +44,7 @@ CamStreamer::CamStreamer()
 void CamStreamer::restartGPController()
 {
   d_gp_controller.reset(new D_GP::ModeController(this,d_gpcont_params));
+  d_gp_controller->connect();
   d_gp_controller->startStream();
 }
 

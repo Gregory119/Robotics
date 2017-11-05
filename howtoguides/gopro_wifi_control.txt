@@ -17,10 +17,11 @@ Start (all that is needed for Photo): http://10.5.5.9/gp/gpControl/command/shutt
 Stop (Video/Timelapse): http://10.5.5.9/gp/gpControl/command/shutter?p=0
 
 To stream live video wirelessly:
-send the following command repeatively on an interval less than 6 seconds: http://10.5.5.9/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart
-you can stream with ffplay with the command: ffplay -fflags nobuffer udp://:8554
-send stream to pi analog out with: omxplayer --live 0 -o local udp://:8554
-send stream to pi hdmi out with: omxplayer --live -o hdmi udp://:8554
+Send the following command to start the stream: http://10.5.5.9/gp/gpControl/execute?p1=gpStream&a1=proto_v2&c1=restart
+Then keep the stream up using a udp packet message as shown in https://gist.github.com/3v1n0/38bcd4f7f0cb3c279bad#file-hero4-udp-keep-alive-send-py
+You can stream with ffplay with the command: ffplay -fflags nobuffer udp://:8554
+Send stream to pi analog out with: omxplayer --live 0 -o local udp://:8554
+Send stream to pi hdmi out with: omxplayer --live -o hdmi udp://:8554
 
 set the live video settings as follows:
 most wifi dongles will support 150 Mbps
