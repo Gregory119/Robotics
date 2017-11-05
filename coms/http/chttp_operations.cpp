@@ -18,6 +18,8 @@ HttpOperations::HttpOperations(HttpOperationsOwner* o)
   d_timer_failed_init.setCallback([this](){
       failedInit();
     });
+
+  removeDefaultHeaders({"Accept:"});
 }
 
 //----------------------------------------------------------------------//
@@ -32,7 +34,12 @@ HttpOperations::~HttpOperations()
     {
       curl_multi_cleanup(d_curl_multi);
     }
-  	
+
+  if (d_header_list != nullptr)
+    {
+      curl_slist_free_all(d_header_list);
+    }
+  
   curl_global_cleanup();
 }
 
@@ -96,6 +103,24 @@ void HttpOperations::init(std::chrono::seconds timeout)
       return;
     }
 
+  if (d_header_list != nullptr)
+    {
+      if (curl_easy_setopt(d_curl, CURLOPT_HTTPHEADER, d_header_list) != CURLE_OK)
+	{
+	  d_timer_failed_init.restartMs(0);
+	  return;
+	}
+    }
+
+  // debug info
+#ifndef RELEASE
+  if (curl_easy_setopt(d_curl, CURLOPT_VERBOSE, 1L) != CURLE_OK)
+    {
+      d_timer_failed_init.restartMs(0);
+      return;
+    }
+#endif
+  
   d_curl_multi = curl_multi_init();
   if (d_curl_multi == nullptr)
     {
@@ -116,6 +141,22 @@ void HttpOperations::init(std::chrono::seconds timeout)
     }
 	
   d_is_initialised = true;
+}
+
+//----------------------------------------------------------------------//
+void HttpOperations::appendHeaders(const std::list<std::string>& headers)
+{
+  for (const auto& header : headers)
+    {
+      d_header_list = curl_slist_append(d_header_list, header.c_str());
+    }
+}
+
+//----------------------------------------------------------------------//
+// eg. "Accept:"
+void HttpOperations::removeDefaultHeaders(const std::list<std::string>& headers) 
+{
+  appendHeaders(headers);
 }
 
 //----------------------------------------------------------------------//
@@ -140,7 +181,7 @@ void HttpOperations::get(const std::string& url)
 
   //std::cout << "HttpOperations::get: starting to process get" << url << std::endl;
   d_is_processing_req = true;
-  d_url = url;
+  d_url = url;  
   curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
   curl_multi_add_handle(d_curl_multi, d_curl);
   
@@ -159,6 +200,7 @@ void HttpOperations::process()
       // LOG THIS: the exact error details should be logged here
       assert(false); // this should not happen
       d_timer_process.disable();
+      curl_multi_remove_handle(d_curl_multi, d_curl);
       d_owner->handleFailed(this,HttpOpError::Internal);
       return;
     }
@@ -225,6 +267,7 @@ void HttpOperations::processMessage()
   if (msg->data.result == CURLE_OPERATION_TIMEDOUT)
     {
       d_is_processing_req = false;
+      curl_multi_remove_handle(d_curl_multi, d_curl);
       d_owner->handleFailed(this,HttpOpError::Timeout);
       return;
     }
@@ -235,6 +278,7 @@ void HttpOperations::processMessage()
       // LOG THIS: the exact error details should be logged here
       // this will happen when failing to connect/initialize etc
       d_is_processing_req = false;
+      curl_multi_remove_handle(d_curl_multi, d_curl);
       d_owner->handleFailed(this,HttpOpError::Internal);
       return;
     }

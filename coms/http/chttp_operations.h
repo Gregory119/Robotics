@@ -58,7 +58,11 @@ namespace C_HTTP
 
     // Must be called before using class.
     // On failure, handleFailed will be called on a zero timeout
-    void init(std::chrono::seconds timeout = std::chrono::seconds(30)); 
+    void init(std::chrono::seconds timeout = std::chrono::seconds(30));
+
+    // Must be called before initializing
+    void appendHeaders(const std::list<std::string>&);
+    void removeDefaultHeaders(const std::list<std::string>&); // eg. "Accept:"
 
     // example params = "name=daniel&project=curl"
     // Will return false if current message is not complete
@@ -113,6 +117,7 @@ namespace C_HTTP
 
     CURL *d_curl = nullptr;
     CURLM *d_curl_multi = nullptr;
+    struct curl_slist *d_header_list = nullptr;
 
     std::string d_url;
 
