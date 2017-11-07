@@ -5,36 +5,36 @@
 #include <cassert>
 #include <iostream>
 
-class TestHttp : C_HTTP::HttpOperationsOwner
+class TestHttp : C_HTTP::OperationsOwner
 {
 public:
   TestHttp(const std::string& url)
   {
-    d_http.reset(new C_HTTP::HttpOperations(static_cast<C_HTTP::HttpOperationsOwner*>(this)));
+    d_http.reset(new C_HTTP::Operations(static_cast<C_HTTP::OperationsOwner*>(this)));
 
     d_http->init(60);
     d_http->get(url);
   }
 	
 private:
-  // HttpOperationsOwner
-  void handleFailed(C_HTTP::HttpOperations*,C_HTTP::HttpOpError err) override
+  // C_HTTP::OperationsOwner
+  void handleFailed(C_HTTP::Operations*,C_HTTP::OpError err) override
   {
     switch (err)
       {
-      case C_HTTP::HttpOpError::Internal:
+      case C_HTTP::OpError::Internal:
 	std::cout << "Got an internal error. This should never happen." << std::endl;
 	return;
 
-      case C_HTTP::HttpOpError::Timeout:
+      case C_HTTP::OpError::Timeout:
 	std::cout << "Got a timeout error." << std::endl;
 	return;
       }
     assert(false);
   }
 	
-  void handleResponse(C_HTTP::HttpOperations*,
-		      C_HTTP::HttpResponseCode code,
+  void handleResponse(C_HTTP::Operations*,
+		      C_HTTP::ResponseCodeNum code,
 		      const std::vector<std::string>& headers,
 		      const std::vector<char>& body) override
   {
@@ -57,7 +57,7 @@ private:
   }
 
 private:
-  std::unique_ptr<C_HTTP::HttpOperations> d_http;
+  std::unique_ptr<C_HTTP::Operations> d_http;
 };
 
 int main(int argc, char* argv[])

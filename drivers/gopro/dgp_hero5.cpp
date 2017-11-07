@@ -11,7 +11,7 @@ using namespace D_GP;
 //----------------------------------------------------------------------//
 GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   : GoPro(o),
-    d_http(new C_HTTP::HttpOperations(this))
+    d_http(new C_HTTP::Operations(this))
 {
   assert(o != nullptr);
   assert(!name.empty());
@@ -19,7 +19,7 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
 
   d_timer_stream.setCallback([this](){
       // do not request to maintain stream if already waiting on a maintain stream response
-      if (!d_cmd_reqs.empty())
+      /*if (!d_cmd_reqs.empty())
 	      
 	{
 	  auto it = std::find(d_cmd_reqs.begin(),
@@ -30,7 +30,7 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
 	      // still waiting on the response to maintain the live stream
 	      return;
 	    }
-	}
+	    }*/
       maintainStream();
     });
 
@@ -198,8 +198,8 @@ void GoProHero5::cancelBufferedCmds()
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
-				C_HTTP::HttpResponseCode code,
+void GoProHero5::handleResponse(C_HTTP::Operations* http,
+				C_HTTP::ResponseCodeNum code,
 				const std::vector<std::string>& headers,
 				const std::vector<char>& body)
 {
@@ -209,7 +209,7 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
   GoPro::Cmd cmd = d_cmd_reqs.front();
   d_cmd_reqs.pop_front();
   
-  if (code >= static_cast<C_HTTP::HttpResponseCode>(C_HTTP::ResponseCode::BadRequest))
+  if (code >= static_cast<C_HTTP::ResponseCodeNum>(C_HTTP::ResponseCode::BadRequest))
     {
       // not successful
       d_owner->handleCommandFailed(this, cmd, GoPro::Error::Response);
@@ -277,8 +277,8 @@ void GoProHero5::handleResponse(C_HTTP::HttpOperations* http,
 }
 
 //----------------------------------------------------------------------//
-void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
-			      C_HTTP::HttpOpError error)
+void GoProHero5::handleFailed(C_HTTP::Operations* http,
+			      C_HTTP::OpError error)
 {
   // sent command was unsuccessful
   GoPro::Cmd cmd = d_cmd_reqs.front();
@@ -291,12 +291,12 @@ void GoProHero5::handleFailed(C_HTTP::HttpOperations* http,
   
   switch (error)
     {
-    case C_HTTP::HttpOpError::Internal:
+    case C_HTTP::OpError::Internal:
       // LOG
       d_owner->handleCommandFailed(this, cmd, GoPro::Error::Internal);
       return;
 
-    case C_HTTP::HttpOpError::Timeout:
+    case C_HTTP::OpError::Timeout:
       // LOG
       d_owner->handleCommandFailed(this, cmd, GoPro::Error::Timeout);
       return;
@@ -314,10 +314,14 @@ void GoProHero5::internalStopLiveStream()
 //----------------------------------------------------------------------//
 void GoProHero5::maintainStream()
 {
+  /*
   // using the status command to maintain the stream
   d_http->get(Utils::cmdToUrl(GoPro::Cmd::Status,
 			      CamModel::Hero5));
   d_cmd_reqs.push_back(GoPro::Cmd::MaintainStream);
+  */
+  
+  // send udp message
 }
 
 //----------------------------------------------------------------------//

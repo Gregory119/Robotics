@@ -11,7 +11,7 @@
 #include <list>
 
 /*
-  HttpOperations is based on asynchronous http communication.
+  Operations is based on asynchronous http communication.
 
   When defining handleResponse, you can convert the body to a string using std::string(body.begin(), body.end()).
   When adding more functions, MAKE SURE TO CHECK READY FLAG AT THE START.
@@ -28,33 +28,33 @@ namespace C_HTTP
     InternalServerError = 500 // 5xx server errors
   };
   
-  enum class HttpOpError
+  enum class OpError
   {
     Internal, // this should not happen
     Timeout
   };
 
-  using HttpResponseCode = int;
+  using ResponseCodeNum = int;
 
-  class HttpOperations;
-  class HttpOperationsOwner // inherit privately
+  class Operations;
+  class OperationsOwner // inherit privately
   {
   private:
-    friend class HttpOperations;
-    virtual void handleFailed(HttpOperations*,HttpOpError) = 0;
-    virtual void handleResponse(HttpOperations*,
-				HttpResponseCode,
+    friend class Operations;
+    virtual void handleFailed(Operations*,OpError) = 0;
+    virtual void handleResponse(Operations*,
+				ResponseCodeNum,
 				const std::vector<std::string>& headers,
 				const std::vector<char>& body) = 0;
   };
 	
-  class HttpOperations final
+  class Operations final
   {
   public:
-    explicit HttpOperations(HttpOperationsOwner* o);
-    ~HttpOperations();
-    HttpOperations& operator=(const HttpOperations&) = delete;
-    HttpOperations(const HttpOperations&) = delete;
+    explicit Operations(OperationsOwner* o);
+    ~Operations();
+    Operations& operator=(const Operations&) = delete;
+    Operations(const Operations&) = delete;
 
     // Must be called before using class.
     // On failure, handleFailed will be called on a zero timeout
@@ -113,7 +113,7 @@ namespace C_HTTP
     };
     
   private:
-    HttpOperationsOwner *d_owner = nullptr;
+    OperationsOwner *d_owner = nullptr;
 
     CURL *d_curl = nullptr;
     CURLM *d_curl_multi = nullptr;

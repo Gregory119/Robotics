@@ -1,5 +1,6 @@
 all: 
 	$(MAKE) http
+	$(MAKE) udp
 
 .PHONY:clean testprogs
 
@@ -7,5 +8,6 @@ testprogs:
 	$(MAKE) testprogs -C http
 
 clean:
-	$(MAKE) clean -C http
 	$(RM) *~ *.d* *.o* *# *.core
+	$(MAKE) clean -C http
+	$(MAKE) clean -C udp

@@ -6,7 +6,7 @@
 using namespace C_HTTP;
 
 //----------------------------------------------------------------------//
-HttpOperations::HttpOperations(HttpOperationsOwner* o)
+Operations::Operations(OperationsOwner* o)
   : d_owner(o)
 {
   assert(o != nullptr);
@@ -23,7 +23,7 @@ HttpOperations::HttpOperations(HttpOperationsOwner* o)
 }
 
 //----------------------------------------------------------------------//
-HttpOperations::~HttpOperations()
+Operations::~Operations()
 {
   if ( d_curl != nullptr)
     {
@@ -44,9 +44,9 @@ HttpOperations::~HttpOperations()
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::init(std::chrono::seconds timeout)
+void Operations::init(std::chrono::seconds timeout)
 {
-  //std::cout << "HttpOperations::init" << std::endl;
+  //std::cout << "C_HTTP::Operations::init" << std::endl;
   if (d_is_initialised)
     {
       assert(false);
@@ -144,7 +144,7 @@ void HttpOperations::init(std::chrono::seconds timeout)
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::appendHeaders(const std::list<std::string>& headers)
+void Operations::appendHeaders(const std::list<std::string>& headers)
 {
   for (const auto& header : headers)
     {
@@ -154,15 +154,15 @@ void HttpOperations::appendHeaders(const std::list<std::string>& headers)
 
 //----------------------------------------------------------------------//
 // eg. "Accept:"
-void HttpOperations::removeDefaultHeaders(const std::list<std::string>& headers) 
+void Operations::removeDefaultHeaders(const std::list<std::string>& headers) 
 {
   appendHeaders(headers);
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::get(const std::string& url)
+void Operations::get(const std::string& url)
 {
-  std::cout << "HttpOperations::get - url = " << url << std::endl;
+  std::cout << "C_HTTP::Operations::get - url = " << url << std::endl;
   if (!d_is_initialised)
     {
       assert(false);
@@ -171,7 +171,7 @@ void HttpOperations::get(const std::string& url)
 	
   if (d_is_processing_req)
     {
-      //std::cout << "HttpOperations::get - buffering url = " << url << std::endl;
+      //std::cout << "C_HTTP::Operations::get - buffering url = " << url << std::endl;
       Request req;
       req.type = RequestType::Get;
       req.url = url;
@@ -179,7 +179,7 @@ void HttpOperations::get(const std::string& url)
       return;
     }
 
-  //std::cout << "HttpOperations::get: starting to process get" << url << std::endl;
+  //std::cout << "C_HTTP::Operations::get: starting to process get" << url << std::endl;
   d_is_processing_req = true;
   d_url = url;  
   curl_easy_setopt(d_curl, CURLOPT_URL, url.c_str());
@@ -191,7 +191,7 @@ void HttpOperations::get(const std::string& url)
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::process()
+void Operations::process()
 {
   CURLMcode res_multi = curl_multi_perform(d_curl_multi, &d_running_transfers);
 
@@ -201,12 +201,12 @@ void HttpOperations::process()
       assert(false); // this should not happen
       d_timer_process.disable();
       curl_multi_remove_handle(d_curl_multi, d_curl);
-      d_owner->handleFailed(this,HttpOpError::Internal);
+      d_owner->handleFailed(this,OpError::Internal);
       return;
     }
 			
   // has the transfer completed?
-  //std::cout << "HttpOperations::process " << "d_running_transfers = " << d_running_transfers << std::endl;
+  //std::cout << "C_HTTP::Operations::process " << "d_running_transfers = " << d_running_transfers << std::endl;
   if (d_running_transfers == 0)
     {
       d_timer_process.disable();
@@ -216,14 +216,14 @@ void HttpOperations::process()
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::failedInit()
+void Operations::failedInit()
 {
   d_timer_failed_init.disable();
-  d_owner->handleFailed(this,HttpOpError::Internal);
+  d_owner->handleFailed(this,OpError::Internal);
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::processNextBufferedReq()
+void Operations::processNextBufferedReq()
 {
   if (d_buf_reqs.empty() ||
       d_is_processing_req) // do not want to move first buffered request to the back of the buffer
@@ -249,7 +249,7 @@ void HttpOperations::processNextBufferedReq()
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::processMessage()
+void Operations::processMessage()
 {
   int messages = 0;
   CURLMsg* msg = curl_multi_info_read(d_curl_multi, &messages);
@@ -268,7 +268,7 @@ void HttpOperations::processMessage()
     {
       d_is_processing_req = false;
       curl_multi_remove_handle(d_curl_multi, d_curl);
-      d_owner->handleFailed(this,HttpOpError::Timeout);
+      d_owner->handleFailed(this,OpError::Timeout);
       return;
     }
 
@@ -279,7 +279,7 @@ void HttpOperations::processMessage()
       // this will happen when failing to connect/initialize etc
       d_is_processing_req = false;
       curl_multi_remove_handle(d_curl_multi, d_curl);
-      d_owner->handleFailed(this,HttpOpError::Internal);
+      d_owner->handleFailed(this,OpError::Internal);
       return;
     }
 
@@ -291,15 +291,15 @@ void HttpOperations::processMessage()
 }
 
 //----------------------------------------------------------------------//
-size_t HttpOperations::respBodyWrite(char *data,
-				     size_t size_mem,
-				     size_t num_mem,
-				     void *userdata)
+size_t Operations::respBodyWrite(char *data,
+				 size_t size_mem,
+				 size_t num_mem,
+				 void *userdata)
 {
-  //std::cout << "HttpOperations::respBodyWrite" << std::endl;
+  //std::cout << "C_HTTP::Operations::respBodyWrite" << std::endl;
   // userdata points to this
   // incrementally store the received body data
-  HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
+  Operations* ptr = static_cast<Operations*>(userdata);
   size_t num_bytes = size_mem*num_mem;
   ptr->d_resp_body.insert(ptr->d_resp_body.end(),
 			  data,
@@ -308,31 +308,31 @@ size_t HttpOperations::respBodyWrite(char *data,
 }
 
 //----------------------------------------------------------------------//
-size_t HttpOperations::respHeaderWrite(char *data,
-				       size_t size_mem,
-				       size_t num_mem,
-				       void *userdata)
+size_t Operations::respHeaderWrite(char *data,
+				   size_t size_mem,
+				   size_t num_mem,
+				   void *userdata)
 {
-  //std::cout << "HttpOperations::respHeaderWrite" << std::endl;
+  //std::cout << "C_HTTP::Operations::respHeaderWrite" << std::endl;
   // userdata points to this
   // store each header as it comes in
   size_t num_bytes = size_mem*num_mem;
   std::string header(data, num_bytes);
-  HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
+  Operations* ptr = static_cast<Operations*>(userdata);
   ptr->d_resp_headers.emplace_back(std::move(header));
   return num_bytes;
 }
 
 //----------------------------------------------------------------------//
-int HttpOperations::timerRestart(CURLM *multi,
-				 long timeout_ms,
-				 void *userdata)
+int Operations::timerRestart(CURLM *multi,
+			     long timeout_ms,
+			     void *userdata)
 {
-  //std::cout << "HttpOperations::timerRestart" << std::endl;
-  //std::cout << "HttpOperations::timeout_ms = " << timeout_ms << std::endl;
+  //std::cout << "C_HTTP::Operations::timerRestart" << std::endl;
+  //std::cout << "C_HTTP::Operations::timeout_ms = " << timeout_ms << std::endl;
   
   // userdata points to this
-  HttpOperations* ptr = static_cast<HttpOperations*>(userdata);
+  Operations* ptr = static_cast<Operations*>(userdata);
   if (timeout_ms >= 0 && timeout_ms < 1000) // experienced receiving large timeouts
     {
       ptr->d_timer_process.restartMs(timeout_ms);
@@ -346,8 +346,8 @@ int HttpOperations::timerRestart(CURLM *multi,
 }
 
 //----------------------------------------------------------------------//
-void HttpOperations::cancelBufferedReqs()
+void Operations::cancelBufferedReqs()
 {
-  //std::cout << "HttpOperations::cancelBufferedReqs()" << std::endl;
+  //std::cout << "C_HTTP::Operations::cancelBufferedReqs()" << std::endl;
   d_buf_reqs.clear();
 }

@@ -35,9 +35,9 @@ namespace D_GP
 
   private:    
     // C_HTTP::HttpOperationsOwner
-    void handleFailed(C_HTTP::HttpOperations*, C_HTTP::HttpOpError) override;
+    void handleFailed(C_HTTP::HttpOperations*, C_HTTP::OpError) override;
     void handleResponse(C_HTTP::HttpOperations*,
-			C_HTTP::HttpResponseCode,
+			C_HTTP::ResponseCodeNum,
 			const std::vector<std::string>& headers,
 			const std::vector<char>& body) override;
 
@@ -55,7 +55,7 @@ namespace D_GP
     GoPro::Cmd d_non = GoPro::Cmd::Unknown;
 
     KERN::AsioCallbackTimer d_timer_stream;
-
+    // std::unique_ptr<UdpClient> d_udp_client; set host and service, then send message
     bool d_is_streaming = false;
   };
 };
