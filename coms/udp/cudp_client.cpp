@@ -14,19 +14,19 @@ Client::Client(Owner* o,
 	       const std::string& host,
 	       const std::string& service)
   : d_owner(o),
-    d_socket(AsioKernel::getService())
+    d_socket(KERN::AsioKernel::getService())
 {
   d_timer.setCallback([this](){
-      d_owner->handleFailed(Error::Construction);
+      d_owner->handleFailed(this, Error::Construction);
     });
   
   try
     {
-      udp::resolver resolver(AsioKernel::getService());
+      udp::resolver resolver(KERN::AsioKernel::getService());
       udp::resolver::query query(host, service);
 
       // attempt to connect to each endpoint in the resolver list until successful (includes v4 and v6 ip protocols)
-      boost::asio::connect(d_socket, resolver.resolve());
+      boost::asio::connect(d_socket, resolver.resolve(query));
     }
   catch (...)
     {
@@ -51,9 +51,22 @@ Client::~Client()
 }
 
 //----------------------------------------------------------------------//
-Client::send(const void* data, size_t byte_size)
+void Client::send(const void* data, size_t byte_size)
 {
-  d_transfer_data = data;
+  if (d_is_sending)
+    {
+      assert(false);
+      d_owner->handleFailed(this, Error::AlreadySending);
+      return;
+    }
+  d_is_sending = true;
+  sendInternal(data, byte_size);
+}
+
+//----------------------------------------------------------------------//
+void Client::sendInternal(const void* data, size_t byte_size)
+{
+  d_transfer_data = static_cast<const uint8_t*>(data);
   d_transfer_data_size = byte_size;
   d_socket.async_send(boost::asio::buffer(data, byte_size),
 		      [=](const boost::system::error_code& err,
@@ -62,17 +75,18 @@ Client::send(const void* data, size_t byte_size)
 			  {
 			    assert(false);
 			    std::cerr << "Client::send - error message: " << err.message() << std::endl;
-			    d_owner->handleFailed(Error::Unknown);
+			    d_owner->handleFailed(this, Error::Unknown);
 			    return;
 			  }
 			
-			if (bytes_transferred != byte_size)
+			if (bytes_transferred != d_transfer_data_size)
 			  {
-			    send(d_transfer_data + bytes_transferred,
-				 d_transfer_data_size - bytes_transferred);
+			    sendInternal(d_transfer_data + bytes_transferred,
+					 d_transfer_data_size - bytes_transferred);
 			    return;
 			  }
 			// else successful
-			d_owner->handleMessageSent();
+			d_is_sending = false;
+			d_owner->handleMessageSent(this);
 		      });
 }

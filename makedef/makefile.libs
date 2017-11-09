@@ -37,6 +37,14 @@ ifdef USES_LIBDGP
       LIBSRC += $(wildcard $(LIBDGPPATH)/*.cpp)
       USES_LIBCHTTP=1
       USES_LIBKERN=1
+      USES_LIBCUDP=1
+endif
+
+ifdef USES_LIBCUDP
+      LIBCUDPPATH = $(BASE_DIR)/coms/udp
+      INCLUDES += -I$(LIBCUDPPATH)
+      LIBSRC += $(wildcard $(LIBCUDPPATH)/*.cpp)
+      USES_LIBKERN=1
 endif
 
 ifdef USES_LIBCHTTP
@@ -84,6 +92,11 @@ OBJ += $(LIBSRC:.cpp=.o)
 makelibs:
 #make prerequisite libraries
 
+ifdef USES_LIBCUDP
+ifneq "$(LIBNAME)" "CUDP"
+	$(MAKE) -C $(LIBCUDPPATH)
+endif
+endif
 ifdef USES_LIBWIRINGPI
 ifneq "$(LIBNAME)" "WIRINGPI"
 	$(MAKE) -C $(LIBWIRINGPIPATH)

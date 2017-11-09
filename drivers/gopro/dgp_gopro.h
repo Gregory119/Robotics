@@ -44,7 +44,6 @@ namespace D_GP
       StartLiveStream,
       StopLiveStream,
       SetBitRate,
-      MaintainStream, // can be any command (eg. status)
       Unknown
     };
 

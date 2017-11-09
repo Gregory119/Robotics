@@ -125,6 +125,7 @@ void FastController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
     case GoPro::Cmd::SetModeMultiShotBurst:
     case GoPro::Cmd::SetModeMultiShotTimeLapse:
     case GoPro::Cmd::SetModeMultiShotNightLapse:
+    case GoPro::Cmd::SetBitRate: // STILL TO DO
     case GoPro::Cmd::Unknown:
       assert(false);
       d_gp->cancelBufferedCmds();

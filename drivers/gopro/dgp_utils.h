@@ -19,6 +19,7 @@ namespace D_GP
 				const std::vector<std::string>& params);
     static std::string cmdToUrl(GoPro::Cmd,
 				CamModel);
+    static const std::string& ipAddr(CamModel);
 
     // returns an Unknown mode on failure
     static Mode extractModeStatus(int mode, int sub_mode);

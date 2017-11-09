@@ -1,29 +1,26 @@
 #include <iostream>
 //#include <chrono>
 //#include <thread>
-#include <boost/asio.hpp>
-//#include <boost/date_time/posix_time/posix_time.hpp>
 
-void print(const boost::system::error_code& err,
-	   boost::asio::deadline_timer* t)
+class Test
 {
-  // can check for an error here
-  
-  t->expires_at(t->expires_at() + boost::posix_time::seconds(1));
-  t->async_wait([&](const boost::system::error_code& e){
-      print(e,t);
-    });
-}
+public:
+  Test() = default;
+  Test(const Test&) = delete;
+  Test& operator=(const Test&) = delete;
+  //Test(const Test&&) = delete;
+  //Test& operator=(const Test&&) = delete;
+
+private:
+  std::string d_str = "twenty";
+};
 
 int main(int argc, char** argv)
 {
-  boost::asio::io_service io;
-  boost::asio::deadline_timer t(io, boost::posix_time::seconds(1));
-  t.async_wait([&](const boost::system::error_code& e){
-      print(e,&t);
-    });
+  Test test1;
+  Test test2;
 
-  io.run();
+  test1 = std::move(test2);
   
   /* while (1)
     {

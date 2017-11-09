@@ -13,24 +13,6 @@ static const std::string s_h5_stream = "/gp/gpControl/execute?p1=gpStream&a1=pro
 static const std::string s_h5_bitrate = "/gp/gpControl/setting/62/";
 
 //----------------------------------------------------------------------//
-std::string Utils::appendToAddress(const std::string& cmd,
-				   CamModel model)
-{
-  switch (model)
-    {
-    case CamModel::Hero5:
-      return s_h5_ip_url + cmd;
-
-    case CamModel::Unknown:
-      assert(false);
-      return "";
-    }
-
-  assert(false);
-  return "";
-}
-
-//----------------------------------------------------------------------//
 std::string Utils::cmdToUrl(GoPro::Cmd cmd,
 			    CamModel model,
 			    const std::vector<std::string>& params)
@@ -55,6 +37,83 @@ std::string Utils::cmdToUrl(GoPro::Cmd cmd,
 {
   std::vector<std::string> params; // empty
   return cmdToUrl(cmd, model, params);
+}
+
+//----------------------------------------------------------------------//
+const std::string& Utils::ipAddr(CamModel cam)
+{
+  return s_h5_ip_url;
+}
+
+//----------------------------------------------------------------------//
+Mode Utils::extractModeStatus(int mode, int sub_mode)
+{
+  switch (mode)
+    {
+    case 0: // video
+      switch (sub_mode)
+	{
+	case 0:
+	  return Mode::VideoNormal;
+	  
+	case 1:
+	  return Mode::VideoTimeLapse;
+
+	case 2:
+	  return Mode::VideoPlusPhoto;
+
+	case 3:
+	  return Mode::VideoLooping;
+	}
+      break;
+
+    case 1: // photo
+      switch (sub_mode)
+	{
+	case 0:
+	  return Mode::PhotoSingle;
+	  
+	case 1:
+	  return Mode::PhotoContinuous;
+
+	case 2:
+	  return Mode::PhotoNight;
+	}
+      break;
+
+    case 2: // multishot
+      switch (sub_mode)
+	{
+	case 0:
+	  return Mode::MultiShotBurst;
+	  
+	case 1:
+	  return Mode::MultiTimeLapse;
+
+	case 2:
+	  return Mode::MultiNightLapse;
+	}
+      break;
+    }
+  return Mode::Unknown;
+}
+
+//----------------------------------------------------------------------//
+std::string Utils::appendToAddress(const std::string& cmd,
+				   CamModel model)
+{
+  switch (model)
+    {
+    case CamModel::Hero5:
+      return s_h5_ip_url + cmd;
+
+    case CamModel::Unknown:
+      assert(false);
+      return "";
+    }
+
+  assert(false);
+  return "";
 }
 
 //----------------------------------------------------------------------//
@@ -188,58 +247,5 @@ bool Utils::validUrlParamsHero5(GoPro::Cmd cmd,
 
   assert(false);
   return "";  
-}
-
-//----------------------------------------------------------------------//
-Mode Utils::extractModeStatus(int mode, int sub_mode)
-{
-  switch (mode)
-    {
-    case 0: // video
-      switch (sub_mode)
-	{
-	case 0:
-	  return Mode::VideoNormal;
-	  
-	case 1:
-	  return Mode::VideoTimeLapse;
-
-	case 2:
-	  return Mode::VideoPlusPhoto;
-
-	case 3:
-	  return Mode::VideoLooping;
-	}
-      break;
-
-    case 1: // photo
-      switch (sub_mode)
-	{
-	case 0:
-	  return Mode::PhotoSingle;
-	  
-	case 1:
-	  return Mode::PhotoContinuous;
-
-	case 2:
-	  return Mode::PhotoNight;
-	}
-      break;
-
-    case 2: // multishot
-      switch (sub_mode)
-	{
-	case 0:
-	  return Mode::MultiShotBurst;
-	  
-	case 1:
-	  return Mode::MultiTimeLapse;
-
-	case 2:
-	  return Mode::MultiNightLapse;
-	}
-      break;
-    }
-  return Mode::Unknown;
 }
 

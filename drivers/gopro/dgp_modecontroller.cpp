@@ -93,7 +93,7 @@ void ModeController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
     case GoPro::Cmd::SetBitRate:
       // used as part of the start stream request
       return;
-      
+
     case GoPro::Cmd::Unknown:
       assert(false);
       sendFailedRequest();

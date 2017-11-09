@@ -11,7 +11,10 @@ using namespace D_GP;
 //----------------------------------------------------------------------//
 GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   : GoPro(o),
-    d_http(new C_HTTP::Operations(this))
+    d_http(new C_HTTP::Operations(this)),
+    d_udp_client(new C_UDP::Client(this,
+				   D_GP::Utils::ipAddr(CamModel::Hero5),
+				   "8554"))
 {
   assert(o != nullptr);
   assert(!name.empty());
@@ -264,10 +267,6 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
       }
       return;
 
-    case GoPro::Cmd::MaintainStream:
-      // nothing to do
-      return;
-      
     case GoPro::Cmd::StopLiveStream: // should not be handled here
     case GoPro::Cmd::Unknown:
       assert(false);
@@ -305,6 +304,36 @@ void GoProHero5::handleFailed(C_HTTP::Operations* http,
 }
 
 //----------------------------------------------------------------------//
+void GoProHero5::handleMessageSent(C_UDP::Client*)
+{
+  std::cout << "GoProHero5::handleMessageSent" << std::endl;
+  // timer will send the next one
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::handleFailed(C_UDP::Client*, C_UDP::Client::Error err)
+{
+  std::cout << "GoProHero5::handleFailed" << std::endl;
+  switch (err)
+    {
+    case C_UDP::Client::Error::Construction:
+      // LOG
+      assert(false);
+      return;
+
+    case C_UDP::Client::Error::AlreadySending:
+      // LOG
+      assert(false);
+      return;
+      
+    case C_UDP::Client::Error::Unknown:
+      // LOG
+      assert(false);
+      return;
+    }
+}
+
+//----------------------------------------------------------------------//
 void GoProHero5::internalStopLiveStream()
 {
   d_timer_stream.disable();
@@ -322,6 +351,12 @@ void GoProHero5::maintainStream()
   */
   
   // send udp message
+  if (d_udp_client->isSending())
+    {
+      return; // wait for send to complete before sending again
+    }
+  std::string str = "_GPHD_:0,0,2:" + std::to_string(2.0) + "\n";
+  d_udp_client->send(str.data(), str.size());
 }
 
 //----------------------------------------------------------------------//
