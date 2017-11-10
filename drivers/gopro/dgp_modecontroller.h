@@ -67,6 +67,7 @@ namespace D_GP
     //GoPro::Owner
     void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
     void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) override;
+    void handleStreamDown(GoPro*) override;
 
   private:
     void processStatus();

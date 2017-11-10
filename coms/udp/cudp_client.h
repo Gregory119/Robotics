@@ -13,8 +13,9 @@ namespace C_UDP
   public:
     enum class Error
     {
-      Construction,
+      Connect,
       AlreadySending,
+      Disconnected,
       Unknown
     };
     
@@ -30,6 +31,7 @@ namespace C_UDP
 
     private:
       friend Client;
+      virtual void handleConnected(Client*) = 0;
       virtual void handleMessageSent(Client*) = 0;
       //virtual void handleReceivedMessage(const std::vector<char>&);
       virtual void handleFailed(Client*, Error) = 0;
@@ -38,12 +40,21 @@ namespace C_UDP
     // host - ip or host name
     // service - name or port number or empty for a zero port number
     // these strings can be temporaries
-    Client(Owner*,const std::string& host, const std::string& service);
+    Client(Owner*,const std::string host, const std::string service);
     ~Client();
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
     Client(const Client&&) = delete;
     Client& operator=(const Client&&) = delete;
+
+    // The class must be connected, with any of the connect functions, in order to be used.
+    // connect() can be called multiple times, but will only try to connect if not connected.
+    void connect();
+
+    // connect(std::chrono::milliseconds) will first try to connect and then continue to
+    // try to connect on an interval, with the specified delay, until it is connected.
+    // The connect failure callbacks are still called.
+    void connect(std::chrono::milliseconds);
     
     void send(const void* data, size_t byte_size); // to the host (ip) with service (port)
     //receive(); // from the host
@@ -54,16 +65,19 @@ namespace C_UDP
     
   private:
     Owner* d_owner = nullptr;
+    std::string d_host;
+    std::string d_service;
+    
+    boost::asio::ip::udp::socket d_socket;
+    boost::asio::ip::udp::endpoint d_endpoint;
 
     const uint8_t* d_transfer_data = nullptr;
     size_t d_transfer_data_size = 0;
-    
-    boost::asio::ip::udp::endpoint d_endpoint;
-    boost::asio::ip::udp::socket d_socket;
-
-    KERN::AsioCallbackTimer d_timer;
 
     bool d_is_sending = false;
+    bool d_is_connected = false;
+
+    KERN::AsioCallbackTimer d_reconnect_timer;
   };
 };
 

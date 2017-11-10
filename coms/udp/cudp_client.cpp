@@ -11,34 +11,16 @@ using namespace boost::asio::ip;
 
 //----------------------------------------------------------------------//
 Client::Client(Owner* o,
-	       const std::string& host,
-	       const std::string& service)
+	       const std::string host,
+	       const std::string service)
   : d_owner(o),
+    d_host(std::move(host)),
+    d_service(std::move(service)),
     d_socket(KERN::AsioKernel::getService())
 {
-  d_timer.setCallback([this](){
-      d_owner->handleFailed(this, Error::Construction);
+  d_reconnect_timer.setCallback([this](){
+      connect();
     });
-  
-  try
-    {
-      udp::resolver resolver(KERN::AsioKernel::getService());
-      udp::resolver::query query(host, service);
-
-      // attempt to connect to each endpoint in the resolver list until successful (includes v4 and v6 ip protocols)
-      boost::asio::connect(d_socket, resolver.resolve(query));
-    }
-  catch (...)
-    {
-      // LOG
-      assert(false);
-      d_timer.singleShot(std::chrono::seconds(0));
-
-      if (d_socket.is_open())
-	{
-	  d_socket.close();
-	}
-    }
 }
 
 //----------------------------------------------------------------------//
@@ -48,6 +30,41 @@ Client::~Client()
     {
       d_socket.close();
     }
+}
+
+//----------------------------------------------------------------------//
+void Client::connect()
+{
+  if (d_is_connected)
+    {
+      return;
+    }
+  
+  try
+    {
+      udp::resolver resolver(KERN::AsioKernel::getService());
+      udp::resolver::query query(d_host, d_service);
+
+      // attempt to connect to each endpoint in the resolver list until successful (includes v4 and v6 ip protocols)
+      boost::asio::connect(d_socket, resolver.resolve(query));
+    }
+  catch (std::exception& e)
+    {
+      std::cerr << "Client::connect() - Failed. Error is " << e.what() << " " << std::endl;
+      // LOG
+      d_owner->handleFailed(this, Error::Connect);
+      return;
+    }
+  d_is_connected = true;
+  d_reconnect_timer.disable();
+  d_owner->handleConnected(this);
+}
+
+//----------------------------------------------------------------------//
+void Client::connect(std::chrono::milliseconds delay)
+{
+  connect();
+  d_reconnect_timer.restart(delay);
 }
 
 //----------------------------------------------------------------------//
@@ -73,9 +90,15 @@ void Client::sendInternal(const void* data, size_t byte_size)
 			  size_t bytes_transferred){
 			if (err.value() != boost::system::errc::success)
 			  {
-			    assert(false);
 			    std::cerr << "Client::send - error message: " << err.message() << std::endl;
-			    d_owner->handleFailed(this, Error::Unknown);
+			    
+			    d_is_connected = false;
+			    if (d_socket.is_open())
+			      {
+				d_socket.close();
+			      }
+			    
+			    d_owner->handleFailed(this, Error::Disconnected);
 			    return;
 			  }
 			

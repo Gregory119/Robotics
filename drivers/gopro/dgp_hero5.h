@@ -45,6 +45,7 @@ namespace D_GP
 			const std::vector<char>& body) override;
 
     // C_UDP::Client::Owner
+    void handleConnected(C_UDP::Client*) override;
     void handleMessageSent(C_UDP::Client*) override;
     void handleFailed(C_UDP::Client*, C_UDP::Client::Error) override;
     

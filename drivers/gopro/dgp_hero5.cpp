@@ -13,7 +13,7 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   : GoPro(o),
     d_http(new C_HTTP::Operations(this)),
     d_udp_client(new C_UDP::Client(this,
-				   D_GP::Utils::ipAddr(CamModel::Hero5),
+				   "10.5.5.9",//D_GP::Utils::ipAddr(CamModel::Hero5),
 				   "8554"))
 {
   assert(o != nullptr);
@@ -111,11 +111,11 @@ void GoProHero5::setMode(Mode mode)
 	
     case Mode::Unknown:
       assert(false);
-      d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GoPro::Error::Internal);
+      ownerHandleCommandFailed(GoPro::Cmd::Unknown, GoPro::Error::Internal);
       return;
     }
   assert(false);
-  d_owner->handleCommandFailed(this, GoPro::Cmd::Unknown, GoPro::Error::Internal);
+  ownerHandleCommandFailed(GoPro::Cmd::Unknown, GoPro::Error::Internal);
 }
 
 //----------------------------------------------------------------------//
@@ -152,7 +152,7 @@ void GoProHero5::startLiveStream()
   requestCmd(GoPro::Cmd::StartLiveStream);
   if (!d_is_streaming)
     {
-      d_timer_stream.restartMsIfNotSetOrDisabled(1000);
+      d_udp_client->connect(std::chrono::seconds(3));
     }
 }
 
@@ -160,7 +160,7 @@ void GoProHero5::startLiveStream()
 void GoProHero5::stopLiveStream()
 {
   internalStopLiveStream();
-  d_owner->handleCommandSuccessful(this, GoPro::Cmd::StopLiveStream);
+  ownerHandleCommandSuccessful(GoPro::Cmd::StopLiveStream);
 }
 
 //----------------------------------------------------------------------//
@@ -215,7 +215,7 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
   if (code >= static_cast<C_HTTP::ResponseCodeNum>(C_HTTP::ResponseCode::BadRequest))
     {
       // not successful
-      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Response);
+      ownerHandleCommandFailed(cmd, GoPro::Error::Response);
       return;
     }
 
@@ -235,20 +235,19 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
     case GoPro::Cmd::SetShutterTrigger:
     case GoPro::Cmd::SetShutterStop:
     case GoPro::Cmd::SetBitRate:
-      d_owner->handleCommandSuccessful(this,
-				       cmd);
+      ownerHandleCommandSuccessful(cmd);
       return;
 
     case GoPro::Cmd::StartLiveStream:
       d_is_streaming = true;
-      d_owner->handleCommandSuccessful(this, cmd);
+      ownerHandleCommandSuccessful(cmd);
       return;
       
     case GoPro::Cmd::Status:
       {
 	if (body.empty())
 	  {
-	    d_owner->handleCommandFailed(this, cmd, GoPro::Error::Response);
+	    ownerHandleCommandFailed(cmd, GoPro::Error::Response);
 	    return;
 	  }
 	
@@ -256,14 +255,13 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
 	if (d_status.loadStr(body_str, CamModel::Hero5))
 	  {
 	    d_status.print();
-	    d_owner->handleCommandSuccessful(this,
-					     cmd);
+	    ownerHandleCommandSuccessful(cmd);
 	    return;
 	  }
 	// LOG
 	std::cout << "GoProHero5::handleResponse - failed to parse response. Response body was: \n"
 		  << body_str << std::endl;
-	d_owner->handleCommandFailed(this, cmd, GoPro::Error::ResponseData);
+	ownerHandleCommandFailed(cmd, GoPro::Error::ResponseData);
       }
       return;
 
@@ -292,15 +290,21 @@ void GoProHero5::handleFailed(C_HTTP::Operations* http,
     {
     case C_HTTP::OpError::Internal:
       // LOG
-      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Internal);
+      ownerHandleCommandFailed(cmd, GoPro::Error::Internal);
       return;
 
     case C_HTTP::OpError::Timeout:
       // LOG
-      d_owner->handleCommandFailed(this, cmd, GoPro::Error::Timeout);
+      ownerHandleCommandFailed(cmd, GoPro::Error::Timeout);
       return;
     }
   assert(false);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::handleConnected(C_UDP::Client*)
+{
+  d_timer_stream.restartMsIfNotSetOrDisabled(2500);
 }
 
 //----------------------------------------------------------------------//
@@ -313,17 +317,24 @@ void GoProHero5::handleMessageSent(C_UDP::Client*)
 //----------------------------------------------------------------------//
 void GoProHero5::handleFailed(C_UDP::Client*, C_UDP::Client::Error err)
 {
-  std::cout << "GoProHero5::handleFailed" << std::endl;
+  std::cout << "GoProHero5::handleFailed(C_UDP::Client..)" << std::endl;
   switch (err)
     {
-    case C_UDP::Client::Error::Construction:
+    case C_UDP::Client::Error::Connect:
       // LOG
-      assert(false);
+      // Wifi probably not active. Allowing the udp reconnect timer to reconnect.
+      std::cout << "Wifi probably not active. Allowing the udp reconnect timer to reconnect." << std::endl;
       return;
 
     case C_UDP::Client::Error::AlreadySending:
       // LOG
       assert(false);
+      return;
+
+    case C_UDP::Client::Error::Disconnected:
+      // LOG
+      internalStopLiveStream();
+      ownerHandleStreamDown();
       return;
       
     case C_UDP::Client::Error::Unknown:
@@ -355,7 +366,7 @@ void GoProHero5::maintainStream()
     {
       return; // wait for send to complete before sending again
     }
-  std::string str = "_GPHD_:0,0,2:" + std::to_string(2.0) + "\n";
+  std::string str = "_GPHD_:0:0:2:" + std::to_string(2.0) + "\n";
   d_udp_client->send(str.data(), str.size());
 }
 

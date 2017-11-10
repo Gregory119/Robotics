@@ -81,6 +81,7 @@ namespace D_GP
     //GoPro::Owner
     void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
     void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) override;
+    void handleStreamDown(GoPro*) override { /* nothing for now*/ }
 
   private:
     void setState(StateId);
@@ -100,16 +101,16 @@ namespace D_GP
 
     std::unique_ptr<GoPro> d_gp;
     bool d_is_recording = false;
-
+    
     StateId d_state_id = StateId::Disconnected;
     std::map<StateId, std::unique_ptr<StateInterface>> d_states;
     StateInterface* d_state = nullptr;
-
+    
     std::list<Req> d_reqs;
-
+    
     KERN::AsioCallbackTimer d_timer_recreate_gopro;
   };
-
+  
   class FastController::StateInterface
   {
   public:

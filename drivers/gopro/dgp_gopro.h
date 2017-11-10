@@ -55,20 +55,24 @@ namespace D_GP
       Owner(Owner&&) = delete;
       Owner&& operator=(Owner&&) = delete;
 
-      // queued commands should be cleared on a failure
-      virtual void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) = 0;
-      virtual void handleCommandSuccessful(GoPro*, GoPro::Cmd) = 0;
-    
     protected:
       Owner() = default;
       ~Owner() = default;
+
+    private:
+      friend GoPro;
+      // queued commands should be cleared on a failure
+      virtual void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) = 0;
+      virtual void handleCommandSuccessful(GoPro*, GoPro::Cmd) = 0;
+      virtual void handleStreamDown(GoPro*) = 0;
     };
     
   public:
     virtual ~GoPro() = default;
-    GoPro& operator=(const GoPro&) = default;
-    GoPro(const GoPro&) = default;
-    // move constructor & operator
+    GoPro& operator=(const GoPro&) = delete;
+    GoPro(const GoPro&) = delete;
+    GoPro(const GoPro&&) = delete;
+    GoPro& operator=(const GoPro&&) = delete;
 
     virtual void connect() = 0;
     virtual void status() = 0; 
@@ -80,15 +84,20 @@ namespace D_GP
     virtual bool hasBufferedReqs() = 0;
     virtual void cancelBufferedCmds() = 0;
     // Can add additional virtual functions which have asserts in their definition. The GoPro that supports the command will have it defined.
-    
+
+    void ownerHandleCommandFailed(GoPro::Cmd, GoPro::Error);
+    void ownerHandleCommandSuccessful(GoPro::Cmd);
+    void ownerHandleStreamDown();
+
     const Status& getStatus() { return d_status; }
     
   protected:
     //only to be inherited
     explicit GoPro(Owner* o);
-    Owner* d_owner = nullptr;
-
     Status d_status;
+
+  private:
+    Owner* d_owner = nullptr;
   };
 };
 

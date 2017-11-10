@@ -126,6 +126,15 @@ void ModeController::handleCommandFailed(GoPro*,
 }
 
 //----------------------------------------------------------------------//
+void ModeController::handleStreamDown(GoPro*)
+{
+  if (d_owner != nullptr)
+    {
+      d_owner->handleFailedRequest(this, Req::StartStream);
+    }
+}
+
+//----------------------------------------------------------------------//
 void ModeController::processStatus()
 {
   Req req = d_reqs.front();

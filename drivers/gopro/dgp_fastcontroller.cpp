@@ -139,7 +139,9 @@ void FastController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 }
 
 //----------------------------------------------------------------------//
-void FastController::handleCommandFailed(GoPro*, GoPro::Cmd cmd, GoPro::Error err)
+void FastController::handleCommandFailed(GoPro*,
+					 GoPro::Cmd cmd,
+					 GoPro::Error err)
 {
   std::cout << "D_GP::FastController::handleCommandFailed " << std::endl;
   // stop further consequetive failed messages that have been buffered/queued
