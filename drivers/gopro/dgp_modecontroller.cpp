@@ -152,11 +152,12 @@ void ModeController::processStatus()
       return;
       
     case Req::StartStream:
-      if (!d_gp->getStatus().d_is_streaming)
-	{
-	  d_gp->setBitRatePerSecond(2400000); // 2.4 Mbps
-	  d_gp->startLiveStream();
-	}
+      //if (!d_gp->getStatus().d_is_streaming)
+      //{
+      // make sure the stream is started on every request
+      d_gp->setBitRatePerSecond(2400000); // 2.4 Mbps
+      d_gp->startLiveStream();
+      //}
       return;
       
     case Req::StopStream:

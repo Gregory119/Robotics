@@ -7,11 +7,33 @@
 #include <iostream>
 
 // TO DO:
-// - cam streamer class (map pin inputs to gopro control) - TEST!!!
+//----------------------------------------------------------------------//
+// The following will be done for the first release:
+
+// - test pin input control
+// - installer script using USB (must exist on the pi image so that only this image can install automatically via usb)
+//  - copy compressed file onto usb and plug into pi
+//  - kill current running firmware services
+//  - create/clear directory for binary, start script, version doc (all in the same directory)
+//  - copy binary
+//  - copy start and service script
+//  - activate the script
+//  - reload and start the scripts
+// - wrap LED driver control to show usb installation progress
+// - read-only versioning doc
 
 // - optimize gopro streaming settings
-//   - increase bitrate to reduce dropped packets
-//   - sniff gopro app command for keeping stream up (the restart one causes the stream to stop temporarily)
+//   - test on analog output
+//   - test on pi 2 and 3
+
+// - binary reverse engineering security
+
+//----------------------------------------------------------------------//
+// To be added after the first release:
+
+// - logs (helpful to some users)
+
+// - config xml doc (will support app config)
 
 // create app (app and device side additions)
 // - configure GoPro wifi connection details
@@ -20,10 +42,6 @@
 // - install from usb button
 // - set pins for controls
 // - have a history/live log section for showing any operation/installation problems OR a single state name with description.
-
-// - installer script using USB
-
-// - wrap LED driver control and use in camstreamer
 
 int main()
 {

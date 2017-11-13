@@ -27,6 +27,7 @@ set the live video settings as follows:
 most wifi dongles will support 150 Mbps
 bit rate to 4 Mbps: http://10.5.5.9/gp/gpControl/setting/62/4000000
 try the following resolutions:
+240: http://10.5.5.9/gp/gpControl/setting/64/1
 480: http://10.5.5.9/gp/gpControl/setting/64/4
 480 3:4: http://10.5.5.9/gp/gpControl/setting/64/5
 480 1:2: http://10.5.5.9/gp/gpControl/setting/64/6
