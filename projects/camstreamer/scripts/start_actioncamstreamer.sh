@@ -1,8 +1,7 @@
 #!/bin/bash
 
-project_dir=/camstreamer
-check_time_sec=1
-binary="camstreamer"
+project_dir=/actioncamstreamer
+binary="actioncamstreamer"
 
 while true; do
     if [ -z $(pidof $binary) ]; then
@@ -13,10 +12,7 @@ while true; do
     if [ -z $(pidof "omxplayer") ]; then
 	echo "Starting omxplayer"
 	omxplayer --live -o hdmi udp://:8554 > /dev/null 2>&1
-	# omxplayer has a timeout when not receiving data
-
+	# Run in the foreground because omxplayer has a timeout when no data has been received
     fi
-
-    sleep $check_time_sec
 done
 

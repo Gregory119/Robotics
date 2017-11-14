@@ -4,7 +4,7 @@ include $(BASE_DIR)/makedef/makefile.set
 
 IS_TESTPROG=1
 #creating test program name with cpp file in this directory
-TEST_NAME = camstreamer
+TEST_NAME = actioncamstreamer
 
 USES_LIBDGP=1
 USES_LIBWIRINGPI=1

@@ -13,6 +13,8 @@
 // - test pin input control
 // - installer script using USB (must exist on the pi image so that only this image can install automatically via usb)
 //  - copy compressed file onto usb and plug into pi
+//  - check pi version against pi version of install files
+//  - install dependencies (curl, wiring pi, boost, omxplayer)
 //  - kill current running firmware services
 //  - create/clear directory for binary, start script, version doc (all in the same directory)
 //  - copy binary
@@ -22,9 +24,12 @@
 // - wrap LED driver control to show usb installation progress
 // - read-only versioning doc
 
-// - optimize gopro streaming settings
-//   - test on analog output
-//   - test on pi 2 and 3
+// - test on analog output
+
+// - cross compile all dependency libraries for all pi versions
+// - save omxplayer version
+// - create pi 2 and 3 images
+// - test on pi 2 and 3
 
 // - binary reverse engineering security
 

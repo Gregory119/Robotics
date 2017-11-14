@@ -2,8 +2,8 @@
 Scripts to Run Software From Startup
 ======================================================================
 
-- copy the service file, start_camstreamer.service, to /lib/systemd/system/
-- copy the bash script, start_camstreamer.sh, to /usr/startscripts/
+- copy the service file, start_actioncamstreamer.service, to /lib/systemd/system/
+- copy the bash script, start_actioncamstreamer.sh, to /actioncamstreamer/
 - $ systemctl daemon-reload
-- $ systemctl enable start_camstreamer.service
-- copy the project binary files to /camstreamer/
+- $ systemctl enable start_actioncamstreamer.service
+- copy the project binary files to /actioncamstreamer/

@@ -1,10 +1,10 @@
 [Unit]
-Description=CamStreamer Service
+Description=ActionCamStreamer Service
 After=multi-user.target
 
 [Service]
 Type=idle
-ExecStart=/usr/startscripts/start_camstreamer.sh
+ExecStart=/actioncamstreamer/start_camstreamer.sh
 
 [Install]
 WantedBy=multi-user.target
