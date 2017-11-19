@@ -1,0 +1,9 @@
+[Unit]
+Description=USB Install Service
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/actioncamstreamer/start_usb_install.sh
+
+# The [Install] section with a WantedBy is required to create a symbolic link to this unit to load it, but this unit must only be loaded on request by the udev rule, so this section is not needed.

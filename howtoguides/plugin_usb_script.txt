@@ -1,0 +1,8 @@
+A great introduction to writing udev rules:
+http://www.reactivated.net/writing_udev_rules.html
+
+Example of running a systemd script when any usb drive is plugged in:
+https://unix.stackexchange.com/questions/229987/udev-rule-to-match-any-usb-storage-device
+
+An explanation of why the [Install] section is needed in the systemd unit file:
+https://unix.stackexchange.com/questions/224992/where-do-i-put-my-systemd-unit-file-on-arch-linux

@@ -1,0 +1,1 @@
+ENV{DEVTYPE}=="disk", ENV{SUBSYSTEM}=="block", ACTION=="add", ENV{SYSTEMD_WANTS}="/actioncamstreamer/start_usb_install.service"
