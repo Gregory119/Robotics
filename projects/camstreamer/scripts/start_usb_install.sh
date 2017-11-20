@@ -1,15 +1,19 @@
 #!/bin/bash
 # This script is called to mount the usb drive and start the install script located on the usb drive.
-install_folder=install_files
-mount_dir=/media/usb_drive/
+install_dir=$1 # eg. /actioncamstreamer
+dev_name=$2 # eg. /dev/sdd
+partition_num=1
+mount_dir=/mount/usb_drive/
 
-# MAKE SURE THAT THE DEVNAME ENVIRONMENT VARIABLE IS AVAILABLE WHEN BEING RUN WITH A SYSTEMD SERVICE, WHICH IS RUN FROM A UDEV RULE (PRINT TO FILE)
 # mount the drive
-mkdir $mount_dir
-mount $DEVNAME $mount_dir
+mkdir -p $mount_dir
+mount $dev_name$partition_num $mount_dir
 
-# run the install script on the usb drive
-$mount_dir$install_folder/usb_install.sh
+cd $install_dir
+cp $mount_dir/install.tgz . # copy the compressed firmware install files
+tar xzf install.tgz # extract the files
+chmod 777 install.sh # give file permissions CHANGE THESE TO SOMETHING MORE APPROPRIATE
+./install.sh
 
 # unmount when complete
 umount $mount_dir
