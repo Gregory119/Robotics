@@ -18,6 +18,7 @@ ifdef USES_LIBWIRINGPI
       INCLUDES += -I$(LIBWIRINGPIPATH)
       LIBS += -lwiringPi
       LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
+      USES_LIBKERN=1
 endif
 
 ifdef USES_LIBCONTROL

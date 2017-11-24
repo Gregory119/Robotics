@@ -13,8 +13,8 @@ namespace KERN
     AsioCallbackTimer();
     AsioCallbackTimer(const AsioCallbackTimer&) = delete;
     AsioCallbackTimer& operator=(const AsioCallbackTimer&) = delete;
-    AsioCallbackTimer& operator=(AsioCallbackTimer&&) = delete;
-    AsioCallbackTimer(AsioCallbackTimer&&) = delete;
+    AsioCallbackTimer(AsioCallbackTimer&&) = default;
+    AsioCallbackTimer& operator=(AsioCallbackTimer&&) = default;
 
     void setCallback(std::function<void()> callback); // this must be called before starting timer unless stated otherwise
     void restartMs(long time_ms);

@@ -1,6 +1,8 @@
 #include "camstreamer.h"
 
-#include <wiringPi.h>
+constexpr char s_mode_pin[] = "mode";
+constexpr char s_trigger_pin[] = "trigger";
+constexpr char s_connect_pin[] = "connect";
 
 //----------------------------------------------------------------------//
 CamStreamer::CamStreamer()
@@ -12,28 +14,26 @@ CamStreamer::CamStreamer()
   // pin header number
   // ARE SERVO RECEIVER OUTPUT PINS NORMALLY HIGH OR LOW??? SUPPORT OTHER RC RECEIVER TECHNOLOGIES (NEED SETUP ON THE APP)??
 
+  // Pins
+  P_WP::InputPin mode_pin(P_WP::PinH11);
+  mode_pin.setStateChangedCallback([this](bool state){
+      processModePinState(state);
+    });
+  P_WP::InputPin trigger_pin(P_WP::PinH11);
+  trigger_pin.setStateChangedCallback([this](bool state){
+      processTriggerPinState(state);
+    });
+  P_WP::InputPin connect_pin(P_WP::PinH11);
+  connect_pin.setStateChangedCallback([this](bool state){
+      processConnectPinState(state);
+    });
+  d_pins.emplace(std::make_pair(s_mode_pin, std::move(mode_pin)));
+  d_pins.emplace(std::make_pair(s_trigger_pin, std::move(trigger_pin)));
+  d_pins.emplace(std::make_pair(s_connect_pin, std::move(connect_pin)));
+
   // extract gopro type from xml (app setting)
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
   restartGPController();
-
-  // initialize pins
-  pinMode(d_pin_mode_num, INPUT);
-  pullUpDnControl(d_pin_mode_num, PUD_DOWN); // pulled down for now
-  pinMode(d_pin_trigger_num, INPUT);
-  pullUpDnControl(d_pin_trigger_num, PUD_DOWN);
-  pinMode(d_pin_connect_num, INPUT);
-  pullUpDnControl(d_pin_connect_num, PUD_DOWN);
-
-  // read pins
-  d_pin_mode_val = digitalRead(d_pin_mode_num);
-  d_pin_trigger_val = digitalRead(d_pin_trigger_num);
-  d_pin_connect_val = digitalRead(d_pin_connect_num);
-    
-  // timers
-  d_check_pins.setCallback([this](){
-      processPins();
-    });
-  d_check_pins.restart(std::chrono::milliseconds(30)); // do not want multiple triggers from a switch bounce
   
   d_reset_gp.setCallback([this](){
       restartGPController();
@@ -49,29 +49,24 @@ void CamStreamer::restartGPController()
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::processPins()
+void CamStreamer::processModePinState(bool)
 {
-  bool pin_mode_val = digitalRead(d_pin_mode_num);
-  bool pin_trigger_val = digitalRead(d_pin_trigger_num);
-  bool pin_connect_val = digitalRead(d_pin_connect_num);
-  if (d_pin_mode_val != pin_mode_val)
-    {
-      d_pin_mode_val = pin_mode_val;
-      d_gp_controller->nextMode();
-    }
+  d_gp_controller->nextMode();
+}
 
-  if (d_pin_trigger_val != pin_trigger_val)
+//----------------------------------------------------------------------//
+void CamStreamer::processConnectPinState(bool state)
+{
+  if (state) // high edge
     {
-      d_pin_trigger_val = pin_trigger_val;
-      d_gp_controller->trigger();
-    }
-
-  // connect on a low to high edge pin state
-  if (d_pin_connect_val != pin_connect_val && d_pin_connect_val == true)
-    {
-      d_pin_connect_val = pin_connect_val;
       d_gp_controller->connect();
     }
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::processTriggerPinState(bool)
+{
+  d_gp_controller->trigger();
 }
 
 //----------------------------------------------------------------------//
