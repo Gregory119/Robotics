@@ -28,11 +28,13 @@ class CamStreamer final : D_GP::ModeController::Owner
   std::unique_ptr<D_GP::ModeController> d_gp_controller;
   // C_BLE::Serial d_bl_connection; use for phone app messages (pairing request, gopro details, pin numbers)
   
-  std::map<P_WP::PinName, P_WP::InputPin> d_pins;
+  P_WP::InputPin d_mode_pin = P_WP::InputPin(P_WP::PinH11);
+  P_WP::InputPin d_trigger_pin = P_WP::InputPin(P_WP::PinH13);
+  P_WP::InputPin d_connect_pin = P_WP::InputPin(P_WP::PinH15);
 
   D_GP::ModeController::CtrlParams d_gpcont_params;
 
-  KERN::AsioCallbackTimer d_reset_gp;
+  KERN::AsioCallbackTimer d_reset_gp = KERN::AsioCallbackTimer("CamStreamer - reset gopro timer.");
     
   KERN::DeleteOnTimeout<D_GP::ModeController> d_delete_gpcont;
   // hold a led controller

@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will be on the usb drive, and will be run when the drive is plugged in.
+# This script will be in the files copied from the usb drive, and will be run to install the usb files.
 
 set -e # exit shell on a simple command failure
 install_dir=$1

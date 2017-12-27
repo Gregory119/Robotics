@@ -64,8 +64,8 @@ class Robot final : D_GP::FastController::Owner
   std::unique_ptr<CTRL::Servo> d_motor;
   std::unique_ptr<D_GP::FastController> d_gp_cont;
   
-  KERN::AsioCallbackTimer d_process_timer;
-  KERN::AsioCallbackTimer d_watchdog_timer;
+  KERN::AsioCallbackTimer d_process_timer = KERN::AsioCallbackTimer("Robot - process timer.");
+  KERN::AsioCallbackTimer d_watchdog_timer = KERN::AsioCallbackTimer("Robot - watchdog timer.");;
 
   UTIL::Map d_rt_map;
   UTIL::Map d_lt_map;

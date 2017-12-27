@@ -18,7 +18,7 @@ Client::Client(Owner* o,
     d_service(std::move(service)),
     d_socket(KERN::AsioKernel::getService())
 {
-  d_reconnect_timer.setCallback([this](){
+  d_reconnect_timer.setTimeoutCallback([this](){
       connect();
     });
 }

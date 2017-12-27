@@ -89,7 +89,7 @@ namespace CTRL
     UTIL::Map d_pos_to_vel_map;
 
     std::unique_ptr<RCStepVelocityManager> d_velocity_man;
-    KERN::AsioCallbackTimer d_vel_inc_timer;
+    KERN::AsioCallbackTimer d_vel_inc_timer = KERN::AsioCallbackTimer("CTRL::Servo - velocity incrementing timer");
   };
 };
 

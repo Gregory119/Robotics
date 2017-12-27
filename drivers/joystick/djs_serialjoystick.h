@@ -55,7 +55,7 @@ namespace D_JS
     static const UTIL::Map s_value_to_char_map;
 
     bool d_enable_resend_event = false;
-    KERN::AsioCallbackTimer d_resend_timer;
+    KERN::AsioCallbackTimer d_resend_timer = KERN::AsioCallbackTimer("D_JS::JoystickTransmitter - resend last event timer.");
     long d_resend_time_ms = 60000;
     bool d_resend_only_axis = true;
   };

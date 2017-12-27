@@ -23,7 +23,7 @@ FastController::FastController(Owner* o,
   d_states[StateId::Video] = std::unique_ptr<StateInterface>(new StateVideo);
   d_state = d_states[StateId::Disconnected].get();
 
-  d_timer_recreate_gopro.setCallback([=](){ // by value capture (this and p)
+  d_timer_recreate_gopro.setTimeoutCallback([=](){ // by value capture (this and p)
       d_gp.reset(GoProFactory::createGoPro(this,
 					   p.model,
 					   p.name));

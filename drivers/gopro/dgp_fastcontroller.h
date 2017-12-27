@@ -108,7 +108,7 @@ namespace D_GP
     
     std::list<Req> d_reqs;
     
-    KERN::AsioCallbackTimer d_timer_recreate_gopro;
+    KERN::AsioCallbackTimer d_timer_recreate_gopro = KERN::AsioCallbackTimer("D_GP::FastController - KERN::AsioCallbackTimer");
   };
   
   class FastController::StateInterface

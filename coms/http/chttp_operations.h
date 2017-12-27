@@ -128,8 +128,8 @@ namespace C_HTTP
     std::vector<std::string> d_resp_headers; // http always has header response as text
     int d_running_transfers = 0;
 		
-    KERN::AsioCallbackTimer d_timer_process;
-    KERN::AsioCallbackTimer d_timer_failed_init;
+    KERN::AsioCallbackTimer d_timer_process = KERN::AsioCallbackTimer("C_HTTP::Operations - chttp_operations process timer");
+    KERN::AsioCallbackTimer d_timer_failed_init = KERN::AsioCallbackTimer("C_HTTP::Operations - initialisation failure timer");
 
     std::list<Request> d_buf_reqs;
   };

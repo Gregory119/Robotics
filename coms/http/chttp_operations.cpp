@@ -12,10 +12,10 @@ Operations::Operations(OperationsOwner* o)
   assert(o != nullptr);
   d_resp_headers.reserve(10*30); // assuming 10 headers each with 30 characters (assuming digest auth)
 
-  d_timer_process.setCallback([this](){
+  d_timer_process.setTimeoutCallback([this](){
       process();
     });
-  d_timer_failed_init.setCallback([this](){
+  d_timer_failed_init.setTimeoutCallback([this](){
       failedInit();
     });
 

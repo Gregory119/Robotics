@@ -21,14 +21,14 @@ namespace KERN
 
   private:
     std::vector<T*> d_pointers; // should not be much more than one pointer buffered on most occassions
-    KERN::AsioCallbackTimer d_timer;
+    KERN::AsioCallbackTimer d_timer = KERN::AsioCallbackTimer("KERN::DeleteOnTimeout - delete timer.");
   };
 
   //----------------------------------------------------------------------//
   template <class T>
     DeleteOnTimeout<T>::DeleteOnTimeout()
     {
-      d_timer.setCallback([this](){
+      d_timer.setTimeoutCallback([this](){
 	  for (const auto& ptr : d_pointers)
 	    {
 	      delete ptr;

@@ -18,14 +18,14 @@ namespace P_WP
   {      
   public:
     InputPin(int pin_num,
-	     PullMode pull = PullMode::Down);
+	     PullMode pull = PullMode::Up);
     void setStateChangedCallback(std::function<void(bool)>);
     
     // Possibly have this class inherit an interface that can be used to notify it of a pin state change using an interrupt.
     // In this case, the pin state will not need to be checked on an interval. Otherwise check the state change on an
-    // interval with checkStateInterval(..).
-    void checkStateInterval(std::chrono::milliseconds delay =
-			    std::chrono::milliseconds(50));
+    // interval with setUpdateInterval(..).
+    void setUpdateInterval(std::chrono::milliseconds delay =
+			   std::chrono::milliseconds(50));
     void readState(); // reads the pin state and updates it without checking for a change (does not call callback)
     bool getState() const { return d_state; }
 
@@ -38,7 +38,7 @@ namespace P_WP
     bool d_state = false;
     bool d_detected_change = false;
 
-    KERN::AsioCallbackTimer d_check_state;
+    KERN::AsioCallbackTimer d_check_state = KERN::AsioCallbackTimer("P_WP::InputPin - state checking timer");
     std::function<void(bool)> d_callback;
   };
 };

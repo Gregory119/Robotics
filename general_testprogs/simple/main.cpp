@@ -1,31 +1,28 @@
 #include <iostream>
-//#include <chrono>
+#include <chrono>
+#include <iostream>
 //#include <thread>
 
-class Test
-{
-public:
-  Test() = default;
-  Test(const Test&) = delete;
-  Test& operator=(const Test&) = delete;
-  //Test(const Test&&) = delete;
-  //Test& operator=(const Test&&) = delete;
+#include "kn_asiokernel.h"
 
-private:
-  std::string d_str = "twenty";
-};
+#include "kn_asiocallbacktimer.h"
 
 int main(int argc, char** argv)
 {
-  Test test1;
-  Test test2;
+  KERN::AsioKernel k;
 
-  test1 = std::move(test2);
+  KERN::AsioCallbackTimer timer1("test timer1");
+  KERN::AsioCallbackTimer timer2("test timer2");
+  timer1.setTimeoutCallback([](){
+      std::cout << "timer 1" << std::endl;
+    });
+  timer2.setTimeoutCallback([](){
+      std::cout << "timer 2" << std::endl;
+    });
+  timer1.restart(std::chrono::seconds(10));
+  timer1.restart(std::chrono::seconds(1));
+  timer2.restart(std::chrono::milliseconds(50));
   
-  /* while (1)
-    {
-      //std::this_thread::sleep_for(std::chrono::seconds(1));
-      }*/
-  
+  k.run();
   return 0;
 }

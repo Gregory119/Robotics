@@ -22,7 +22,7 @@ const UTIL::Map JoystickTransmitter::s_value_to_char_map(32767,-32767,255,0);
 //----------------------------------------------------------------------//
 JoystickTransmitter::JoystickTransmitter()
 {
-  d_resend_timer.setCallback([this](){
+  d_resend_timer.setTimeoutCallback([this](){
       if (d_enable_resend_event)
 	{
 	  resendLastEvent();

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <wiringPi.h>
+#include <iostream>
 
 using namespace P_WP;
 
@@ -33,7 +34,7 @@ void InputPin::setStateChangedCallback(std::function<void(bool)> func)
 }
 
 //----------------------------------------------------------------------//
-void InputPin::checkStateInterval(std::chrono::milliseconds delay)
+void InputPin::setUpdateInterval(std::chrono::milliseconds delay)
 {
 #ifndef RELEASE
   if (!d_callback)
@@ -42,8 +43,8 @@ void InputPin::checkStateInterval(std::chrono::milliseconds delay)
       return;
     }
 #endif
-  
-  d_check_state.setCallback([this](){
+    
+  d_check_state.setTimeoutCallback([this](){
       if (hasStateChanged())
 	{
 	  d_callback(d_state);

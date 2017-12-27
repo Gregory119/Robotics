@@ -20,7 +20,7 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   assert(!name.empty());
   d_connect_name = name;
 
-  d_timer_stream.setCallback([this](){
+  d_timer_stream.setTimeoutCallback([this](){
       // do not request to maintain stream if already waiting on a maintain stream response
       /*if (!d_cmd_reqs.empty())
 	      

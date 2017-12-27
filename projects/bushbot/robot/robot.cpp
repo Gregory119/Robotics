@@ -49,10 +49,10 @@ Robot::Robot(Params& params)
   d_steering->moveToMidPos();
 
   //timers
-  d_process_timer.setCallback([this](){
+  d_process_timer.setTimeoutCallback([this](){
       process();
     });
-  d_watchdog_timer.setCallback([this](){
+  d_watchdog_timer.setTimeoutCallback([this](){
       stopMoving();
     });
   

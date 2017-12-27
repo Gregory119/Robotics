@@ -18,12 +18,12 @@ public:
     params.time_step_ms = 500;
     
     d_man.reset(new CTRL::RCStepVelocityManager(params));
-    d_timer.setCallback([this](){
+    d_timer.setTimeoutCallback([this](){
 	processTimer();
       });
     d_timer.restartMs(params.time_step_ms);
 
-    d_input_timer.setCallback([this](){
+    d_input_timer.setTimeoutCallback([this](){
 	processInputTimer();
       });
     d_input_timer.restartMs(7500);
@@ -76,8 +76,8 @@ private:
 private:
   int d_req_velocity = 120;
   
-  KERN::AsioCallbackTimer d_timer;
-  KERN::AsioCallbackTimer d_input_timer;
+  KERN::AsioCallbackTimer d_timer = KERN::AsioCallbackTimer("Test timer.");
+  KERN::AsioCallbackTimer d_input_timer = KERN::AsioCallbackTimer("Test input timer.");;
   std::unique_ptr<CTRL::RCStepVelocityManager> d_man;
 };
 

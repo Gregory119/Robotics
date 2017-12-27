@@ -77,7 +77,7 @@ namespace C_UDP
     bool d_is_sending = false;
     bool d_is_connected = false;
 
-    KERN::AsioCallbackTimer d_reconnect_timer;
+    KERN::AsioCallbackTimer d_reconnect_timer = KERN::AsioCallbackTimer("C_UDP::Client - reconnect timer.");
   };
 };
 

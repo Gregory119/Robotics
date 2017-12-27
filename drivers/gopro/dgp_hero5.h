@@ -63,7 +63,7 @@ namespace D_GP
     GoPro::Cmd d_non = GoPro::Cmd::Unknown;
 
     std::unique_ptr<C_UDP::Client> d_udp_client;
-    KERN::AsioCallbackTimer d_timer_stream;
+    KERN::AsioCallbackTimer d_timer_stream = KERN::AsioCallbackTimer("D_GP::GoProHero5 - stream maintain timer.");
     bool d_is_streaming = false;
   };
 };

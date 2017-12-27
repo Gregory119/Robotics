@@ -10,21 +10,13 @@
 //----------------------------------------------------------------------//
 // The following will be done for the first release:
 
-// - test pin input control
-// - installer script using USB (must exist on the pi image so that only this image can install automatically via usb)
-//  - copy compressed file onto usb and plug into pi
-//  - check pi version against pi version of install files
-//  - install dependencies (curl, wiring pi, boost, omxplayer)
-//  - kill current running firmware services
-//  - create/clear directory for binary, start script, version doc (all in the same directory)
-//  - copy binary
-//  - copy start and service script
-//  - activate the script
-//  - reload and start the scripts
-// - wrap LED driver control to show usb installation progress
-// - read-only versioning doc
+// - test basic pin input control
+// - research common pin control methods using an rc receiver (PWM, HIGH/LOW STATE, SERIAL TYPES)
+// - DONE! installer script using USB (must exist on the pi image so that only this image can install automatically via usb)
 
 // - test on analog output
+
+// release versioning (code base and on pi), branching
 
 // - cross compile all dependency libraries for all pi versions
 // - save omxplayer version

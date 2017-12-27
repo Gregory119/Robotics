@@ -13,7 +13,7 @@ Servo::Servo()
 			       d_max_pos - d_mid_pos,
 			       d_mid_pos - d_max_pos))
 {
-  d_vel_inc_timer.setCallback([&](){
+  d_vel_inc_timer.setTimeoutCallback([&](){
       assert(d_velocity_man != nullptr);
       //std::cout << "timer timeout count: " << d_vel_inc_timer->getTotalTimeOuts() << std::endl;
       updateIncPos();

@@ -3,6 +3,7 @@
 #include "kn_asiokernel.h"
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
 
 class TestHttp : C_HTTP::OperationsOwner
@@ -12,7 +13,7 @@ public:
   {
     d_http.reset(new C_HTTP::Operations(static_cast<C_HTTP::OperationsOwner*>(this)));
 
-    d_http->init(60);
+    d_http->init(std::chrono::seconds(60));
     d_http->get(url);
   }
 	

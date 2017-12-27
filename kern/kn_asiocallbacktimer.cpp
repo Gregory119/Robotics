@@ -3,24 +3,33 @@
 #include "kn_asiokernel.h"
 
 #include <cassert>
+#include <iostream>
+
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 using namespace KERN;
 
 //----------------------------------------------------------------------//
 AsioCallbackTimer::AsioCallbackTimer()
-  : d_timer(new boost::asio::deadline_timer(AsioKernel::getService()))
+  : AsioCallbackTimer(std::string())
 {}
 
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::setCallback(std::function<void()> callback)
+AsioCallbackTimer::AsioCallbackTimer(std::string name)
+  : d_name(std::move(name)),
+    d_timer(new boost::asio::deadline_timer(AsioKernel::getService()))
+{}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::setTimeoutCallback(std::function<void()> callback)
 {
-  d_user_callback = callback;
+  d_timeout_callback = callback;
 }
 
 //----------------------------------------------------------------------//
 void AsioCallbackTimer::restart()
 {
-  if (!d_user_callback)
+  if (!d_timeout_callback)
     {
       // LOG
       assert(false);
@@ -34,7 +43,7 @@ void AsioCallbackTimer::restart()
 //----------------------------------------------------------------------//
 void AsioCallbackTimer::restartMs(long time_ms)
 {
-  if (!d_user_callback)
+  if (!d_timeout_callback)
     {
       // LOG
       assert(false);
@@ -80,7 +89,11 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
 {
   if (err == boost::asio::error::operation_aborted)
     {
-      // cancelled timers that have not yet expired
+      // Possibilities:
+      // 1) Timer has been cancelled because async_wait() was not called before running the io_service.
+      // 2) Timer has been cancelled because cancel() was called on the timer.
+      // 3) Expiry time was reset before the wait time expired.
+      std::cout << "AsioCallbackTimer::timerCallBack - timer aborted. timeout = " << d_timeout_ms << ". Name is: " << d_name << std::endl;
       return;
     }
 
@@ -92,7 +105,7 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
   
   assert(t != nullptr);
   ++d_count_conseq_timeouts;
-  d_user_callback();
+  d_timeout_callback();
   
   if (!d_is_enabled || d_is_single_shot) 
     {
@@ -143,6 +156,16 @@ void AsioCallbackTimer::restartMsIfNotSetOrDisabled(long time_ms)
 //----------------------------------------------------------------------//
 void AsioCallbackTimer::disable()
 {
+  if (!d_is_enabled)
+    {
+      // log
+      assert(false);
+      return;
+    }
+  
+  d_count_conseq_timeouts = 0;
+  d_is_enabled = false;
+  
   try
     {
       d_timer->cancel(); // forces the completion of any asynchronous wait operations
@@ -153,8 +176,6 @@ void AsioCallbackTimer::disable()
       // LOG
       assert(false);
     }
-  d_is_enabled = false;
-  d_count_conseq_timeouts = 0;
 }
    
 //----------------------------------------------------------------------//
