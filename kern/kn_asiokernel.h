@@ -8,7 +8,7 @@ namespace KERN
   class AsioCallbackTimer;
   class AsioKernel 
   {
-    // A service that currently only processes timer timeouts
+    // A service that currently only processes timer timeouts. It uses a thread_local singleton (one instance per thread).
   public:
     AsioKernel();
     virtual ~AsioKernel() = default;

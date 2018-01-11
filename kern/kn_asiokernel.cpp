@@ -6,7 +6,7 @@
 
 using namespace KERN;
 
-static AsioKernel* s_singleton = nullptr; // this should be thread_local
+thread_local static AsioKernel* s_singleton = nullptr;
 
 static const boost::posix_time::time_duration s_cont_time = boost::posix_time::seconds(60);
 
