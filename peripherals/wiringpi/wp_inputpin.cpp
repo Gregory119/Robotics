@@ -24,11 +24,11 @@ InputPin::InputPin(int pin_num, PullMode pull)
       break;
     }
 
-  readState(); // read initial state
+  updateState(); // read initial state
 }
 
 //----------------------------------------------------------------------//
-void InputPin::setStateChangedCallback(std::function<void(bool)> func)
+void InputPin::setTriggerCallback(std::function<void(bool)> func)
 {
   d_callback = func;
 }
@@ -45,7 +45,7 @@ void InputPin::setUpdateInterval(std::chrono::milliseconds delay)
 #endif
     
   d_check_state.setTimeoutCallback([this](){
-      if (hasStateChanged())
+      if (hasTriggered())
 	{
 	  d_callback(d_state);
 	}
@@ -54,27 +54,13 @@ void InputPin::setUpdateInterval(std::chrono::milliseconds delay)
 }
 
 //----------------------------------------------------------------------//
-void InputPin::readState()
+void InputPin::updateState()
 {
   d_state = digitalRead(d_num);
 }
 
 //----------------------------------------------------------------------//
-bool InputPin::hasStateChanged()
+bool InputPin::readState()
 {
-  bool state = digitalRead(d_num);
-  if (d_state != state)
-    {
-      // previously detected change and the change still exists
-      if (d_detected_change == true)
-	{
-	  d_detected_change = false; // reset the detection
-	  d_state = state;
-	  return true;
-	}
-      d_detected_change = true;
-      return false;
-    }
-  d_detected_change = false; // reset the detection
-  return false;
+  return digitalRead(d_num);
 }
