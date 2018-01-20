@@ -28,26 +28,24 @@ InputPin::InputPin(int pin_num, PullMode pull)
 }
 
 //----------------------------------------------------------------------//
-void InputPin::setTriggerCallback(std::function<void(bool)> func)
-{
-  d_callback = func;
-}
-
-//----------------------------------------------------------------------//
 void InputPin::setUpdateInterval(std::chrono::milliseconds delay)
 {
-#ifndef RELEASE
-  if (!d_callback)
+  if (!d_trigger)
     {
       assert(false);
       return;
     }
-#endif
+
+  if (!d_trigger_check)
+    {
+      assert(false);
+      return;
+    }
     
   d_check_state.setTimeoutCallback([this](){
-      if (hasTriggered())
+      if (d_trigger_check())
 	{
-	  d_callback(d_state);
+	  d_trigger(d_state);
 	}
     });
   d_check_state.restart(delay);
