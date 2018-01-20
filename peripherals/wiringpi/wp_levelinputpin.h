@@ -6,7 +6,7 @@
 namespace P_WP
 {
   // Triggers while the pin state is a specific value
-  class LevelInputPin
+  class LevelInputPin final : public InputPin
   {
   public:
     enum class LevelValue
@@ -25,14 +25,10 @@ namespace P_WP
     LevelInputPin(const LevelInputPin&&) = delete;
     LevelInputPin& operator=(const LevelInputPin&&) = delete;
 
-    void setTriggerCallback(std::function<void(bool)>);
-    
   private:
-    bool hasTriggered();
+    bool hasTriggered() override;
 
   private:
-    InputPin d_input_pin;
-    
     LevelValue d_trigger_value = LevelValue::Both;
   };
 };

@@ -1,10 +1,13 @@
 #include "camstreamer.h"
 
 static const std::chrono::milliseconds s_pin_update_time =
-  std::chrono::milliseconds(50);
+  std::chrono::milliseconds(25);
 
 //----------------------------------------------------------------------//
 CamStreamer::CamStreamer()
+  : d_mode_pin(P_WP::PinH11, P_WP::PullMode::Up, P_WP::EdgeInputPin::EdgeType::Both),
+    d_trigger_pin(P_WP::PinH13, P_WP::PullMode::Up, P_WP::EdgeInputPin::EdgeType::Both),
+    d_connect_pin(P_WP::PinH15, P_WP::PullMode::Up, P_WP::EdgeInputPin::EdgeType::Both)
 {
   // extract pin numbers from xml
   // d_pin_mode_num = ??;
@@ -13,18 +16,22 @@ CamStreamer::CamStreamer()
   // pin header number
   // ARE SERVO RECEIVER OUTPUT PINS NORMALLY HIGH OR LOW??? SUPPORT OTHER RC RECEIVER TECHNOLOGIES (NEED SETUP ON THE APP)??
 
+  // READ CONFIG TO DETERMINE NEEDED PIN PULL MODE (DIGITAL PIN INPUT OR SWITCH/BUTTON => NO PULL OR PULL UP)
+  // d_mode_pin.setPullMode(...);
+  // ...
+  
   // Pins
-  d_mode_pin.setStateChangedCallback([this](bool state){
+  d_mode_pin.setTriggerCallback([this](bool state){
       processModePinState(state);
     });
   d_mode_pin.setUpdateInterval(s_pin_update_time);
   
-  d_trigger_pin.setStateChangedCallback([this](bool state){
+  d_trigger_pin.setTriggerCallback([this](bool state){
       processTriggerPinState(state);
     });  
   d_trigger_pin.setUpdateInterval(s_pin_update_time);
 
-  d_connect_pin.setStateChangedCallback([this](bool state){
+  d_connect_pin.setTriggerCallback([this](bool state){
       processConnectPinState(state);
     });
   d_connect_pin.setUpdateInterval(s_pin_update_time);

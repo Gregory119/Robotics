@@ -6,7 +6,7 @@
 namespace P_WP
 {
   // Triggers on an pin edge state change
-  class EdgeInputPin final
+  class EdgeInputPin final : public InputPin
   {
   public:
     enum class EdgeType
@@ -24,15 +24,11 @@ namespace P_WP
     EdgeInputPin& operator=(const EdgeInputPin&) = delete;
     EdgeInputPin(const EdgeInputPin&&) = delete;
     EdgeInputPin& operator=(const EdgeInputPin&&) = delete;
-
-    void setTriggerCallback(std::function<void(bool)>);
    
   private:
-    bool hasTriggered();
+    bool hasTriggered() override;
     
   private:
-    InputPin d_input_pin;
-    
     bool d_detected_change = false;
     EdgeType d_edge_type = EdgeType::Both;
   };

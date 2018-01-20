@@ -5,7 +5,7 @@
 
 #include "kn_asiocallbacktimer.h"
 #include "kn_deleteontimeout.h"
-#include "wp_inputpin.h"
+#include "wp_edgeinputpin.h"
 
 #include <memory>
 
@@ -28,9 +28,9 @@ class CamStreamer final : D_GP::ModeController::Owner
   std::unique_ptr<D_GP::ModeController> d_gp_controller;
   // C_BLE::Serial d_bl_connection; use for phone app messages (pairing request, gopro details, pin numbers)
   
-  P_WP::InputPin d_mode_pin = P_WP::InputPin(P_WP::PinH11);
-  P_WP::InputPin d_trigger_pin = P_WP::InputPin(P_WP::PinH13);
-  P_WP::InputPin d_connect_pin = P_WP::InputPin(P_WP::PinH15);
+  P_WP::EdgeInputPin d_mode_pin;
+  P_WP::EdgeInputPin d_trigger_pin;
+  P_WP::EdgeInputPin d_connect_pin;
 
   D_GP::ModeController::CtrlParams d_gpcont_params;
 

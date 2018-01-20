@@ -6,24 +6,14 @@ using namespace P_WP;
 LevelInputPin::LevelInputPin(int pin_num,
 			     PullMode pull,
 			     LevelValue v)
-  : d_input_pin(pin_num, pull),
+  : InputPin(pin_num, pull),
     d_trigger_value(v)
-{
-  d_input_pin.setTriggerCheck([this](){
-      return hasTriggered();
-    });
-}
-
-//----------------------------------------------------------------------//
-void LevelInputPin::setTriggerCallback(std::function<void(bool)> f)
-{
-  d_input_pin.setTriggerCallback(f);
-}
+{}
 
 //----------------------------------------------------------------------//
 bool LevelInputPin::hasTriggered()
 {
-  bool state = d_input_pin.readState();
+  bool state = readState();
 
   switch (d_trigger_value)
     {
@@ -41,6 +31,6 @@ bool LevelInputPin::hasTriggered()
       break;
     }
   
-  d_input_pin.setSavedState(state);
+  d_state = state;
   return false;
 }

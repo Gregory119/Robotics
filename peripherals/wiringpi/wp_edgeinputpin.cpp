@@ -6,25 +6,15 @@ using namespace P_WP;
 EdgeInputPin::EdgeInputPin(int pin_num,
 			   PullMode pull,
 			   EdgeType t)
-  : d_input_pin(pin_num, pull),
+  : InputPin(pin_num, pull),
     d_edge_type(t)
-{
-  d_input_pin.setTriggerCheck([this](){
-      return hasTriggered();
-    });
-}
-
-//----------------------------------------------------------------------//
-void EdgeInputPin::setTriggerCallback(std::function<void(bool)> f)
-{
-  d_input_pin.setTriggerCallback(f);
-}
+{}
 
 //----------------------------------------------------------------------//
 bool EdgeInputPin::hasTriggered()
 {
-  bool state = d_input_pin.readState();
-  if (d_input_pin.getSavedState() == state)
+  bool state = readState();
+  if (d_state == state)
     {
       d_detected_change = false; // reset the detection
       return false;
@@ -55,6 +45,6 @@ bool EdgeInputPin::hasTriggered()
       break;
     }
   
-  d_input_pin.setSavedState(state);
+  d_state = state;
   return false;
 }
