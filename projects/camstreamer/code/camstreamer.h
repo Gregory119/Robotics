@@ -28,9 +28,9 @@ class CamStreamer final : D_GP::ModeController::Owner
   std::unique_ptr<D_GP::ModeController> d_gp_controller;
   // C_BLE::Serial d_bl_connection; use for phone app messages (pairing request, gopro details, pin numbers)
   
-  P_WP::EdgeInputPin d_mode_pin;
-  P_WP::EdgeInputPin d_trigger_pin;
-  P_WP::EdgeInputPin d_connect_pin;
+  std::unique_ptr<P_WP::EdgeInputPin> d_mode_pin;
+  std::unique_ptr<P_WP::EdgeInputPin> d_trigger_pin;
+  std::unique_ptr<P_WP::EdgeInputPin> d_connect_pin;
 
   D_GP::ModeController::CtrlParams d_gpcont_params;
 

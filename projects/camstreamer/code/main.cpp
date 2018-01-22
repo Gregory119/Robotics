@@ -2,7 +2,8 @@
 
 #include "kn_asiokernel.h"
 
-#include <cassert>
+#include <cassert>// - script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system). People may not even use this functionality, although it is safer.
+
 #include <wiringPi.h>
 #include <iostream>
 
@@ -19,7 +20,8 @@
 //   - include pin control type (Connected to digital output pin OR button/switch)
 //   - include pin assignments
 // - update usb install script to check for config file on the usb. LED should indicate any failure.
-// - script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system)
+
+// - python script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system). People may not even use this functionality, although it is safer.
 
 // - binary reverse engineering security
 
