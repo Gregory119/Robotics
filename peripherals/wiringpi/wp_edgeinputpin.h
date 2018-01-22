@@ -17,7 +17,7 @@ namespace P_WP
 	};
     
   public:
-    EdgeInputPin(int pin_num,
+    EdgeInputPin(PinNum,
 		 PullMode,
 		 EdgeType);
     EdgeInputPin(const EdgeInputPin&) = delete;

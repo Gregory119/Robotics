@@ -3,7 +3,7 @@
 using namespace P_WP;
 
 //----------------------------------------------------------------------//
-EdgeInputPin::EdgeInputPin(int pin_num,
+EdgeInputPin::EdgeInputPin(PinNum pin_num,
 			   PullMode pull,
 			   EdgeType t)
   : InputPin(pin_num, pull),
@@ -29,6 +29,7 @@ bool EdgeInputPin::hasTriggered()
       
   // state change still exists after previous detection
   d_detected_change = false; // reset after detection
+  d_state = state;
   switch (d_edge_type)
     {
     case EdgeType::High:
@@ -39,12 +40,7 @@ bool EdgeInputPin::hasTriggered()
 
     case EdgeType::Both:
       return true;
-
-    default:
-      assert(false);
-      break;
     }
   
-  d_state = state;
   return false;
 }

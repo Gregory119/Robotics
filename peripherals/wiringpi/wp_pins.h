@@ -3,23 +3,26 @@
 
 namespace P_WP
 {
-  extern const int PinH3;
-  extern const int PinH5;
-  extern const int PinH7;
-  extern const int PinH8;
-  extern const int PinH10;
-  extern const int PinH11;
-  extern const int PinH12;
-  extern const int PinH13;
-  extern const int PinH15;
-  extern const int PinH16;
-  extern const int PinH18;
-  extern const int PinH19;
-  extern const int PinH21;
-  extern const int PinH22;
-  extern const int PinH23;
-  extern const int PinH24;
-  extern const int PinH26;
+  enum class PinNum
+  {
+    H3 = 8,
+      H5 = 9,
+      H7 = 7,
+      H8 = 15,
+      H10 = 16,
+      H11 = 0,
+      H12 = 1,
+      H13 = 2,
+      H15 = 3,
+      H16 = 4,
+      H18 = 5,
+      H19 = 12,
+      H21 = 13,
+      H22 = 6,
+      H23 = 14,
+      H24 = 10,
+      H26 = 11
+      };
 };
 
 #endif

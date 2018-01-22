@@ -7,8 +7,8 @@
 using namespace P_WP;
 
 //----------------------------------------------------------------------//
-InputPin::InputPin(int pin_num, PullMode pull)
-  : d_num(pin_num),
+InputPin::InputPin(PinNum pin_num, PullMode pull)
+  : d_num(static_cast<int>(pin_num)),
     d_pull_mode(pull)
 {
   pinMode(d_num, INPUT);

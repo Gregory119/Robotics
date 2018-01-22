@@ -17,7 +17,7 @@ namespace P_WP
     };
     
   public:
-    LevelInputPin(int pin_num,
+    LevelInputPin(PinNum,
 		  PullMode,
 		  LevelValue);
     LevelInputPin(const LevelInputPin&) = delete;

@@ -3,7 +3,7 @@
 using namespace P_WP;
 
 //----------------------------------------------------------------------//
-LevelInputPin::LevelInputPin(int pin_num,
+LevelInputPin::LevelInputPin(PinNum pin_num,
 			     PullMode pull,
 			     LevelValue v)
   : InputPin(pin_num, pull),
@@ -13,15 +13,15 @@ LevelInputPin::LevelInputPin(int pin_num,
 //----------------------------------------------------------------------//
 bool LevelInputPin::hasTriggered()
 {
-  bool state = readState();
+  d_state = readState();
 
   switch (d_trigger_value)
     {
     case LevelValue::High:
-      if (state) {return true;} break;
+      if (d_state) {return true;} break;
 
     case LevelValue::Low:
-      if (!state) {return true;} break;
+      if (!d_state) {return true;} break;
 
     case LevelValue::Both:
       return true;
@@ -31,6 +31,5 @@ bool LevelInputPin::hasTriggered()
       break;
     }
   
-  d_state = state;
   return false;
 }

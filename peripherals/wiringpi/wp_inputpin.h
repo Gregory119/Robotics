@@ -22,7 +22,7 @@ namespace P_WP
   class InputPin
   {      
   public:
-    InputPin(int pin_num,
+    InputPin(PinNum,
 	     PullMode pull);
     InputPin(const InputPin&) = delete;
     InputPin& operator=(const InputPin&) = delete;
@@ -49,7 +49,7 @@ namespace P_WP
     virtual bool hasTriggered() = 0;
     
   private:
-    int d_num = P_WP::PinH11;
+    int d_num = static_cast<int>(PinNum::H11);
     PullMode d_pull_mode = PullMode::Down;
     
     KERN::AsioCallbackTimer d_check_state = KERN::AsioCallbackTimer("P_WP::InputPin - trigger checking timer");
