@@ -24,8 +24,8 @@ class Config
 
   struct PinConfig
   {
-    P_WP::PinNum num;
-    P_WP::PullMode pull_mode;
+    P_WP::PinNum num = P_WP::PinNum::Unknown;
+    P_WP::PullMode pull_mode = P_WP::PullMode::Up;
   };
 
  public:
@@ -58,6 +58,8 @@ class Config
   PinConfig d_connect_pin;
 
   bool d_has_error = true;
+
+  // !!!!!!!!!!!add zero fail timer
 };
 
 #endif
