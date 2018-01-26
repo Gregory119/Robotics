@@ -9,12 +9,17 @@
 
 #include <memory>
 
-class CamStreamer final : D_GP::ModeController::Owner
+class CamStreamer final : Config::Owner,
+  D_GP::ModeController::Owner
 {
  public:
   CamStreamer();
 
  private:
+  // Config::Owner
+  void handleError(Config*, Error, const std::string& msg) override;
+  
+  // D_GP::ModeController
   void handleFailedRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
   void handleSuccessfulRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
 

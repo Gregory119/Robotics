@@ -11,13 +11,6 @@ namespace P_WP
   
   using PinName = std::string;
     
-  enum class PullMode
-  {
-    Up,
-      Down,
-      None
-  };
-
   // Designed to be a base class that provides general input pin functionality.
   class InputPin
   {      

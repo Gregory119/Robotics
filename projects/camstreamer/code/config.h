@@ -1,12 +1,18 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "kn_asiocallbacktimer.h"
+#include "wp_pins.h"
+
+#include <string>
+
 class Config
 {  
  public:
   enum class Error
   {
-    File,
+    None,
+    OpenFile,
     ModePinNum,
       ModePinPullMode,
       TriggerPinNum,
@@ -41,11 +47,11 @@ class Config
     
   private:
     friend class Config;
-    virtual void handleConfigError(Error) = 0;
+    virtual void handleError(Config*, Error, const std::string& msg) = 0;
   };
   
  public:
-  Config(std::string file_path); // absolute or relative path
+  Config(Owner*, const std::string& file_path); // absolute or relative path
 
   bool hasError();
   
@@ -53,13 +59,27 @@ class Config
   P_WP::PinNum getPinPullMode(PinId);
 
  private:
+  void singleShotError(Error, const std::string& message);
+  bool extractPinNumber(PinConfig&,
+			ifstream& file,
+			const std::string& pin_num_text,
+			Error); // the error type is only use on an internal error condition
+  bool extractPinPullMode(PinConfig&,
+			  ifstream& file,
+			  const std::string& pin_mode_text,
+			  Error);
+  
+ private:
+  Owner* d_owner = nullptr;
+  
   PinConfig d_mode_pin;
   PinConfig d_trigger_pin;
   PinConfig d_connect_pin;
 
-  bool d_has_error = true;
+  Error d_error = Error::None;
+  std::string d_error_msg;
 
-  // !!!!!!!!!!!add zero fail timer
+  KERN::AsioCallbackTimer d_zero_fail_timer;
 };
 
 #endif

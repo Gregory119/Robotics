@@ -1,5 +1,7 @@
 #include "camstreamer.h"
 
+#include <iostream>
+
 static const std::chrono::milliseconds s_pin_update_time =
   std::chrono::milliseconds(25);
 
@@ -48,6 +50,12 @@ CamStreamer::CamStreamer()
   d_reset_gp.setTimeoutCallback([this](){
       restartGPController();
     });
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleError(Config*, Error e, const std::string& msg)
+{
+  std::cerr << msg << std::endl;
 }
 
 //----------------------------------------------------------------------//

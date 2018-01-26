@@ -3,6 +3,13 @@
 
 namespace P_WP
 {
+  enum class PullMode
+  {
+    Up,
+      Down,
+      None
+      };
+  
   // Only raspberry pis using a 20x2 pin header are supported:
   // Pi 1A+, 1B+, 2, 3, Zero, Zero W
   enum class PinNum
