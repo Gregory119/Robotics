@@ -95,6 +95,7 @@ Mode Utils::extractModeStatus(int mode, int sub_mode)
 	}
       break;
     }
+  assert(false);
   return Mode::Unknown;
 }
 

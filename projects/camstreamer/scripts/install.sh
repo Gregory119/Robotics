@@ -20,7 +20,7 @@ cd $install_dir
 cp firmware/* .
 chmod 777 actioncamstreamer
 
-sleep 5 # so that the user has time to see that the install has triggered
+sleep 3 # so that the user has time to see that the install has triggered
 
 # restart the firmware start script service
 systemctl restart start_actioncamstreamer.service

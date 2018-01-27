@@ -6,44 +6,41 @@ static const std::chrono::milliseconds s_pin_update_time =
   std::chrono::milliseconds(25);
 
 //----------------------------------------------------------------------//
-CamStreamer::CamStreamer()
+CamStreamer::CamStreamer(const std::string& config_file_path)
 {
-  // If the file config extraction fails, then modify led (LED class) and return. Re-inserting the usb with correct config file settings should restart the software correctly.
-  // extract pin numbers from xml
-  // d_pin_mode_num = ??;
-  // d_pin_trigger_num = ??;
-  // pin functional name
-  // pin header number
-
-  // ARE SERVO RECEIVER OUTPUT PINS NORMALLY HIGH OR LOW??? SUPPORT OTHER RC RECEIVER TECHNOLOGIES (NEED SETUP ON THE APP)??
-  // READ CONFIG TO DETERMINE NEEDED PIN PULL MODE (DIGITAL PIN INPUT OR SWITCH/BUTTON => NO PULL OR PULL UP)
-  // d_mode_pin.setPullMode(...);
-  // ...
+  // Created as a class member variable to ensure handleError is called with an existing Config instance.
+  d_config.reset(new Config(this, config_file_path)); 
+  if (d_config->hasError())
+    {
+      // Logging will happen in handleError after this constructor.
+      // Set the LED to indicate a settings error.
+      return;
+    }
   
   // Pins
-  d_mode_pin.reset(new P_WP::EdgeInputPin(P_WP::PinNum::H11,
-					  P_WP::PullMode::Up,
+  d_mode_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Mode),
+					  d_config->getPinPullMode(Config::PinId::Mode),
 					  P_WP::EdgeInputPin::EdgeType::Both));
-  d_trigger_pin.reset(new P_WP::EdgeInputPin(P_WP::PinNum::H13,
-					     P_WP::PullMode::Up,
+  d_trigger_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Trigger),
+					     d_config->getPinPullMode(Config::PinId::Trigger),
 					     P_WP::EdgeInputPin::EdgeType::Both));
-  d_connect_pin.reset(new P_WP::EdgeInputPin(P_WP::PinNum::H15,
-					     P_WP::PullMode::Up,
+  d_connect_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Connect),
+					     d_config->getPinPullMode(Config::PinId::Connect),
 					     P_WP::EdgeInputPin::EdgeType::Both));
-  d_mode_pin.setTriggerCallback([this](bool state){
+  d_mode_pin->setTriggerCallback([this](bool state){
       processModePinState(state);
     });
-  d_trigger_pin.setTriggerCallback([this](bool state){
+  d_trigger_pin->setTriggerCallback([this](bool state){
       processTriggerPinState(state);
     });  
-  d_connect_pin.setTriggerCallback([this](bool state){
+  d_connect_pin->setTriggerCallback([this](bool state){
       processConnectPinState(state);
     });
-  d_mode_pin.setUpdateInterval(s_pin_update_time);
-  d_trigger_pin.setUpdateInterval(s_pin_update_time);
-  d_connect_pin.setUpdateInterval(s_pin_update_time);
+  d_mode_pin->setUpdateInterval(s_pin_update_time);
+  d_trigger_pin->setUpdateInterval(s_pin_update_time);
+  d_connect_pin->setUpdateInterval(s_pin_update_time);
 
-  // extract gopro type from xml (app setting)
+  // extract GoPro type from xml (app setting)
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
   restartGPController();
   
@@ -53,15 +50,16 @@ CamStreamer::CamStreamer()
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleError(Config*, Error e, const std::string& msg)
+void CamStreamer::handleError(Config*, Config::Error e, const std::string& msg)
 {
   std::cerr << msg << std::endl;
+  d_delete_config.deletePtr(d_config); 
 }
 
 //----------------------------------------------------------------------//
 void CamStreamer::restartGPController()
 {
-  d_gp_controller.reset(new D_GP::ModeController(this,d_gpcont_params));
+  d_gp_controller.reset(new D_GP::ModeController(this, d_gpcont_params));
   d_gp_controller->connect();
   d_gp_controller->startStream();
 }
@@ -107,7 +105,7 @@ void CamStreamer::processTriggerPinState(bool)
 void CamStreamer::handleFailedRequest(D_GP::ModeController* ctrl,
 				      D_GP::ModeController::Req req)
 {
-  std::cout << "CamStreamer::handleFailedRequest" << std::endl;
+  std::cerr << "CamStreamer::handleFailedRequest" << std::endl;
   // disable any other callbacks
   ctrl->setOwner(nullptr);
   // delete on timeout 

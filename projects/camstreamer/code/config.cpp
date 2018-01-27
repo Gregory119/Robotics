@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <sstream>
 #include <fstream>
 
 //----------------------------------------------------------------------//
@@ -8,11 +9,11 @@ Config::Config(Owner* o,
   : d_owner(o)
 {
   d_zero_fail_timer.setTimeoutCallback([&](){
-      d_owner->handleConfigError(this, d_error, d_error_msg);
+      d_owner->handleError(this, d_error, d_error_msg);
     });
   
   // read, parse, and validify textfile
-  ifstream file(file_path.c_str());
+  std::ifstream file(file_path.c_str());
 
   if (file.fail())
     {
@@ -92,8 +93,16 @@ void Config::singleShotError(Error e, const std::string& msg)
 }
 
 //----------------------------------------------------------------------//
-void Config::extractPinPullMode(PinConfig& pin_conf,
-				ifstream& file,
+void Config::ownerHandleError(Error e, const std::string& msg)
+{
+  d_error = e;
+  d_error_msg = msg;
+  d_owner->handleError(this, e, msg);
+}
+
+//----------------------------------------------------------------------//
+bool Config::extractPinPullMode(PinConfig& pin_conf,
+				std::ifstream& file,
 				const std::string& pin_mode_text,
 				Error e)
 {
@@ -101,9 +110,10 @@ void Config::extractPinPullMode(PinConfig& pin_conf,
   std::getline(file, line);
   if (line.find(pin_mode_text) != 0)
     {
-      singleShotError(e,
-		      "Config - Failed to find '%s'.",
-		      pin_mode_text.c_str());
+      std::ostringstream stream("Config - Failed to find '",
+				std::ios_base::app);
+      stream << pin_mode_text << "'.";
+      singleShotError(e, stream.str());
       return false;
     }
 
@@ -128,15 +138,16 @@ void Config::extractPinPullMode(PinConfig& pin_conf,
       return true;
     }
 
-  singleShotError(e,
-		  "Config - Failed to interpret the pin pull mode of '%s'.",
-		  line.c_str());
+  std::ostringstream stream("Config - Failed to interpret the pin pull mode of '",
+			    std::ios_base::app);
+  stream << line << "'.";
+  singleShotError(e, stream.str());
   return false;
 }
 
 //----------------------------------------------------------------------//
-void Config::extractPinNumber(PinConfig& pin_conf,
-			      ifstream& file,
+bool Config::extractPinNumber(PinConfig& pin_conf,
+			      std::ifstream& file,
 			      const std::string& pin_num_text,
 			      Error e)
 {
@@ -144,9 +155,10 @@ void Config::extractPinNumber(PinConfig& pin_conf,
   std::getline(file, line);
   if (line.find(pin_num_text) != 0)
     {
-      singleShotError(e,
-		      "Config - Failed to find '%s'.",
-		      pin_num_text.c_str());
+      std::ostringstream stream("Config - Failed to find '",
+				std::ios_base::app);
+      stream << pin_num_text << "'.";
+      singleShotError(e, stream.str());
       return false;
     }
 
@@ -157,18 +169,21 @@ void Config::extractPinNumber(PinConfig& pin_conf,
       text_num = line.substr(pin_num_text.length());
       pin_num = std::stoi(text_num);
     }
-  catch
+  catch (...)
     {
-      singleShotError(e,
-		      "Config - Failed to convert text '%s' to a number for '%s'.",
-		      text_num.c_str(),
-		      pin_num_text.c_str());
+      std::ostringstream stream("Config - Failed to convert text '",
+				std::ios_base::app);
+      stream << text_num << "'" << "to a number for '" << pin_num_text << "'.";
+      singleShotError(e, stream.str());
       return false;
     }
 
   if (pin_num < 0 || pin_num >= static_cast<int>(P_WP::PinNum::Unknown))
     {
-      singleShotError(e, "Config - The pin number of '%s' is out of range.", line.c_str());
+      std::ostringstream stream("Config - The pin number of '",
+				std::ios_base::app);
+      stream << "' is out of range.";
+      singleShotError(e, stream.str());
       return false;
     }
   pin_conf.num = static_cast<P_WP::PinNum>(pin_num);
@@ -179,6 +194,18 @@ void Config::extractPinNumber(PinConfig& pin_conf,
 bool Config::hasError()
 {
   return d_error != Error::None;
+}
+
+//----------------------------------------------------------------------//
+Config::Error Config::getError()
+{
+  return d_error;
+}
+
+//----------------------------------------------------------------------//
+const std::string& Config::getErrorMsg()
+{
+  return d_error_msg;
 }
 
 //----------------------------------------------------------------------//
@@ -195,10 +222,16 @@ P_WP::PinNum Config::getPinNum(PinId id)
     case PinId::Connect:
       return d_connect_pin.num;
     }
+  assert(false);
+  std::ostringstream stream("Config - the pin ID '",
+			    std::ios_base::app);
+  stream << static_cast<int>(id) << "does not exist. Failed to determine the pin number.";
+  ownerHandleError(Error::PinIdForPinNum, stream.str());
+  return P_WP::PinNum::H11;
 }
 
 //----------------------------------------------------------------------//
-P_WP::PinNum Config::getPinPullMode(PinId id)
+P_WP::PullMode Config::getPinPullMode(PinId id)
 {
   switch (id)
     {
@@ -211,4 +244,10 @@ P_WP::PinNum Config::getPinPullMode(PinId id)
     case PinId::Connect:
       return d_connect_pin.pull_mode;
     }
+  assert(false);
+  std::ostringstream stream("Config - the pin ID '",
+			    std::ios_base::app);
+  stream << static_cast<int>(id) << "does not exist. Failed to determine pull mode.";
+  ownerHandleError(Error::PinIdForPullMode, stream.str());
+  return P_WP::PullMode::Up;
 }

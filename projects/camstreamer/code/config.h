@@ -18,7 +18,9 @@ class Config
       TriggerPinNum,
       TriggerPinPullMode,
       ConnectPinNum,
-      ConnectPinPullMode
+      ConnectPinPullMode,
+      PinIdForPullMode, // Should never happen
+      PinIdForPinNum // Should never happen
   };
 
   enum class PinId
@@ -38,6 +40,7 @@ class Config
   class Owner
   {
   public:
+    Owner() = default;
     Owner(const Owner&) = delete;
     Owner& operator=(const Owner&) = delete;
     // move special members are not declared when the destructor is
@@ -48,6 +51,8 @@ class Config
   private:
     friend class Config;
     virtual void handleError(Config*, Error, const std::string& msg) = 0;
+    // Errors must be logged by the owner because they are not done internally.
+    // This function is called on a zero timer in the constructor.
   };
   
  public:
@@ -55,17 +60,21 @@ class Config
 
   bool hasError();
   
+  Error getError();
+  const std::string& getErrorMsg();
+  
   P_WP::PinNum getPinNum(PinId);
-  P_WP::PinNum getPinPullMode(PinId);
+  P_WP::PullMode getPinPullMode(PinId);
 
  private:
-  void singleShotError(Error, const std::string& message);
+  void ownerHandleError(Error, const std::string& msg);
+  void singleShotError(Error, const std::string& msg);
   bool extractPinNumber(PinConfig&,
-			ifstream& file,
+			std::ifstream& file,
 			const std::string& pin_num_text,
 			Error); // the error type is only use on an internal error condition
   bool extractPinPullMode(PinConfig&,
-			  ifstream& file,
+			  std::ifstream& file,
 			  const std::string& pin_mode_text,
 			  Error);
   
