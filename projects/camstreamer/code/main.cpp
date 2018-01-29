@@ -19,7 +19,7 @@
 //   - custom format (xml in the future with app)
 //   - include pin control type (Connected to digital output pin OR button/switch)
 //   - include pin assignments
-//   - gopro model
+// - LED control classes to indicate operation status
 // - update usb install script to check for config file on the usb. LED should indicate any failure.
 
 // - python script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system). People may not even use this functionality, although it is safer.
@@ -27,7 +27,7 @@
 // - binary reverse engineering security
 
 // - test video analog output
-// - test and support most GoPro models (consider adding older ones if time permits)
+// - test and support most GoPro models (consider adding older ones if time permits - add to config file)
 
 // - cross compile all dependency libraries for all pi versions
 // - save omxplayer version
