@@ -13,6 +13,8 @@ ifndef MAKESETTINGS
       $(error makefile.set must be included before this makefile)
 endif
 
+# List the most independent ones last
+
 ifdef USES_LIBCONTROL
       LIBCONTROLPATH = $(BASE_DIR)/control
       INCLUDES += -I$(LIBCONTROLPATH)
@@ -68,7 +70,7 @@ endif
 ifdef USES_LIBKERN
       LIBKERNPATH = $(BASE_DIR)/kern
       INCLUDES += -I$(LIBKERNPATH)
-      LIBS += -lboost_system -lboost_date_time #-lpthread
+      LIBS += -lboost_system -lboost_date_time -lpthread
       LIBSRC += $(wildcard $(LIBKERNPATH)/*.cpp)
       USES_LIBCORE=1
 endif
@@ -86,56 +88,83 @@ ifdef USES_LIBUTILS
       LIBSRC += $(wildcard $(LIBUTILSPATH)/*.cpp)
 endif
 
+ifdef USES_LIBLED
+      LIBLEDPATH = $(BASE_DIR)/drivers/led
+      INCLUDES += -I$(LIBLEDPATH)
+      LIBS += 
+      LIBSRC += $(wildcard $(LIBLEDPATH)/*.cpp)
+endif
+
 OBJ += $(LIBSRC:.cpp=.o)
 
 .PHONY: thisdir $(TEST_NAME)
 
-makelibs:
-#make prerequisite libraries
+ifndef built_libs
+built_libs:=
+endif
 
-ifdef USES_LIBCUDP
-ifneq "$(LIBNAME)" "CUDP"
-	$(MAKE) -C $(LIBCUDPPATH)
-endif
-endif
-ifdef USES_LIBWIRINGPI
-ifneq "$(LIBNAME)" "WIRINGPI"
-	$(MAKE) -C $(LIBWIRINGPIPATH)
-endif
-endif
-ifdef USES_LIBCONTROL
-ifneq "$(LIBNAME)" "CONTROL"
-	$(MAKE) -C $(LIBCONTROLPATH)
-endif
-endif
-ifdef USES_LIBDGP
-ifneq "$(LIBNAME)" "DGP"
-	$(MAKE) -C $(LIBDGPPATH)
-endif
-endif
+makelibs:
+# make prerequisite libraries
+# List the most independent ones first: this ensures that the most independent libraries are marked as built for any further dependent libraries.
+
 ifdef USES_LIBCORE
-ifneq "$(LIBNAME)" "CORE"
-	$(MAKE) -C $(LIBCOREPATH)
+ifndef BUILT_CORE
+	$(eval built_libs+=BUILT_CORE=1)
+	$(MAKE) -C $(LIBCOREPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBDJS
-ifneq "$(LIBNAME)" "DJS"
-	$(MAKE) -C $(LIBDJSPATH)
-endif
-endif
-ifdef USES_LIBKERN
-ifneq "$(LIBNAME)" "KERN"
-	$(MAKE) -C $(LIBKERNPATH)
+ifdef USES_LIBLED
+ifndef BUILT_LED
+	$(eval built_libs+=BUILT_LED=1)
+	$(MAKE) -C $(LIBLEDPATH) $(built_libs)
 endif
 endif
 ifdef USES_LIBUTILS
-ifneq "$(LIBNAME)" "UTILS"
-	$(MAKE) -C $(LIBUTILSPATH)
+ifndef BUILT_UTILS
+	$(eval built_libs+=BUILT_UTILS=1)
+	$(MAKE) -C $(LIBUTILSPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBKERN
+ifndef BUILT_KERN
+	$(eval built_libs+=BUILT_KERN=1)
+	$(MAKE) -C $(LIBKERNPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBDJS
+ifndef BUILT_DJS
+	$(eval built_libs+=BUILT_DJS=1)
+	$(MAKE) -C $(LIBDJSPATH) $(built_libs)
 endif
 endif
 ifdef USES_LIBCHTTP
-ifneq "$(LIBNAME)" "CHTTP"
-	$(MAKE) -C $(LIBCHTTPPATH)
+ifndef BUILT_CHTTP
+	$(eval built_libs+=BUILT_CHTTP=1)
+	$(MAKE) -C $(LIBCHTTPPATH) $(built_libs)
+endif
+ifdef USES_LIBCUDP
+ifndef BUILT_CUDP
+	$(eval built_libs+=BUILT_CUDP=1)
+	$(MAKE) -C $(LIBCUDPPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBDGP
+ifndef BUILT_DGP
+	$(eval built_libs+=BUILT_DGP=1)
+	$(MAKE) -C $(LIBDGPPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBWIRINGPI
+ifndef BUILT_WIRINGPI
+	$(eval built_libs+=BUILT_WIRINGPI=1)
+	$(MAKE) -C $(LIBWIRINGPIPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBCONTROL
+ifndef BUILT_CONTROL
+	$(eval built_libs+=BUILT_CONTROL=1)
+	$(MAKE) -C $(LIBCONTROLPATH) $(built_libs)
+endif
 endif
 endif
 	$(MAKE) thisdir
