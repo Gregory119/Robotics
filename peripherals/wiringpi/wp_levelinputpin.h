@@ -22,8 +22,8 @@ namespace P_WP
 		  LevelValue);
     LevelInputPin(const LevelInputPin&) = delete;
     LevelInputPin& operator=(const LevelInputPin&) = delete;
-    LevelInputPin(const LevelInputPin&&) = delete;
-    LevelInputPin& operator=(const LevelInputPin&&) = delete;
+    LevelInputPin(LevelInputPin&&) = delete;
+    LevelInputPin& operator=(LevelInputPin&&) = delete;
 
   private:
     bool hasTriggered() override;

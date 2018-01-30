@@ -26,8 +26,8 @@ namespace C_UDP
       ~Owner() = default;
       Owner(const Owner&) = delete;
       Owner& operator=(const Owner&) = delete;
-      Owner(const Owner&&) = delete;
-      Owner& operator=(const Owner&&) = delete;
+      Owner(Owner&&) = delete;
+      Owner& operator=(Owner&&) = delete;
 
     private:
       friend Client;
@@ -44,8 +44,8 @@ namespace C_UDP
     ~Client();
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
-    Client(const Client&&) = delete;
-    Client& operator=(const Client&&) = delete;
+    Client(Client&&) = delete;
+    Client& operator=(Client&&) = delete;
 
     // The class must be connected, with any of the connect functions, in order to be used.
     // connect() can be called multiple times, but will only try to connect if not connected.

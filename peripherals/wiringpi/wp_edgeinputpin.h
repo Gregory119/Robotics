@@ -22,8 +22,8 @@ namespace P_WP
 		 EdgeType);
     EdgeInputPin(const EdgeInputPin&) = delete;
     EdgeInputPin& operator=(const EdgeInputPin&) = delete;
-    EdgeInputPin(const EdgeInputPin&&) = delete;
-    EdgeInputPin& operator=(const EdgeInputPin&&) = delete;
+    EdgeInputPin(EdgeInputPin&&) = delete;
+    EdgeInputPin& operator=(EdgeInputPin&&) = delete;
    
   private:
     bool hasTriggered() override;

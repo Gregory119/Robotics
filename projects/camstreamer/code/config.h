@@ -39,36 +39,35 @@ class Config
  public:
   class Owner
   {
-  public:
-    Owner() = default;
-    Owner(const Owner&) = delete;
-    Owner& operator=(const Owner&) = delete;
-    // move special members are not declared when the destructor is
-    
   protected:
-    ~Owner() = default; // only inherited but non-polymorphic
+    Owner() = default;
+    // Declaring the move special members implicitly deletes the copy special members
+    Owner(Owner&&) = delete;
+    Owner& operator=(Owner&&) = delete;
+    // Move special member functions are not declared when desctructor is.
+    ~Owner() = default; // must inherit and non-polymorphic
     
   private:
     friend class Config;
     virtual void handleError(Config*, Error, const std::string& msg) = 0;
     // Errors must be logged by the owner because they are not done internally.
-    // This function is called on a zero timer in the constructor.
+    // This function is called on a zero timer from the constructor.
   };
   
  public:
-  Config(Owner*, const std::string& file_path); // absolute or relative path
+  Config(Owner*, const std::string file_path); // absolute or relative path
+  void setOwner(Owner* o) { d_owner = o; }
 
-  bool hasError();
+  // parseFile() must be called before any other functions for valid data
+  void parseFile(); 
   
-  Error getError();
-  const std::string& getErrorMsg();
+  bool hasError();
   
   P_WP::PinNum getPinNum(PinId);
   P_WP::PullMode getPinPullMode(PinId);
 
  private:
   void ownerHandleError(Error, const std::string& msg);
-  void singleShotError(Error, const std::string& msg);
   bool extractPinNumber(PinConfig&,
 			std::ifstream& file,
 			const std::string& pin_num_text,
@@ -80,15 +79,14 @@ class Config
   
  private:
   Owner* d_owner = nullptr;
+
+  const std::string d_file_path;
   
   PinConfig d_mode_pin;
   PinConfig d_trigger_pin;
   PinConfig d_connect_pin;
 
   Error d_error = Error::None;
-  std::string d_error_msg;
-
-  KERN::AsioCallbackTimer d_zero_fail_timer;
 };
 
 #endif

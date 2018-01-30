@@ -71,8 +71,8 @@ namespace D_GP
     virtual ~GoPro() = default;
     GoPro& operator=(const GoPro&) = delete;
     GoPro(const GoPro&) = delete;
-    GoPro(const GoPro&&) = delete;
-    GoPro& operator=(const GoPro&&) = delete;
+    GoPro(GoPro&&) = delete;
+    GoPro& operator=(GoPro&&) = delete;
 
     virtual void connect() = 0;
     virtual void status() = 0; 

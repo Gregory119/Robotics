@@ -58,10 +58,10 @@
 int main()
 {
   wiringPiSetup(); // terminates on failure
-  // led will use hard drive reads on failure (default)
 
   KERN::AsioKernel k;
   CamStreamer cam_streamer("settings.txt");
+  cam_streamer.start();
   
   k.run();
   return 0;

@@ -19,8 +19,8 @@ namespace P_WP
 	     PullMode pull);
     InputPin(const InputPin&) = delete;
     InputPin& operator=(const InputPin&) = delete;
-    InputPin(const InputPin&&) = delete;
-    InputPin& operator=(const InputPin&&) = delete;
+    InputPin(InputPin&&) = delete;
+    InputPin& operator=(InputPin&&) = delete;
     
     void setTriggerCallback(std::function<void(bool)>); // set function to be called when a trigger is detected
     void setUpdateInterval(std::chrono::milliseconds delay =

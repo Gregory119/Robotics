@@ -67,6 +67,14 @@ ifdef USES_LIBDJS
       USES_LIBUTILS=1
 endif
 
+ifdef USES_LIBLED
+      LIBLEDPATH = $(BASE_DIR)/drivers/led
+      INCLUDES += -I$(LIBLEDPATH)
+      LIBS += 
+      LIBSRC += $(wildcard $(LIBLEDPATH)/*.cpp)
+      USES_LIBKERN=1
+endif
+
 ifdef USES_LIBKERN
       LIBKERNPATH = $(BASE_DIR)/kern
       INCLUDES += -I$(LIBKERNPATH)
@@ -88,13 +96,6 @@ ifdef USES_LIBUTILS
       LIBSRC += $(wildcard $(LIBUTILSPATH)/*.cpp)
 endif
 
-ifdef USES_LIBLED
-      LIBLEDPATH = $(BASE_DIR)/drivers/led
-      INCLUDES += -I$(LIBLEDPATH)
-      LIBS += 
-      LIBSRC += $(wildcard $(LIBLEDPATH)/*.cpp)
-endif
-
 OBJ += $(LIBSRC:.cpp=.o)
 
 .PHONY: thisdir $(TEST_NAME)
@@ -113,12 +114,6 @@ ifndef BUILT_CORE
 	$(MAKE) -C $(LIBCOREPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBLED
-ifndef BUILT_LED
-	$(eval built_libs+=BUILT_LED=1)
-	$(MAKE) -C $(LIBLEDPATH) $(built_libs)
-endif
-endif
 ifdef USES_LIBUTILS
 ifndef BUILT_UTILS
 	$(eval built_libs+=BUILT_UTILS=1)
@@ -129,6 +124,12 @@ ifdef USES_LIBKERN
 ifndef BUILT_KERN
 	$(eval built_libs+=BUILT_KERN=1)
 	$(MAKE) -C $(LIBKERNPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBLED
+ifndef BUILT_LED
+	$(eval built_libs+=BUILT_LED=1)
+	$(MAKE) -C $(LIBLEDPATH) $(built_libs)
 endif
 endif
 ifdef USES_LIBDJS

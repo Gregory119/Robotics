@@ -7,13 +7,17 @@ static const std::chrono::milliseconds s_pin_update_time =
 
 //----------------------------------------------------------------------//
 CamStreamer::CamStreamer(const std::string& config_file_path)
+  : d_config(new Config(this, config_file_path)),
+    d_led_ctrl(new LedController(this))
+{}
+
+//----------------------------------------------------------------------//
+void CamStreamer::start()
 {
-  // Created as a class member variable to ensure handleError is called with an existing Config instance.
-  d_config.reset(new Config(this, config_file_path)); 
+  d_config->parseFile();
   if (d_config->hasError())
     {
-      // Logging will happen in handleError after this constructor.
-      // Set the LED to indicate a settings error.
+      // Logging will already have happened in handleError
       return;
     }
   
@@ -40,11 +44,11 @@ CamStreamer::CamStreamer(const std::string& config_file_path)
   d_trigger_pin->setUpdateInterval(s_pin_update_time);
   d_connect_pin->setUpdateInterval(s_pin_update_time);
 
-  // extract GoPro type from xml (app setting)
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
   restartGPController();
+  d_led_ctrl->setState(LedController::State::Connecting);
   
-  d_reset_gp.setTimeoutCallback([this](){
+  d_reset_gp_timer.setTimeoutCallback([this](){
       restartGPController();
     });
 }
@@ -53,7 +57,7 @@ CamStreamer::CamStreamer(const std::string& config_file_path)
 void CamStreamer::handleError(Config*, Config::Error e, const std::string& msg)
 {
   std::cerr << msg << std::endl;
-  d_delete_config.deletePtr(d_config); 
+  stop();
 }
 
 //----------------------------------------------------------------------//
@@ -106,18 +110,99 @@ void CamStreamer::handleFailedRequest(D_GP::ModeController* ctrl,
 				      D_GP::ModeController::Req req)
 {
   std::cerr << "CamStreamer::handleFailedRequest" << std::endl;
-  // disable any other callbacks
-  ctrl->setOwner(nullptr);
-  // delete on timeout 
-  d_delete_gpcont.deletePtr(d_gp_controller); 
-  d_reset_gp.singleShot(std::chrono::seconds(5));
+
+  d_gp_controller->setOwner(nullptr);
+  d_delete_gp_cont.deletePtr(d_gp_controller);
+  d_reset_gp_timer.singleShot(std::chrono::seconds(5));
   
-  // led => display not connected
+  d_led_ctrl->setState(LedController::State::Connecting);
 }
 
 //----------------------------------------------------------------------//
 void CamStreamer::handleSuccessfulRequest(D_GP::ModeController*,
 					  D_GP::ModeController::Req)
 {
-  // led => display connected
+  d_led_ctrl->setState(LedController::State::Connecting);
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::stop()
+{
+  d_config->setOwner(nullptr); // disable other callbacks
+  d_delete_config.deletePtr(d_config); 
+  
+  // disable any other callbacks
+  d_gp_controller->setOwner(nullptr);
+  // delete on timeout 
+  d_delete_gp_cont.deletePtr(d_gp_controller); 
+  d_reset_gp_timer.disable();
+  d_led_ctrl->setState(LedController::State::InternalFailure);
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleStateChange(LedController* ctrl,
+				    LedController::State s)
+{
+  switch (s)
+    {
+    case LedController::State::InvalidConfig:
+      ctrl->flashPerSec(10);
+      return;
+      
+    case LedController::State::Connecting:
+      {
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 10;
+	adv_set.flash_count = 1;
+	adv_set.start_delay = std::chrono::milliseconds(500);
+	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+      
+    case LedController::State::Connected:
+      ctrl->turnOn();
+      return;
+      
+    case LedController::State::CommandSuccessful:
+      {
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 10;
+	adv_set.flash_count = 2;
+	adv_set.start_delay = std::chrono::milliseconds(300);
+	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+      
+    case LedController::State::InternalFailure:
+    case LedController::State::Unknown:
+      {
+	assert(false);
+	std::cerr << "CamStreamer::handleStateChange - LedController::State is either unknown or an internal failure has occured." << std::endl;
+	stop();
+	
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 10;
+	adv_set.flash_count = 3;
+	adv_set.start_delay = std::chrono::milliseconds(500);
+	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+    }
+  
+  assert(false);
+  std::cerr << "CamStreamer::handleStateChange - LedController::State is invalid." << std::endl;
+  stop();
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleError(LedController*, const std::string& msg)
+{
+  std::cerr << "CamStreamer::handleError " << msg << std::endl;
+  stop();  
 }
