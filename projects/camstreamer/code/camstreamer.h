@@ -30,6 +30,8 @@ class CamStreamer final : Config::Owner,
 
   // LedController::Owner
   void handleStateChange(LedController*, LedController::State) override;
+  void handleOnceOffFlashCycleEnd(LedController*,
+				  LedController::State) override;
   void handleError(LedController*, const std::string& msg) override;
 
  private:

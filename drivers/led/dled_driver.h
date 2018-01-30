@@ -55,6 +55,7 @@ namespace D_LED
     private:
       friend class Driver;
       virtual void handleError(Driver*, Error, const std::string&) = 0;
+      virtual void handleOnceOffFlashCycleEnd(Driver*) = 0;
     };
     
   public:
@@ -80,6 +81,14 @@ namespace D_LED
     void ownerHandleError(Error, const std::string& msg);
     void advCountFlashes();
     void advCheckRepeat();
+
+    void internalUseMemory();
+    void internalTurnOn();
+    void internalTurnOff();
+    void internalFlashOnOff(const std::chrono::milliseconds& delay_on,
+			    const std::chrono::milliseconds& delay_off);
+    void internalFlashPerSec(unsigned); // limited to 10
+    void internalFlashAdvanced(const AdvancedSettings&); // limited to 10
     
   private:
     Owner* d_owner = nullptr;

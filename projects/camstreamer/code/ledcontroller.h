@@ -32,6 +32,7 @@ class LedController final : D_LED::Driver::Owner
   private:
     friend class LedController;
     virtual void handleStateChange(LedController*, State) = 0;
+    virtual void handleOnceOffFlashCycleEnd(LedController*, State) = 0;
     virtual void handleError(LedController*, const std::string& msg) = 0;
   };
   
@@ -53,6 +54,7 @@ class LedController final : D_LED::Driver::Owner
 
  private:
   // D_LED::Driver
+  void handleOnceOffFlashCycleEnd(D_LED::Driver*) override;
   void handleError(D_LED::Driver*,
 		   D_LED::Driver::Error,
 		   const std::string&) override;

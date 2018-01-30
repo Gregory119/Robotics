@@ -58,6 +58,12 @@ void LedController::flashAdvanced(const D_LED::Driver::AdvancedSettings& set)
 }
 
 //----------------------------------------------------------------------//
+void LedController::handleOnceOffFlashCycleEnd(D_LED::Driver*)
+{
+  d_owner->handleOnceOffFlashCycleEnd(this, d_state);
+}
+
+//----------------------------------------------------------------------//
 void LedController::handleError(D_LED::Driver* driver,
 				D_LED::Driver::Error e,
 				const std::string& msg)
