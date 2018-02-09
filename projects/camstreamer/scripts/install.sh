@@ -3,6 +3,8 @@
 
 set -e # exit shell on a simple command failure
 install_dir=$1
+mount_dir=$2
+config_filename="settings.txt"
 led_dir=/sys/class/leds/led0
 
 # First kill the firmware and start script
@@ -15,6 +17,13 @@ echo 250 >> $led_dir/delay_off
 echo 250 >> $led_dir/delay_on
 
 # start installing the files
+# copy config file if it exists
+cd $mount_dir
+if [-f "$config_filename"]
+then
+  cp $config_filename $install_dir  
+fi
+
 # copy the new firmware
 cd $install_dir
 cp firmware/* .

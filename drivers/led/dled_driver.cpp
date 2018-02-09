@@ -92,7 +92,7 @@ void Driver::internalUseMemory()
   if (!file)
     {
       assert(false);
-      ownerHandleError(Error::TriggerFile, "D_LED::Driver::internalUseMemory() - Failed to open trigger file.");
+      ownerHandleError(Error::TriggerFile, "internalUseMemory - Failed to open trigger file.");
       return;
     }
   file << "mmc0" << std::endl;
@@ -105,7 +105,7 @@ void Driver::internalTurnOn()
   if (!file)
     {
       assert(false);
-      ownerHandleError(Error::BrightnessFile, "D_LED::Driver::internalTurnOn() - Failed to open brightness file.");
+      ownerHandleError(Error::BrightnessFile, "internalTurnOn - Failed to open brightness file.");
       return;
     }
   file << "1" << std::endl;
@@ -118,7 +118,7 @@ void Driver::internalTurnOff()
   if (!file)
     {
       assert(false);
-      ownerHandleError(Error::BrightnessFile, "D_LED::Driver::internalTurnOff() - Failed to open brightness file.");
+      ownerHandleError(Error::BrightnessFile, "internalTurnOff - Failed to open brightness file.");
       return;
     }
   file << "0" << std::endl;
@@ -132,7 +132,7 @@ void Driver::internalFlashOnOff(const std::chrono::milliseconds& delay_on,
   if (!trig_file)
     {
       assert(false);
-      ownerHandleError(Error::TriggerFile, "D_LED::Driver::internalFlashOnOff() - Failed to open trigger file.");
+      ownerHandleError(Error::TriggerFile, "internalFlashOnOff - Failed to open trigger file.");
       return;
     }
   trig_file << "timer" << std::endl;
@@ -141,7 +141,7 @@ void Driver::internalFlashOnOff(const std::chrono::milliseconds& delay_on,
   if (!delay_off_file)
     {
       assert(false);
-      ownerHandleError(Error::DelayOffFile, "D_LED::Driver::internalFlashOnOff() - Failed to open delay_off file.");
+      ownerHandleError(Error::DelayOffFile, "internalFlashOnOff - Failed to open delay_off file.");
       return;
     }
   delay_off_file << delay_off.count() << std::endl;
@@ -150,7 +150,7 @@ void Driver::internalFlashOnOff(const std::chrono::milliseconds& delay_on,
   if (!delay_on_file)
     {
       assert(false);
-      ownerHandleError(Error::DelayOnFile, "D_LED::Driver::internalFlashOnOff() - Failed to open delay_on file.");
+      ownerHandleError(Error::DelayOnFile, "internalFlashOnOff - Failed to open delay_on file.");
       return;
     }
   delay_on_file << delay_on.count() << std::endl;
@@ -162,7 +162,7 @@ void Driver::internalFlashPerSec(unsigned rate)
   if (rate > 10)
     {
       assert(false);
-      ownerHandleError(Error::FlashRateLimit, "D_LED::Driver::internalFlashPerSec() - Flash rate too high.");
+      ownerHandleError(Error::FlashRateLimit, "internalFlashPerSec - Flash rate too high.");
       return;
     }
 
@@ -205,9 +205,11 @@ void Driver::internalFlashAdvanced(const AdvancedSettings& adv)
 void Driver::ownerHandleError(Error e, const std::string& msg)
 {
   d_error = e;
+  std::string final_msg = "D_LED::Driver::";
+  final_msg += msg;
   if (d_owner != nullptr)
     {
-      d_owner->handleError(this, e, msg);
+      d_owner->handleError(this, e, final_msg);
     }
 }
 

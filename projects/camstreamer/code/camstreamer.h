@@ -35,6 +35,7 @@ class CamStreamer final : Config::Owner,
   void handleError(LedController*, const std::string& msg) override;
 
  private:
+  void setupWifi();
   void restartGPController();
   void processModePinState(bool);
   void processConnectPinState(bool);

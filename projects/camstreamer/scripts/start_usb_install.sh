@@ -11,11 +11,12 @@ mount_dir=/mount/usb_drive/
 mkdir -p $mount_dir
 mount $dev_name$partition_num $mount_dir
 
+# install 
 cd $install_dir
 cp $mount_dir/install.tgz . # copy the compressed firmware install files
 tar xzf install.tgz # extract the files
 chmod 777 install.sh # give file permissions CHANGE THESE TO SOMETHING MORE APPROPRIATE
-./install.sh $install_dir # run the script of the install files
+./install.sh $install_dir $mount_dir # run the script of the install files
 
 # unmount when complete
 umount $mount_dir

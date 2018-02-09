@@ -16,12 +16,14 @@
 // - DONE! support only edge triggered pin control
 
 // - config file:
-//   - custom format (xml in the future with app)
-//   - include pin control type (Connected to digital output pin OR button/switch)
-//   - include pin assignments
-// - LED control classes to indicate operation status
-// - update usb install script to check for config file on the usb. LED should indicate any failure.
+//   - Wifi settings
+//   - DONE! custom format (xml in the future with app)
+//   - DONE! include pin control type (Connected to digital output pin OR button/switch)
+//   - DONE! include pin assignments
+// - DONE! LED control classes to indicate operation status and any failures
+// - DONE! update usb install script to copy the config/settings file if it exists
 
+// - Use config file wifi settings to set up the wifi
 // - python script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system). People may not even use this functionality, although it is safer.
 
 // - binary reverse engineering security

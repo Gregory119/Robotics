@@ -20,6 +20,9 @@ void CamStreamer::start()
       // Logging will already have happened in handleError
       return;
     }
+
+  // Set up wifi
+  setupWifi();
   
   // Pins
   d_mode_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Mode),
@@ -54,10 +57,23 @@ void CamStreamer::start()
 }
 
 //----------------------------------------------------------------------//
+void CamStreamer::setupWifi()
+{
+  // open the file and extract the current settings
+  std::ifstream file("/etc/wpa_supplicant/wpa_supplicant.conf");
+  
+  
+  // update the settings if they are different
+  
+  // restart the network interface
+  // d_config
+}
+
+//----------------------------------------------------------------------//
 void CamStreamer::handleError(Config*, Config::Error e, const std::string& msg)
 {
   std::cerr << msg << std::endl;
-  d_led_ctrl->setState(LedController::State::InternalFailure);
+  d_led_ctrl->setState(LedController::State::InvalidConfig);
 }
 
 //----------------------------------------------------------------------//
