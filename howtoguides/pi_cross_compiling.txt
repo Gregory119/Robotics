@@ -11,7 +11,9 @@ References:
   - https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
   - http://raspberrypi.stackexchange.com/questions/2046/which-cpu-flags-are-suitable-for-gcc-on-raspberry-pi
 
-on the host:
+There are three system names that the build knows about: the machine you are building on (build), the machine that you are building for (host), and the machine that GCC will produce code for (target). "target" is only commonly used when compiling a cross-compiler on a machine of architecture "build", which will run on a machine of architecture "host", which will generate code for a machine "target". For cross compiling, the host and target are the same, but the build is different. Reference: https://gcc.gnu.org/onlinedocs/gccint/Configure-Terms.html
+
+on the build system:
 # install compiling utilities such as g++, gcc etc
 apt-get install build-essential
 
