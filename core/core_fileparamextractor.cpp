@@ -1,6 +1,8 @@
 #include "core_fileparamextractor.h"
 
 #include <cassert>
+#include <fstream>
+#include <sstream>
 
 using namespace CORE;
 
@@ -28,7 +30,7 @@ std::string FileParamExtractor::getParam(const std::string& name_match)
       std::ostringstream stream("getParam - Failed to open the file '",
 				std::ios_base::app);
       stream << d_file_path << "'.";
-      setError(Error::OpenFile, stream.str());
+      setError(Error::FileOpen, stream.str());
       return empty_str;
     }
 

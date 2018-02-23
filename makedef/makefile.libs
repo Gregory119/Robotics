@@ -181,7 +181,7 @@ else
 thisdir: $(OBJ)
 	 $(MAKE) $(TEST_NAME)
 
-$(TEST_NAME):x
+$(TEST_NAME):
 	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ) $(LIBS) -o $@
 endif
 

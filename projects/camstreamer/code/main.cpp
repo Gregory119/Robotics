@@ -2,8 +2,7 @@
 
 #include "kn_asiokernel.h"
 
-#include <cassert>// - script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system). People may not even use this functionality, although it is safer.
-
+#include <cassert>
 #include <wiringPi.h>
 #include <iostream>
 

@@ -1,5 +1,8 @@
 #include "wificonfigurator.h"
 
+#include <cassert>
+#include <sstream>
+
 //----------------------------------------------------------------------//
 WifiConfigurator::WifiConfigurator(Owner* o, std::string file_path)
   : d_owner(o),
@@ -37,8 +40,6 @@ void WifiConfigurator::setPassword(const std::string&)
 //----------------------------------------------------------------------//
 void WifiConfigurator::ownerHandleError(Error e, const std::string& msg)
 {
-  d_pw.is_valid = false;
-  d_ssid.is_valid = false;
   std::string final_msg = "WifiConfigurator::";
   final_msg += msg;
   if (d_owner != nullptr)
@@ -80,9 +81,9 @@ bool WifiConfigurator::extractSSID()
   try
     {
       size_t num_chars = end_pos - start_pos;
-      d_ssid = ssid_text.substr(start_pos, d_ssid.num_chars);
+      d_ssid = ssid_text.substr(start_pos, num_chars);
     }
-  catch
+  catch (...)
     {
       std::ostringstream stream("extractSSID - Unexpected internal exception error while extracting parameter data from '",
 				std::ios_base::app);
@@ -128,7 +129,7 @@ bool WifiConfigurator::extractPassword()
       size_t num_chars = end_pos - start_pos;
       d_pw = pw_text.substr(start_pos, num_chars);
     }
-  catch
+  catch (...)
     {
       std::ostringstream stream("extractSSID - Unexpected internal exception error while extracting parameter data from '",
 				std::ios_base::app);

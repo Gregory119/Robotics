@@ -70,7 +70,7 @@ class Config
   
   bool hasError();
 
-  const PinConfig& getPinConfig(PinId);
+  const PinConfig getPinConfig(PinId);
   P_WP::PinNum getPinNum(PinId);
   P_WP::PullMode getPinPullMode(PinId);
 

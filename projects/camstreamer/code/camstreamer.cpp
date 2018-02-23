@@ -1,5 +1,6 @@
 #include "camstreamer.h"
 
+#include <fstream>
 #include <iostream>
 
 static const std::chrono::milliseconds s_pin_update_time =

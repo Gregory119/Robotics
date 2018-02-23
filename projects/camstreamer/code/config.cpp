@@ -164,7 +164,7 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
 			      const std::string& pin_num_match,
 			      Error e)
 {
-    // is empty on a failure
+  // is empty on a failure
   std::string num_text = d_extractor->getParam(pin_num_match);
 
   if (d_extractor->hasError())
@@ -210,7 +210,7 @@ bool Config::hasError()
 }
 
 //----------------------------------------------------------------------//
-const PinConfig& Config::getPinConfig(PinId id)
+const Config::PinConfig Config::getPinConfig(PinId id)
 {
   switch (id)
     {
@@ -228,7 +228,7 @@ const PinConfig& Config::getPinConfig(PinId id)
 			    std::ios_base::app);
   stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
   ownerHandleError(Error::PinId, stream.str());
-  return P_WP::PinNum::H11;
+  return PinConfig();
 }
 
 //----------------------------------------------------------------------//

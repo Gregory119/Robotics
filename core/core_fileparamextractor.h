@@ -1,6 +1,8 @@
 #ifndef CORE_FILEPARAMEXTRACTOR_H
 #define CORE_FILEPARAMEXTRACTOR_H
 
+#include <string>
+
 namespace CORE
 {
   class FileParamExtractor
@@ -20,6 +22,7 @@ namespace CORE
 
     // eg. pin_number=5, which implies name_match is "pin_number=" and the returned string is "5".
     // The file is first opened, then the first occurence of name_match is searched for, and finally the file is closed when returning the found parameter string. It is assumed that there is one parameter per line; the returned value will contain all the line text after the name_match.
+    // On failure the returned string is empty.
     std::string getParam(const std::string& name_match);
 
     template <class T>
@@ -35,7 +38,7 @@ namespace CORE
     bool hasError() { return d_error != Error::None; }
     Error getError() { return d_error; }
     std::string& getErrorMsg() { return d_error_msg; }
-    std::string& getFilePath() { return d_file_path; }
+    const std::string& getFilePath() { return d_file_path; }
 
   private:
     void setError(Error, const std::string& msg);

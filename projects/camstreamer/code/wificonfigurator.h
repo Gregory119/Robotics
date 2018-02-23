@@ -4,6 +4,7 @@
 #include "core_fileparamextractor.h"
 #include "core_owner.h"
 
+#include <memory>
 #include <string>
 
 // Expected file format:
