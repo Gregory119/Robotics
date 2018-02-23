@@ -45,13 +45,11 @@ apt-get install build-essential
   - $ mount -o loop,offset=70254592 2016-05-27-raspbian-jessie-lite.img /rasppi_xcompile/sysroot/
 
 # get extra libraries/binaries
-Either use precompiled files with instructions in Robotics/arm_pkgs
-OR compile on the pi and copy across,
-OR cross compile [4], [6],
+Either:
+Use precompiled files with instructions in Robotics/arm_pkgs;
+OR compile on the pi and copy across;
+OR cross compile [4], [6];
 OR apt-get install on the Pi and copy across (if other options fail)
-
-
-
 
 # install arch independent gdb client
 apt-get install gdb-multiarch
