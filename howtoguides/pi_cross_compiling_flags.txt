@@ -1,0 +1,30 @@
+All the ARM compiling options are explained at https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
+Other useful links include:
+- https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2837/README.md
+- https://en.wikipedia.org/wiki/Raspberry_Pi
+- https://developer.arm.com/products/processors/cortex-a/cortex-a53
+
+Important options to take note of when cross compiling for the Pi:
+-mtune=generic-arch enables autodetection on GNU/linux systems and not all architectures are recognised. It has no effect when unsuccessful.
+-mfpu=auto is the default and causes the compiler to select the floating-point and Advanced SIMD instructions based on the settings of -mcpu and -march.
+-mfloat-abi=hard allows generation of floating-point instructions and uses FPU-specific calling conventions.
+-march=native enables autodetection on GNU/linux systems and not all architectures are recognised. It has no effect when unsuccessful. This option can be used in conjunction with or instead of the -mcpu= option. Floating-point and Advanced SIMD instructions will only be used if -mfloat-abi is not set to ‘soft’. Many of the supported CPUs implement optional architectural extensions. Where this is so the architectural extensions are normally enabled by default. If implementations that lack the extension exist, then the extension syntax can be used to disable those extensions that have been omitted. 
+-marm is selected as the default on most arm system
+Most of the automatic settings can be used when compiling directly on the Pi, but not when cross-compiling.
+
+All of the Raspberry pi architectures support hardware floating point calculations and should be enabled with -mfloat-abi=hard. Some specific Pi architecture settings include:
+ pi1 has -march=armv6+fp
+ or pi1 has -march=armv6 & -mfpu=vfp
+ pi1 has -mtune=cortex-a5
+ pi2 v1 has -march=armv7-a+vfpv4-d16
+ pi2 v1 has -mtune=cortex-a7
+ pi2 v1.2 has -march=armv8-a+simd
+ pi2 v1.2 has -mtune=cortex-a53
+ pi3 has -march=armv8-a+simd
+ pi3 has -mtune=cortex-a53
+
+‘+simd’
+The ARMv8-A Advanced SIMD and floating-point instructions.
+
+‘+vfpv4-d16’
+The VFPv4 floating-point instructions, with 16 double-precision registers.
