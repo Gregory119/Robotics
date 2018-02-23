@@ -7,6 +7,17 @@ ifndef MAKESETTINGS
 endif
 
 #----------------------------------------------------------------------
+.PHONY: clean
+clean:	
+	$(RM) *~ *.o* *.d* *# core *.core $(TEST_NAME)
+ifdef HAS_TESTPROGS
+	$(MAKE) clean -C testprogs
+endif
+
+#----------------------------------------------------------------------
+ifndef CLEANING
+
+#----------------------------------------------------------------------
 # to use this file you need to have the following defined:
 # INCLUDES => this holds the directories to be included in the build
 
@@ -40,10 +51,4 @@ testprogs:
 	$(MAKE) -C testprogs
 endif
 
-#----------------------------------------------------------------------
-.PHONY: clean
-clean:
-	$(RM) *~ *.o* *.d* *# core *.core $(TEST_NAME)
-ifdef HAS_TESTPROGS
-	$(MAKE) clean -C testprogs
-endif
+endif # of ifndef CLEANING

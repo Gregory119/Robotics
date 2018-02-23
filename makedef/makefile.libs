@@ -9,6 +9,8 @@
 
 MAKELIBS=1
 
+ifndef CLEANING
+
 ifndef MAKESETTINGS
       $(error makefile.set must be included before this makefile)
 endif
@@ -96,7 +98,7 @@ ifdef USES_LIBUTILS
       LIBSRC += $(wildcard $(LIBUTILSPATH)/*.cpp)
 endif
 
-OBJ += $(LIBSRC:.cpp=.o)
+OBJ+=$(LIBSRC:.cpp=.o)
 
 .PHONY: thisdir $(TEST_NAME)
 
@@ -179,6 +181,8 @@ else
 thisdir: $(OBJ)
 	 $(MAKE) $(TEST_NAME)
 
-$(TEST_NAME):
+$(TEST_NAME):x
 	 $(CXX) $(CXXFLAGS) $(INCLUDES) $(OBJ) $(LIBS) -o $@
 endif
+
+endif # of ifndef CLEANING

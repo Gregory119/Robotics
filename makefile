@@ -26,14 +26,14 @@ projects:
 	$(MAKE) -C projects
 
 clean:
-	$(MAKE) clean -C kern
-	$(MAKE) clean -C coms
-	$(MAKE) clean -C drivers
-	$(MAKE) clean -C utils
-	$(MAKE) clean -C core
-	$(MAKE) clean -C control
-	$(MAKE) clean -C makedef
-	$(MAKE) clean -C projects
-	$(MAKE) clean -C peripherals
-	$(MAKE) clean -C general_testprogs
+	$(MAKE) clean -C kern CLEANING=1
+	$(MAKE) clean -C coms CLEANING=1
+	$(MAKE) clean -C drivers CLEANING=1
+	$(MAKE) clean -C utils CLEANING=1
+	$(MAKE) clean -C core CLEANING=1
+	$(MAKE) clean -C control CLEANING=1
+	$(MAKE) clean -C makedef CLEANING=1
+	$(MAKE) clean -C projects CLEANING=1
+	$(MAKE) clean -C peripherals CLEANING=1
+	$(MAKE) clean -C general_testprogs CLEANING=1
 	$(RM) *~ *.d* *.o* *# *.core

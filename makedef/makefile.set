@@ -1,21 +1,68 @@
 #MAKESETTINGS - identifier variable of this makefile
 MAKESETTINGS=1
 
+ifndef CLEANING
+
 # to make in release mode:
 # $ make <target> RELEASE=1
 # <target> can be empty for a default make
 
-CXX = arm-linux-gnueabihf-g++
+SUPPORTED_TARGETS=NATIVE, PI1, PI2, PI2V2, PI3
+# PI2V2 and PI3 use the same build settings
 
-UNAME_S := $(shell uname -s)
-ifneq ($(filter arm%,$(UNAME_P)),)
-      CXXFLAGS = -std=c++11 -Wall -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm
+ifndef TARGET
+       TARGET=NATIVE
+endif
+
+ifneq ($(filter PI%,$(TARGET)),) # for all the pis
+      IS_ARM_TARGET=1
+else ifeq ($(TARGET),NATIVE)
+     # Currently only used for testing standard g++ library code. Any other library usage will not work.
 else
-	CXXFLAGS = -std=c++11 -Wall --sysroot=/home/rasppi_xcompile/sysroot -mtune=cortex-a5 -mfloat-abi=hard -mfpu=vfp -march=armv6 -marm -I/home/rasppi_xcompile/extra_libs_install/ -L/home/rasppi_xcompile/extra_libs_install/ 
+$(error Please specify a supported target architecture using the variable TARGET. The supported options are: $(SUPPORTED_TARGETS).)
+endif
+
+CXXFLAGS=-std=c++11 -Wall
+UNAME_S := $(shell uname -s)
+
+ifdef IS_ARM_TARGET
+      CXX=arm-linux-gnueabihf-g++
+ifneq ($(filter arm%,$(UNAME_P)),) # if the build system is on an arm
+      CXXFLAGS+= -mtune=generic-arch -mfloat-abi=hard -march=native
+else # build system is not on an arm => cross-compiling
+     IS_CROSS_COMPILE=1
+endif
+endif
+
+ifdef IS_CROSS_COMPILE
+ifneq ($(filter PI1,$(TARGET)),) # if pi 1
+     MTUNE=-mtune=cortex-a5
+     MARCH=-march=armv6
+     MFPU=-mfpu=vfp
+     SYSROOT=--sysroot=/home/rasppi_xcompile/sysroot
+     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/
+     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/
+else ifneq ($(filter PI2,$(TARGET)),) # if pi 2
+     MTUNE=-mtune=cortex-a7
+     MARCH=-march=armv7-a+vfpv4-d16
+     SYSROOT= # STILL TO DO!!!
+     LIBPATHS= # STILL TO DO!!!
+else ifneq ($(filter PI2V2,$(TARGET)),) # if pi 2 v1.2
+     MTUNE=-cortex-a53
+     MARCH=-armv8-a+simd
+     SYSROOT= # STILL TO DO!!!
+     LIBPATHS= # STILL TO DO!!!
+else ifneq ($(filter PI3,$(TARGET)),) # if pi 3
+     MTUNE=-cortex-a53
+     MARCH=-armv8-a+simd
+     SYSROOT= # STILL TO DO!!!
+     LIBPATHS= # STILL TO DO!!!
+endif
+	CXXFLAGS += $(MTUNE) $(MARCH) -mfloat-abi=hard $(MFPU) $(SYSROOT) $(LIBPATHS)
 endif
 
 # load debug symbols
-CXXFLAGS += -g
+CXXFLAGS+= -g
 
 SRC = $(wildcard *.cpp)
 
@@ -28,4 +75,4 @@ else
 	DEFINES =
 endif
 
-INCLUDES =
+endif # of ifndef CLEANING
