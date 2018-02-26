@@ -73,7 +73,7 @@ bool WifiConfigurator::extractSSID()
     {
       std::ostringstream stream("extractSSID - Failed to find the end double quote in the text '",
 				std::ios_base::app);
-      stream << ssid_text << "'.";
+      stream << ssid_text << "'." << std::endl;
       ownerHandleError(e,stream.str());
       return false;
     }
@@ -87,7 +87,7 @@ bool WifiConfigurator::extractSSID()
     {
       std::ostringstream stream("extractSSID - Unexpected internal exception error while extracting parameter data from '",
 				std::ios_base::app);
-      stream << ssid_text << "'.";
+      stream << ssid_text << "'." << std::endl;
       ownerHandleError(e,stream.str());
       return false;
     }
@@ -119,7 +119,7 @@ bool WifiConfigurator::extractPassword()
     {
       std::ostringstream stream("extractPassword - Failed to find the end double quote in the text '",
 				std::ios_base::app);
-      stream << pw_text << "'.";
+      stream << pw_text << "'." << std::endl;
       ownerHandleError(e,stream.str());
       return false;
     }
@@ -133,7 +133,7 @@ bool WifiConfigurator::extractPassword()
     {
       std::ostringstream stream("extractSSID - Unexpected internal exception error while extracting parameter data from '",
 				std::ios_base::app);
-      stream << pw_text << "'.";
+      stream << pw_text << "'." << std::endl;
       ownerHandleError(e,stream.str());
       return false;
     }

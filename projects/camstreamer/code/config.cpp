@@ -154,7 +154,7 @@ bool Config::extractPinPullMode(PinConfig& pin_conf,
   
   std::ostringstream stream("extractPinPullMode - Failed to extract the parameter value of '",std::ios_base::app);
   stream << pin_mode_match << "' from the file '"
-	 <<  d_extractor->getFilePath() << "'.";
+	 <<  d_extractor->getFilePath() << "'." << std::endl;
   ownerHandleError(e, stream.str());
   return false;
 }
@@ -186,7 +186,7 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
     {
       std::ostringstream stream("extractPinNumber - Failed to convert text '",
 				std::ios_base::app);
-      stream << num_text << "' to a number for '" << pin_num_match << "'.";
+      stream << num_text << "' to a number for '" << pin_num_match << "'." << std::endl;
       ownerHandleError(e, stream.str());
       return false;
     }
@@ -195,7 +195,7 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
     {
       std::ostringstream stream("extractPinNumber - The pin number of '",
 				std::ios_base::app);
-      stream << num_text << "' is out of range.";
+      stream << num_text << "' is out of range." << std::endl;
       ownerHandleError(e, stream.str());
       return false;
     }
@@ -226,7 +226,7 @@ const Config::PinConfig Config::getPinConfig(PinId id)
   assert(false);
   std::ostringstream stream("getPinConfig - the pin ID '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
+  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number." << std::endl;
   ownerHandleError(Error::PinId, stream.str());
   return PinConfig();
 }
@@ -248,7 +248,7 @@ P_WP::PinNum Config::getPinNum(PinId id)
   assert(false);
   std::ostringstream stream("getPinNum - the pin ID '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
+  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number." << std::endl;
   ownerHandleError(Error::PinId, stream.str());
   return P_WP::PinNum::H11;
 }
@@ -270,7 +270,7 @@ P_WP::PullMode Config::getPinPullMode(PinId id)
   assert(false);
   std::ostringstream stream("getPinPullMode - the pin ID '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine pull mode.";
+  stream << static_cast<int>(id) << "' does not exist. Failed to determine pull mode." << std::endl;
   ownerHandleError(Error::PinId, stream.str());
   return P_WP::PullMode::Up;
 }
