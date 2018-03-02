@@ -42,7 +42,7 @@ namespace P_WP
     virtual bool hasTriggered() = 0;
     
   private:
-    int d_num = static_cast<int>(PinNum::H11);
+    int d_num = static_cast<int>(PinNum::W0);
     PullMode d_pull_mode = PullMode::Down;
     
     KERN::AsioCallbackTimer d_check_state = KERN::AsioCallbackTimer("P_WP::InputPin - trigger checking timer");

@@ -10,38 +10,40 @@ namespace P_WP
       None
       };
   
-  // Only raspberry pis using a 20x2 pin header are supported:
+  // The pin number comments below show the wiring pi pin number and corresponding header pin of the 20x2 headers.
+  // The following raspberry pis use a 20x2 pin header:
   // Pi 1A+, 1B+, 2, 3, Zero, Zero W
+  // Only pins that can be used as a GPIO are listed.
   enum class PinNum
   {
-    H3 = 8, // I2C pin, on-board 1.8 kOhm pull up (do not have to enable internal pull up)
-      H5 = 9, // I2C pin, on-board 1.8 kOhm pull up (do not have to enable internal pull up)
-      H7 = 7, // GPIO, GPCLK0. Used by one-wire kernel driver.
-      H8 = 15, // UART pin (disable in OS)
-      H10 = 16, // UART pin (disable in OS)
-      H11 = 0, // GPIO
-      H12 = 1, // GPIO. Can be set to PWM but then one of the analog audio outputs will be present on this pin
-      H13 = 2, // GPIO, SDIO
-      H15 = 3, // GPIO, SDIO
-      H16 = 4, // GPIO, SDIO
-      H18 = 5, // GPIO, SDIO
-      H19 = 12, // GPIO, SPI pin
-      H21 = 13, // GPIO, SPI pin
-      H22 = 6, // GPIO, SDIO
-      H23 = 14, // GPIO, SPI pin
-      H24 = 10, // GPIO, SPI pin
-      H26 = 11, // GPIO, SPI pin
-      H27 = 30, // DO NOT USE! Reserved for external EEPROM comms
-      H28 = 31, // DO NOT USE! Reserved for external EEPROM comms
-      H29 = 21, // GPIO, GPCLK1
-      H31 = 22, // GPIO, GPCLK1
-      H32 = 26, // GPIO, PWM0
-      H33 = 23, // GPIO, PWM1
-      H35 = 24, // GPIO, SPI
-      H36 = 27, // GPIO, SPI
-      H37 = 25, // GPIO, SDIO
-      H38 = 28, // GPIO, SPI
-      H40 = 29, // GPIO, SPI
+    W8 = 8, // H3 I2C pin, on-board 1.8 kOhm pull up (do not have to enable internal pull up)
+      W9 = 9, // H5 I2C pin, on-board 1.8 kOhm pull up (do not have to enable internal pull up)
+      W7 = 7, // H7 GPIO, GPCLK0. Used by one-wire kernel driver.
+      W15 = 15, // H8 UART pin (disable in OS)
+      W16 = 16, // H10 UART pin (disable in OS)
+      W0 = 0, // H11 GPIO
+      W1 = 1, // H12 GPIO. Can be set to PWM but then one of the analog audio outputs will be present on this pin
+      W2 = 2, // H13 GPIO, SDIO
+      W3 = 3, // H15 GPIO, SDIO
+      W4 = 4, // H16 GPIO, SDIO
+      W5 = 5, // H18 GPIO, SDIO
+      W12 = 12, // H19 GPIO, SPI pin
+      W13 = 13, // H21 GPIO, SPI pin
+      W6 = 6, // H22 GPIO, SDIO
+      W14 = 14, // H23 GPIO, SPI pin
+      W10 = 10, // H24 GPIO, SPI pin
+      W11 = 11, // H26 GPIO, SPI pin
+      W30 = 30, // H27 DO NOT USE! Reserved for external EEPROM comms
+      W31 = 31, // H28 DO NOT USE! Reserved for external EEPROM comms
+      W21 = 21, // H29 GPIO, GPCLK1
+      W22 = 22, // H31 GPIO, GPCLK1
+      W26 = 26, // H32 GPIO, PWM0
+      W23 = 23, // H33 GPIO, PWM1
+      W24 = 24, // H35 GPIO, SPI
+      W27 = 27, // H36 GPIO, SPI
+      W25 = 25, // H37 GPIO, SDIO
+      W28 = 28, // H38 GPIO, SPI
+      W29 = 29, // H40 GPIO, SPI
       Unknown
       };
 };
