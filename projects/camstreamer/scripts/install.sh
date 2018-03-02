@@ -4,7 +4,7 @@
 set -e # exit shell on a simple command failure
 install_dir=$1
 mount_dir=$2
-config_filename="settings.txt"
+config_filename="config.txt"
 led_dir=/sys/class/leds/led0
 
 # First kill the firmware and start script
