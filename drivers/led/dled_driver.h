@@ -25,7 +25,7 @@ namespace D_LED
       
       unsigned flashes_per_sec = 0; // must be > 0
       unsigned flash_count = 0; // must be > 0
-      std::chrono::milliseconds start_delay = std::chrono::milliseconds(500);
+      std::chrono::milliseconds start_end_between_cycle_delay = std::chrono::milliseconds(500); // at the start, end, and in between every cycle
       FlashCycle cycle = FlashCycle::Continuous;
       unsigned cycle_count = 0; // must be > 0 if on a limited repeat flash cycle
     };
@@ -84,12 +84,30 @@ namespace D_LED
 
     void internalUseMemory();
     void internalTurnOn();
-    void internalTurnOff();
-    void internalFlashOnOff(const std::chrono::milliseconds& delay_on,
-			    const std::chrono::milliseconds& delay_off);
-    void internalFlashPerSec(unsigned); // limited to 10
-    void internalFlashAdvanced(const AdvancedSettings&); // limited to 10
+
+    // If set, the function callback parameter will be called after the delay.
+    void turnOnDuration(const std::chrono::milliseconds& delay,
+			std::function<void()> f = nullptr);
+    void turnOffDuration(const std::chrono::milliseconds& delay,
+			 std::function<void()> f = nullptr);
     
+    void internalTurnOff();
+
+    // If count is negative, then the flashing will never stop, otherwise specify the number of flashes before stopping.
+    // If set, the function callback parameter will be called after count flashes.
+    void internalFlashOnOffCount(const std::chrono::milliseconds& delay_on,
+				 const std::chrono::milliseconds& delay_off,
+				 int count = -1,
+				 std::function<void()> f=nullptr);
+
+    // If count is negative, then the flashing will never stop, otherwise specify the number of flashes before stopping.
+    // If set, the function callback parameter will be called after count flashes
+    void internalFlashPerSecCount(unsigned rate,
+				  int count=-1,
+				  std::function<void()> f=nullptr); // rate is limited to 10
+    
+    void internalFlashAdvanced(const AdvancedSettings&); // limited to 10
+
   private:
     Owner* d_owner = nullptr;
     
@@ -100,11 +118,14 @@ namespace D_LED
     const std::string d_delay_off_path;
 
     Error d_error = Error::None;
+
+    KERN::AsioCallbackTimer d_on_off_timer = KERN::AsioCallbackTimer("D_LED::Driver On/Off Timer");
+    bool d_is_led_on = false;
+    unsigned d_flash_count = 0;
     
     AdvancedSettings d_adv_settings;
-    KERN::AsioCallbackTimer d_timer;
+    KERN::AsioCallbackTimer d_adv_timer = KERN::AsioCallbackTimer("D_LED::Driver Timer");
     unsigned d_flash_cycle_count = 0;
-    bool d_new_flash_cycle = false;
   };
 };
 

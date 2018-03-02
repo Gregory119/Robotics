@@ -1,6 +1,7 @@
 #include "dled_driver.h"
 
 #include <fstream>
+#include <iostream>
 
 using namespace D_LED;
 
@@ -13,11 +14,6 @@ bool Driver::AdvancedSettings::valid() const
     }
   
   if (flash_count == 0)
-    {
-      return false;
-    }
-  
-  if (start_delay == std::chrono::milliseconds(0))
     {
       return false;
     }
@@ -45,21 +41,21 @@ Driver::Driver(Owner* o, const std::string dir)
 //----------------------------------------------------------------------//
 void Driver::useMemory()
 {
-  d_timer.disable();
+  d_adv_timer.disableIfEnabled();
   internalUseMemory();
 }
 
 //----------------------------------------------------------------------//
 void Driver::turnOn()
 {
-  d_timer.disable();
+  d_adv_timer.disableIfEnabled();
   internalTurnOn();
 }
 
 //----------------------------------------------------------------------//
 void Driver::turnOff()
 {
-  d_timer.disable();
+  d_adv_timer.disableIfEnabled();
   internalTurnOff();
 }
 
@@ -67,21 +63,21 @@ void Driver::turnOff()
 void Driver::flashOnOff(const std::chrono::milliseconds& delay_on,
 			const std::chrono::milliseconds& delay_off)
 {
-  d_timer.disable();
-  internalFlashOnOff(delay_on, delay_off);
+  d_adv_timer.disableIfEnabled();
+  internalFlashOnOffCount(delay_on, delay_off);
 }
 
 //----------------------------------------------------------------------//
 void Driver::flashPerSec(unsigned rate)
 {
-  d_timer.disable();
-  internalFlashPerSec(rate);
+  d_adv_timer.disableIfEnabled();
+  internalFlashPerSecCount(rate);
 }
 
 //----------------------------------------------------------------------//
 void Driver::flashAdvanced(const AdvancedSettings& set)
 {
-  d_timer.disable();
+  d_adv_timer.disableIfEnabled();
   internalFlashAdvanced(set);
 }
 
@@ -112,6 +108,24 @@ void Driver::internalTurnOn()
 }
 
 //----------------------------------------------------------------------//
+void Driver::turnOnDuration(const std::chrono::milliseconds& delay,
+			    std::function<void()> f)
+{
+  internalTurnOn();
+  if (hasError())
+    {
+      assert(false);
+      return;
+    }
+  d_on_off_timer.disableIfEnabled();
+  if (f)
+    {
+      d_on_off_timer.setTimeoutCallback(f);
+      d_on_off_timer.singleShot(delay);
+    }
+}
+
+//----------------------------------------------------------------------//
 void Driver::internalTurnOff()
 {
   std::fstream file(d_brightness_path);
@@ -125,39 +139,63 @@ void Driver::internalTurnOff()
 }
 
 //----------------------------------------------------------------------//
-void Driver::internalFlashOnOff(const std::chrono::milliseconds& delay_on,
-			const std::chrono::milliseconds& delay_off)
-{
-  std::fstream trig_file(d_trigger_path);
-  if (!trig_file)
+void Driver::turnOffDuration(const std::chrono::milliseconds& delay,
+			     std::function<void()> f)
+{  
+  internalTurnOff();
+  if (hasError())
     {
       assert(false);
-      ownerHandleError(Error::TriggerFile, "internalFlashOnOff - Failed to open trigger file.");
       return;
     }
-  trig_file << "timer" << std::endl;
-
-  std::fstream delay_off_file(d_delay_off_path);
-  if (!delay_off_file)
+  
+  d_on_off_timer.disableIfEnabled();
+  if (f)
     {
-      assert(false);
-      ownerHandleError(Error::DelayOffFile, "internalFlashOnOff - Failed to open delay_off file.");
-      return;
+      d_on_off_timer.setTimeoutCallback(f);
+      d_on_off_timer.singleShot(delay);
     }
-  delay_off_file << delay_off.count() << std::endl;
-
-  std::fstream delay_on_file(d_delay_on_path);
-  if (!delay_on_file)
-    {
-      assert(false);
-      ownerHandleError(Error::DelayOnFile, "internalFlashOnOff - Failed to open delay_on file.");
-      return;
-    }
-  delay_on_file << delay_on.count() << std::endl;
 }
 
 //----------------------------------------------------------------------//
-void Driver::internalFlashPerSec(unsigned rate)
+void Driver::internalFlashOnOffCount(const std::chrono::milliseconds& delay_on,
+				     const std::chrono::milliseconds& delay_off,
+				     int count,
+				     std::function<void()> f)
+{
+  if (count > 0)
+    {
+      turnOnDuration(delay_on, [=](){
+	  // the following line is needed to ensure that a copy (not a reference) of delay_off is made
+	  std::chrono::milliseconds delay_off_copy = delay_off;
+	  turnOffDuration(delay_off_copy,[=](){
+	      // decrease the count after an on and off delay until it gets to zero
+	      int new_count = count-1;
+	      if (new_count == 0)
+		{
+		  f();
+		}
+	      else
+		{
+		  internalFlashOnOffCount(delay_on,delay_off,new_count,f);
+		}
+	    });
+	});
+    }
+  else if (count < 0)
+    {
+      turnOnDuration(delay_on, [=](){
+	  turnOffDuration(delay_off,[=](){
+	      internalFlashOnOffCount(delay_on,delay_off,count);
+	    });
+	});
+    }
+}
+
+//----------------------------------------------------------------------//
+void Driver::internalFlashPerSecCount(unsigned rate,
+				      int count,
+				      std::function<void()> f)
 {
   if (rate > 10)
     {
@@ -170,15 +208,12 @@ void Driver::internalFlashPerSec(unsigned rate)
   // on time = 500/rate
   // off time = 500/rate
   std::chrono::milliseconds half_period(500/rate);
-  internalFlashOnOff(half_period, half_period);
+  internalFlashOnOffCount(half_period, half_period, count, f);
 }
 
 //----------------------------------------------------------------------//
 void Driver::internalFlashAdvanced(const AdvancedSettings& adv)
 {
-  d_new_flash_cycle = true;
-  d_adv_settings = adv;
-
   if (!adv.valid())
     {
       assert(false);
@@ -187,18 +222,26 @@ void Driver::internalFlashAdvanced(const AdvancedSettings& adv)
 			   "D_LED::Driver::internalFlashAdvanced() - settings are invalid.");
       return;
     }
+  d_adv_settings = adv;
   
+  // only do begin delay if greater than zero
+  if (d_adv_settings.start_end_between_cycle_delay == std::chrono::milliseconds(0))
+    {
+      advCountFlashes();
+      return;
+    }
+
   // first turn off for begin_delay
   internalTurnOff();
   if (hasError())
     {
       return;
     }
-  d_timer.singleShot(std::chrono::milliseconds(d_adv_settings.start_delay));
-  d_timer.setTimeoutCallback([this](){
-      d_new_flash_cycle = false;
+  
+  d_adv_timer.setTimeoutCallback([this](){
       advCountFlashes();
     });
+  d_adv_timer.singleShot(d_adv_settings.start_end_between_cycle_delay);
 }
 
 //----------------------------------------------------------------------//
@@ -217,18 +260,11 @@ void Driver::ownerHandleError(Error e, const std::string& msg)
 void Driver::advCountFlashes()
 {
   // then flash count times at set rate
-  internalFlashPerSec(d_adv_settings.flashes_per_sec);
-  if (hasError())
-    {
-      return;
-    }
-      
-  std::chrono::milliseconds flashing_duration(d_adv_settings.flash_count * 1000 /
-					      d_adv_settings.flashes_per_sec);
-  d_timer.singleShot(flashing_duration);
-  d_timer.setTimeoutCallback([this](){
-      advCheckRepeat();
-    });
+  internalFlashPerSecCount(d_adv_settings.flashes_per_sec,
+			   d_adv_settings.flash_count,
+			   [this](){
+			     advCheckRepeat();
+			   });
 }
 
 //----------------------------------------------------------------------//
@@ -237,7 +273,10 @@ void Driver::advCheckRepeat()
   switch (d_adv_settings.cycle)
     {
     case FlashCycle::OnceOff:
-      d_owner->handleOnceOffFlashCycleEnd(this);
+      d_adv_timer.setTimeoutCallback([this](){
+	  d_owner->handleOnceOffFlashCycleEnd(this);
+	});
+      d_adv_timer.singleShot(d_adv_settings.start_end_between_cycle_delay);
       return;
       
     case FlashCycle::Continuous:
