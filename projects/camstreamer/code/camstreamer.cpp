@@ -1,5 +1,6 @@
 #include "camstreamer.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 
@@ -32,27 +33,20 @@ void CamStreamer::start()
   d_trigger_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Trigger),
 					     d_config->getPinPullMode(Config::PinId::Trigger),
 					     P_WP::EdgeInputPin::EdgeType::Both));
-  d_connect_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Connect),
-					     d_config->getPinPullMode(Config::PinId::Connect),
-					     P_WP::EdgeInputPin::EdgeType::Both));
   d_mode_pin->setTriggerCallback([this](bool state){
       processModePinState(state);
     });
   d_trigger_pin->setTriggerCallback([this](bool state){
       processTriggerPinState(state);
     });  
-  d_connect_pin->setTriggerCallback([this](bool state){
-      processConnectPinState(state);
-    });
   d_mode_pin->setUpdateInterval(s_pin_update_time);
   d_trigger_pin->setUpdateInterval(s_pin_update_time);
-  d_connect_pin->setUpdateInterval(s_pin_update_time);
 
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
   restartGPController();
   d_led_ctrl->setState(LedController::State::Connecting);
   
-  d_reset_gp_timer.setTimeoutCallback([this](){
+  d_restart_gp_timer.setTimeoutCallback([this](){
       restartGPController();
     });
 }
@@ -61,17 +55,39 @@ void CamStreamer::start()
 void CamStreamer::setupWifi()
 {
   // open the file and extract the current settings
-  std::ifstream file("/etc/wpa_supplicant/wpa_supplicant.conf");
+  d_wifi_config.reset(new P_WIFI::Configurator(this,"/etc/wpa_supplicant/wpa_supplicant.conf"));
+  d_wifi_config->parseFile();
+  if (d_wifi_config->hasError())
+    {
+      assert(false);
+      return;
+    }
+
+  // only set wifi config and restart if the new config is different
+  const std::string& new_ssid = d_config->getWifiSsid();
+  const std::string& new_pw = d_config->getWifiPassword();
+
+  if (new_ssid == d_wifi_config->getSsid() &&
+      new_pw == d_wifi_config->getPassword())
+    {
+      return;
+    }
   
+  d_wifi_config->setSsidWithQuotes(new_ssid);
+  d_wifi_config->setPasswordWithQuotes(new_pw);
   
-  // update the settings if they are different
-  
-  // restart the network interface
-  // d_config
+  // Restart the wifi
+  // These commands are currently synchronous
+  // If they need the sudo password then add the following in front: echo raspberry | sudo -S 
+  int resp = system("wpa_cli -i wlan0 reconfigure");
+  std::cout << "The system call of 'wpa_cli -i wlan0 reconfigure' returned with the value "
+  	    << resp << "." << std::endl;
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleError(Config*, Config::Error e, const std::string& msg)
+void CamStreamer::handleError(Config*,
+			      Config::Error e,
+			      const std::string& msg)
 {
   std::cerr << msg << std::endl;
   d_led_ctrl->setState(LedController::State::InvalidConfig);
@@ -97,21 +113,6 @@ void CamStreamer::processModePinState(bool)
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::processConnectPinState(bool state)
-{
-  std::cout << "CamStreamer::processConnectPinState()" << std::endl;
-  if (d_gp_controller == nullptr)
-    {
-      return;
-    }
-  
-  if (state) // high edge
-    {
-      d_gp_controller->connect();
-    }
-}
-
-//----------------------------------------------------------------------//
 void CamStreamer::processTriggerPinState(bool)
 {
   std::cout << "CamStreamer::processTriggerPinState()" << std::endl;
@@ -129,8 +130,8 @@ void CamStreamer::handleFailedRequest(D_GP::ModeController* ctrl,
   std::cerr << "CamStreamer::handleFailedRequest" << std::endl;
 
   d_gp_controller->setOwner(nullptr);
-  d_delete_gp_cont.deletePtr(d_gp_controller);
-  d_reset_gp_timer.singleShot(std::chrono::seconds(5));
+  d_timeout_deleter.deletePtr(d_gp_controller);
+  d_restart_gp_timer.singleShot(std::chrono::seconds(5));
   
   d_led_ctrl->setState(LedController::State::Connecting);
 }
@@ -140,6 +141,94 @@ void CamStreamer::handleSuccessfulRequest(D_GP::ModeController*,
 					  D_GP::ModeController::Req)
 {
   d_led_ctrl->setState(LedController::State::CommandSuccessful);
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::stop()
+{
+  d_wifi_config->setOwner(nullptr); // disable any other callbacks
+  d_timeout_deleter.deletePtr(d_wifi_config);   
+  
+  d_config->setOwner(nullptr);
+  d_timeout_deleter.deletePtr(d_config);   
+  
+  d_gp_controller->setOwner(nullptr);
+  d_timeout_deleter.deletePtr(d_gp_controller); 
+  d_restart_gp_timer.disable();
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleStateChange(LedController* ctrl,
+				    LedController::State s)
+{
+  switch (s)
+    {
+    case LedController::State::InvalidConfig:
+      {
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 5;
+	adv_set.flash_count = 2;
+	adv_set.start_end_between_cycle_delay = std::chrono::milliseconds(500);
+	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+
+    case LedController::State::Connecting:
+      {
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 1;
+	adv_set.flash_count = 1;
+	adv_set.start_end_between_cycle_delay = std::chrono::milliseconds(0);
+	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+      
+    case LedController::State::Connected:
+      ctrl->turnOn();
+      return;
+      
+    case LedController::State::CommandSuccessful:
+      {
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 5;
+	adv_set.flash_count = 1;
+	adv_set.start_end_between_cycle_delay = std::chrono::milliseconds(100);
+	adv_set.cycle = D_LED::Driver::FlashCycle::OnceOff;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+      
+    case LedController::State::InternalFailure:
+      {
+	assert(false);
+	std::cerr << "CamStreamer::handleStateChange - LedController internal failure." << std::endl;
+	stop();
+	
+	D_LED::Driver::AdvancedSettings adv_set;
+	adv_set.flashes_per_sec = 5;
+	adv_set.flash_count = 3;
+	adv_set.start_end_between_cycle_delay = std::chrono::milliseconds(500);
+	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
+      
+	ctrl->flashAdvanced(adv_set);
+      }
+      return;
+      
+    case LedController::State::Unknown:
+      assert(false);
+      std::cerr << "CamStreamer::handleStateChange - LedController::State is unknown." << std::endl;
+      stop();
+      return;
+    }
+  
+  assert(false);
+  std::cerr << "CamStreamer::handleStateChange - LedController::State is invalid." << std::endl;
+  d_led_ctrl->setState(LedController::State::InternalFailure);
 }
 
 //----------------------------------------------------------------------//
@@ -164,87 +253,18 @@ void CamStreamer::handleOnceOffFlashCycleEnd(LedController* ctrl,
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::stop()
+void CamStreamer::handleError(LedController*, const std::string& msg)
 {
-  d_config->setOwner(nullptr); // disable other callbacks
-  d_delete_config.deletePtr(d_config); 
-  
-  // disable any other callbacks
-  d_gp_controller->setOwner(nullptr);
-  // delete on timeout 
-  d_delete_gp_cont.deletePtr(d_gp_controller); 
-  d_reset_gp_timer.disable();
-}
-
-//----------------------------------------------------------------------//
-void CamStreamer::handleStateChange(LedController* ctrl,
-				    LedController::State s)
-{
-  switch (s)
-    {
-    case LedController::State::InvalidConfig:
-      ctrl->flashPerSec(10);
-      return;
-      
-    case LedController::State::Connecting:
-      {
-	D_LED::Driver::AdvancedSettings adv_set;
-	adv_set.flashes_per_sec = 10;
-	adv_set.flash_count = 1;
-	adv_set.start_delay = std::chrono::milliseconds(500);
-	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
-      
-	ctrl->flashAdvanced(adv_set);
-      }
-      return;
-      
-    case LedController::State::Connected:
-      ctrl->turnOn();
-      return;
-      
-    case LedController::State::CommandSuccessful:
-      {
-	D_LED::Driver::AdvancedSettings adv_set;
-	adv_set.flashes_per_sec = 10;
-	adv_set.flash_count = 2;
-	adv_set.start_delay = std::chrono::milliseconds(300);
-	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
-      
-	ctrl->flashAdvanced(adv_set);
-      }
-      return;
-      
-    case LedController::State::InternalFailure:
-      {
-	assert(false);
-	std::cerr << "CamStreamer::handleStateChange - LedController internal failure." << std::endl;
-	stop();
-	
-	D_LED::Driver::AdvancedSettings adv_set;
-	adv_set.flashes_per_sec = 10;
-	adv_set.flash_count = 3;
-	adv_set.start_delay = std::chrono::milliseconds(500);
-	adv_set.cycle = D_LED::Driver::FlashCycle::Continuous;
-      
-	ctrl->flashAdvanced(adv_set);
-      }
-      return;
-      
-    case LedController::State::Unknown:
-      assert(false);
-      std::cerr << "CamStreamer::handleStateChange - LedController::State is unknown." << std::endl;
-      stop();
-      return;
-    }
-  
-  assert(false);
-  std::cerr << "CamStreamer::handleStateChange - LedController::State is invalid." << std::endl;
+  std::cerr << "CamStreamer::handleError " << msg << std::endl;
   d_led_ctrl->setState(LedController::State::InternalFailure);
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleError(LedController*, const std::string& msg)
+void CamStreamer::handleError(P_WIFI::Configurator*,
+			      P_WIFI::Configurator::Error e,
+			      const std::string& msg)
 {
-  std::cerr << "CamStreamer::handleError " << msg << std::endl;
+  std::cerr << msg << std::endl;
+  // no errors here show whether the configuration values are not what they should be
   d_led_ctrl->setState(LedController::State::InternalFailure);
 }

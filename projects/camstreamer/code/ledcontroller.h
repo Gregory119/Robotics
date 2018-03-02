@@ -39,6 +39,7 @@ class LedController final : D_LED::Driver::Owner
  public:
   // Do not make the last character a forward slash. eg. /sys/class/leds/led0
   LedController(Owner*, const std::string& driver_dir = "/sys/class/leds/led0");
+  ~LedController();
   // Declaring a move special member function will implicitly delete the copy special members and implicitly not declare the other move special member
   LedController(LedController&&) = delete;
 

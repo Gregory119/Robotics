@@ -1,7 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "core_fileparamextractor.h"
+#include "core_fileparammanager.h"
 #include "core_owner.h"
 #include "kn_asiocallbacktimer.h"
 #include "wp_pins.h"
@@ -11,6 +11,8 @@
 // Expected file format:
 // - the parameters can be in any order
 // - the first occurence of the parameter will be used
+// - pins numbers are those used by WiringPi
+// - do NOT use quotation marks around the wifi ssid or wifi password
 // -------------------------------------//
 // wifi_ssid=<ssid>
 // wifi_pw=<password>
@@ -18,8 +20,6 @@
 // mode_pin_pull_mode=<up/down/none>
 // trigger_pin_num=<number>
 // trigger_pin_pull_mode=<up/down/none>
-// connect_pin_num=<number>
-// connect_pin_pull_mode=<up/down/none>
 // -------------------------------------//
 
 class Config
@@ -27,8 +27,7 @@ class Config
  public:
   enum class Error
   {
-    None,
-      OpenFile,
+    OpenFile,
       WifiSSID,
       WifiPassword,
       ModePinNum,
@@ -43,8 +42,7 @@ class Config
   enum class PinId
   {
     Mode,
-      Trigger,
-      Connect
+      Trigger
   };
 
   struct PinConfig
@@ -57,22 +55,25 @@ class Config
   class Owner
   {
     OWNER_SPECIAL_MEMBERS(Config);
-    virtual void handleError(Config*, Error, const std::string& msg) = 0;
     // Errors must be logged by the owner because they are not done internally.
+    // Messages do not have a new line character at the end.
+    virtual void handleError(Config*, Error, const std::string& msg) = 0;
   };
   
  public:
   Config(Owner*, const std::string file_path); // absolute or relative path
-  void setOwner(Owner* o) { d_owner = o; }
+  void setOwner(Owner* o);
 
-  // parseFile() must be called before any other functions for valid data
+  // parseFile() must be called before any other functions
   void parseFile(); 
-  
-  bool hasError();
 
-  const PinConfig getPinConfig(PinId);
+  PinConfig getPinConfig(PinId);
   P_WP::PinNum getPinNum(PinId);
   P_WP::PullMode getPinPullMode(PinId);
+  const std::string& getWifiSsid() const { return d_wifi_ssid; }
+  const std::string& getWifiPassword() const { return d_wifi_pw; }
+
+  bool hasError() { return d_has_error; }
 
  private:
   void ownerHandleError(Error, const std::string& msg);
@@ -88,15 +89,16 @@ class Config
  private:
   Owner* d_owner = nullptr;
 
-  std::unique_ptr<CORE::FileParamExtractor> d_extractor;
+  std::unique_ptr<CORE::FileParamManager> d_file_param_man;
   
   std::string d_wifi_ssid;
   std::string d_wifi_pw;
   PinConfig d_mode_pin;
   PinConfig d_trigger_pin;
-  PinConfig d_connect_pin;
 
-  Error d_error = Error::None;
+  bool d_has_error = false;
+
+  KERN::AsioCallbackTimer d_zero_timer = KERN::AsioCallbackTimer("Config:: Zero timer");
 };
 
 #endif

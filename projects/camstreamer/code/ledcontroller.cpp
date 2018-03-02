@@ -9,6 +9,12 @@ LedController::LedController(Owner* o, const std::string& driver_dir)
 }
 
 //----------------------------------------------------------------------//
+LedController::~LedController()
+{
+  useMemory();
+}
+
+//----------------------------------------------------------------------//
 void LedController::setState(State s)
 {
   if (d_state == s)

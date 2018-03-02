@@ -1,20 +1,44 @@
 #include "config.h"
 
+#include <chrono>
 #include <sstream>
 #include <fstream>
+
+static const std::string s_pin_pull_mode_up = "up";
+static const std::string s_pin_pull_mode_down = "down";
+static const std::string s_pin_pull_mode_none = "none";
 
 //----------------------------------------------------------------------//
 Config::Config(Owner* o,
 	       const std::string file_path)
   : d_owner(o),
-    d_extractor(new CORE::FileParamExtractor(std::move(file_path)))
+    d_file_param_man(new CORE::FileParamManager(std::move(file_path)))
 {
   assert(o != nullptr);
+  if (d_file_param_man->hasError())
+    {
+      std::ostringstream stream("Config - Failed to start extracting configuration because of the following error: \n",
+				std::ios_base::app);
+      stream << d_file_param_man->getErrorMsg();
+      std::string err_msg = stream.str();
+      d_zero_timer.setTimeoutCallback([=](){
+	  ownerHandleError(Error::OpenFile, err_msg);
+	});
+      d_zero_timer.singleShotZero();
+    }
 }
+
+//----------------------------------------------------------------------//
+void Config::setOwner(Owner* o) { assert(o!=nullptr); d_owner = o; }
 
 //----------------------------------------------------------------------//
 void Config::parseFile()
 {
+  if (hasError())
+    {
+      return;
+    }
+  
   if (!extractWifiSSID())
     {
       return;
@@ -54,44 +78,19 @@ void Config::parseFile()
     {
       return;
     }
-
-  if (!extractPinNumber(d_connect_pin,
-			"connect_pin_num=",
-			Error::ConnectPinNum))
-    {
-      return;
-    }
-  
-  if (!extractPinPullMode(d_connect_pin,
-			  "connect_pin_pull_mode=",
-			  Error::ConnectPinPullMode))
-    {
-      return;
-    }
-}
-
-//----------------------------------------------------------------------//
-void Config::ownerHandleError(Error e, const std::string& msg)
-{
-  d_error = e;
-  std::string final_msg = "Config::";
-  final_msg += msg;
-  if (d_owner != nullptr)
-    {
-      d_owner->handleError(this,e,final_msg);
-    }
 }
 
 //----------------------------------------------------------------------//
 bool Config::extractWifiSSID()
 {
   // is empty on a failure
-  d_wifi_ssid = d_extractor->getParam("wifi_ssid=");
+  d_wifi_ssid = d_file_param_man->getParam("wifi_ssid=");
 
-  if (d_extractor->hasError())
+  if (d_file_param_man->hasError())
     {
-      std::ostringstream stream("extractWifiSSID - Failed to extract the wifi ssid with the file parameter extractor, which has the following error:", std::ios_base::app);
-      stream << "\n" << d_extractor->getErrorMsg();
+      std::ostringstream stream("extractWifiSSID - Failed to extract the wifi ssid because of the following error: \n",
+				std::ios_base::app);
+      stream << d_file_param_man->getErrorMsg();
       ownerHandleError(Error::WifiSSID, stream.str());
       return false;
     }
@@ -103,13 +102,14 @@ bool Config::extractWifiSSID()
 bool Config::extractWifiPw()
 {
   // is empty on a failure
-  d_wifi_pw = d_extractor->getParam("wifi_pw=");
+  d_wifi_pw = d_file_param_man->getParam("wifi_pw=");
 
-  if (d_extractor->hasError())
+  if (d_file_param_man->hasError())
     {
-      std::ostringstream stream("extractWifiSSID - Failed to extract the wifi password with the file parameter extractor, which has the following error:", std::ios_base::app);
-      stream << "\n" << d_extractor->getErrorMsg();
-      ownerHandleError(Error::WifiSSID, stream.str());
+      std::ostringstream stream("extractWifiPassword - Failed to extract the wifi password because of the following error: \n",
+				std::ios_base::app);
+      stream << d_file_param_man->getErrorMsg();
+      ownerHandleError(Error::WifiPassword, stream.str());
       return false;
     }
   
@@ -122,39 +122,41 @@ bool Config::extractPinPullMode(PinConfig& pin_conf,
 				Error e)
 {
   // is empty on a failure
-  std::string mode_text = d_extractor->getParam(pin_mode_match);
+  std::string mode_text = d_file_param_man->getParam(pin_mode_match);
 
-  if (d_extractor->hasError())
+  if (d_file_param_man->hasError())
     {
-      std::ostringstream stream("extractPinPullMode - Failed to extract the parameter value of '",std::ios_base::app);
-      stream << pin_mode_match << "' from the file '"
-	     <<  d_extractor->getFilePath() << "' with the file parameter extractor; which has the following error:"
-	     << "\n" << d_extractor->getErrorMsg();
+      std::ostringstream stream("extractPinPullMode - Failed to extract the pin pull mode of '",
+				std::ios_base::app);
+      stream << pin_mode_match << "' because of the following error: \n" << d_file_param_man->getErrorMsg();
       ownerHandleError(e, stream.str());
       return false;
     }
 
-  if (mode_text == "up")
+  if (mode_text == s_pin_pull_mode_up)
     {
       pin_conf.pull_mode = P_WP::PullMode::Up;
       return true;
     }
 
-  if (mode_text == "none")
+  if (mode_text == s_pin_pull_mode_none)
     {
       pin_conf.pull_mode = P_WP::PullMode::None;
       return true;
     }
 
-  if (mode_text == "down")
+  if (mode_text == s_pin_pull_mode_down)
     {
       pin_conf.pull_mode = P_WP::PullMode::Down;
       return true;
     }
   
-  std::ostringstream stream("extractPinPullMode - Failed to extract the parameter value of '",std::ios_base::app);
-  stream << pin_mode_match << "' from the file '"
-	 <<  d_extractor->getFilePath() << "'." << std::endl;
+  std::ostringstream stream("extractPinPullMode - The pin pull mode of '",std::ios_base::app);
+  stream << pin_mode_match << "' is set to an invalid value of '" << mode_text << "' in the file '"
+	 <<  d_file_param_man->getFilePath() << "'. The options are '"
+	 << s_pin_pull_mode_up << "', '"
+	 << s_pin_pull_mode_down << "', or '"
+	 << s_pin_pull_mode_none << "'.";
   ownerHandleError(e, stream.str());
   return false;
 }
@@ -165,14 +167,12 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
 			      Error e)
 {
   // is empty on a failure
-  std::string num_text = d_extractor->getParam(pin_num_match);
+  std::string num_text = d_file_param_man->getParam(pin_num_match);
 
-  if (d_extractor->hasError())
+  if (d_file_param_man->hasError())
     {
-      std::ostringstream stream("extractPinNumber - Failed to extract the parameter value of '",std::ios_base::app);
-      stream << pin_num_match << "' from the file '"
-	     <<  d_extractor->getFilePath() << "' with the file parameter extractor; which has the following error:"
-	     << "\n" << d_extractor->getErrorMsg();
+      std::ostringstream stream("extractPinNumber - Failed to extract the pin number of '",std::ios_base::app);
+      stream << pin_num_match <<  "' because of the following error: \n" << d_file_param_man->getErrorMsg();
       ownerHandleError(e, stream.str());
       return false;
     }
@@ -186,7 +186,7 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
     {
       std::ostringstream stream("extractPinNumber - Failed to convert text '",
 				std::ios_base::app);
-      stream << num_text << "' to a number for '" << pin_num_match << "'." << std::endl;
+      stream << num_text << "' to a number for '" << pin_num_match << "'.";
       ownerHandleError(e, stream.str());
       return false;
     }
@@ -195,7 +195,7 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
     {
       std::ostringstream stream("extractPinNumber - The pin number of '",
 				std::ios_base::app);
-      stream << num_text << "' is out of range." << std::endl;
+      stream << num_text << "' is out of range for '" << pin_num_match << "'." ;
       ownerHandleError(e, stream.str());
       return false;
     }
@@ -204,13 +204,7 @@ bool Config::extractPinNumber(PinConfig& pin_conf,
 }
 
 //----------------------------------------------------------------------//
-bool Config::hasError()
-{
-  return d_error != Error::None;
-}
-
-//----------------------------------------------------------------------//
-const Config::PinConfig Config::getPinConfig(PinId id)
+Config::PinConfig Config::getPinConfig(PinId id)
 {
   switch (id)
     {
@@ -219,14 +213,11 @@ const Config::PinConfig Config::getPinConfig(PinId id)
       
     case PinId::Trigger:
       return d_trigger_pin;
-      
-    case PinId::Connect:
-      return d_connect_pin;
     }
   assert(false);
   std::ostringstream stream("getPinConfig - the pin ID '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number." << std::endl;
+  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
   ownerHandleError(Error::PinId, stream.str());
   return PinConfig();
 }
@@ -241,16 +232,13 @@ P_WP::PinNum Config::getPinNum(PinId id)
       
     case PinId::Trigger:
       return d_trigger_pin.num;
-      
-    case PinId::Connect:
-      return d_connect_pin.num;
     }
   assert(false);
   std::ostringstream stream("getPinNum - the pin ID '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number." << std::endl;
+  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
   ownerHandleError(Error::PinId, stream.str());
-  return P_WP::PinNum::H11;
+  return P_WP::PinNum::W0;
 }
 
 //----------------------------------------------------------------------//
@@ -263,14 +251,23 @@ P_WP::PullMode Config::getPinPullMode(PinId id)
       
     case PinId::Trigger:
       return d_trigger_pin.pull_mode;
-      
-    case PinId::Connect:
-      return d_connect_pin.pull_mode;
     }
   assert(false);
   std::ostringstream stream("getPinPullMode - the pin ID '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine pull mode." << std::endl;
+  stream << static_cast<int>(id) << "' does not exist. Failed to determine pull mode.";
   ownerHandleError(Error::PinId, stream.str());
   return P_WP::PullMode::Up;
+}
+
+//----------------------------------------------------------------------//
+void Config::ownerHandleError(Error e, const std::string& msg)
+{
+  d_has_error = true;
+  std::string final_msg = "Config::";
+  final_msg += msg;
+  if (d_owner != nullptr)
+    {
+      d_owner->handleError(this,e,final_msg);
+    }
 }

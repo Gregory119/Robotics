@@ -61,7 +61,7 @@ int main()
   wiringPiSetup(); // terminates on failure
 
   KERN::AsioKernel k;
-  CamStreamer cam_streamer("settings.txt");
+  CamStreamer cam_streamer("config.txt");
   cam_streamer.start();
   
   k.run();
