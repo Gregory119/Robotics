@@ -69,6 +69,14 @@ ifdef USES_LIBDJS
       USES_LIBUTILS=1
 endif
 
+ifdef USES_LIBWIFI
+      LIBWIFIPATH = $(BASE_DIR)/peripherals/wifi
+      INCLUDES += -I$(LIBWIFIPATH)
+      LIBSRC += $(wildcard $(LIBWIFIPATH)/*.cpp)
+      USES_LIBCORE=1
+      USES_LIBKERN=1
+endif
+
 ifdef USES_LIBLED
       LIBLEDPATH = $(BASE_DIR)/drivers/led
       INCLUDES += -I$(LIBLEDPATH)
@@ -132,6 +140,12 @@ ifdef USES_LIBLED
 ifndef BUILT_LED
 	$(eval built_libs+=BUILT_LED=1)
 	$(MAKE) -C $(LIBLEDPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBWIFI
+ifndef BUILT_WIFI
+	$(eval built_libs+=BUILT_WIFI=1)
+	$(MAKE) -C $(LIBWIFIPATH) $(built_libs)
 endif
 endif
 ifdef USES_LIBDJS
