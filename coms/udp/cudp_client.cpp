@@ -35,7 +35,7 @@ Client::~Client()
 //----------------------------------------------------------------------//
 void Client::connect()
 {
-  if (d_is_connected)
+  if (d_socket.is_open())
     {
       return;
     }
@@ -55,8 +55,6 @@ void Client::connect()
       d_owner->handleFailed(this, Error::Connect);
       return;
     }
-  d_is_connected = true;
-  d_reconnect_timer.disable();
   d_owner->handleConnected(this);
 }
 
@@ -64,7 +62,10 @@ void Client::connect()
 void Client::connect(std::chrono::milliseconds delay)
 {
   connect();
-  d_reconnect_timer.restart(delay);
+  if (!d_socket.is_open())
+    {
+      d_reconnect_timer.restart(delay);
+    }
 }
 
 //----------------------------------------------------------------------//
@@ -92,7 +93,6 @@ void Client::sendInternal(const void* data, size_t byte_size)
 			  {
 			    std::cerr << "Client::send - error message: " << err.message() << std::endl;
 			    
-			    d_is_connected = false;
 			    if (d_socket.is_open())
 			      {
 				d_socket.close();

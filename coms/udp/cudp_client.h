@@ -75,7 +75,6 @@ namespace C_UDP
     size_t d_transfer_data_size = 0;
 
     bool d_is_sending = false;
-    bool d_is_connected = false;
 
     KERN::AsioCallbackTimer d_reconnect_timer = KERN::AsioCallbackTimer("C_UDP::Client - reconnect timer.");
   };
