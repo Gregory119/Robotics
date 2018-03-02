@@ -6,26 +6,22 @@
 #include <wiringPi.h>
 #include <iostream>
 
+//ORDER:
+// RC transmitter and receiver
+// pi 2, 3, sd cards, double check power requirements
+// 4/8 GB sd cards for a small image size => will need to expand to used sd card size
+
+
 // TO DO:
 //----------------------------------------------------------------------//
 // The following will be done for the first release:
 
-// - DONE! test basic pin input control
-// - DONE! installer script using USB (must exist on the pi image so that only this image can install automatically via usb)
-// - DONE! support only edge triggered pin control
-
-// - config file:
-//   - Wifi settings
-//   - DONE! custom format (xml in the future with app)
-//   - DONE! include pin control type (Connected to digital output pin OR button/switch)
-//   - DONE! include pin assignments
-// - DONE! LED control classes to indicate operation status and any failures
-// - DONE! update usb install script to copy the config/settings file if it exists
-
-// - Use config file wifi settings to set up the wifi
-// - python script to restart pi when button connected to pin is pressed. Hold button down to turn off (protect file system). People may not even use this functionality, although it is safer.
-
-// - binary reverse engineering security
+// - test flashing on a successful command and other failures etc
+// - test/modify usb scripts
+// - pin shutdown => led should use memory
+// - change pin detection to use with RC receivers (PPM) also check if they do high and low states
+// - add logging and copy to usb when inserted so that the user can see the logs (check if logs auto backup)
+// - encryption
 
 // - test video analog output
 // - test and support most GoPro models (consider adding older ones if time permits - add to config file)
