@@ -1,10 +1,10 @@
 [Unit]
 Description=ActionCamStreamer Service
-After=multi-user.target
+After=multi-user.target # ensures that this unit is started after multi-user.target, otherwise they would start simultaneously.
 
 [Service]
 Type=idle
 ExecStart=/actioncamstreamer/start_actioncamstreamer.sh
 
-[Install]
+[Install] # used by the enable/disable to link and unlink with dependencies
 WantedBy=multi-user.target
