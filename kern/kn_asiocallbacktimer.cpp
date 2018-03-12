@@ -11,7 +11,7 @@ using namespace KERN;
 
 //----------------------------------------------------------------------//
 AsioCallbackTimer::AsioCallbackTimer()
-  : AsioCallbackTimer(std::string())
+  : d_timer(new boost::asio::deadline_timer(AsioKernel::getService()))
 {}
 
 //----------------------------------------------------------------------//
@@ -25,62 +25,99 @@ void AsioCallbackTimer::setTimeoutCallback(std::function<void()> callback)
 {
   d_timeout_callback = callback;
 }
-
-//----------------------------------------------------------------------//
-void AsioCallbackTimer::restart()
-{
-  if (!d_timeout_callback)
-    {
-      // LOG
-      assert(false);
-      return;
-    }
-  
-  assert(isSet());
-  restartMs(d_timeout_ms);
-}
   
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::restartMs(long time_ms)
+void AsioCallbackTimer::restart(const std::chrono::milliseconds& time)
 {
-  if (!d_timeout_callback)
-    {
-      // LOG
-      assert(false);
-      return;
-    }
-
-  d_count_conseq_timeouts = 0;
-  d_is_enabled = true;
-  setTimeMs(time_ms);
-
-  // will cancel a pending timeout unless it has already timed out (callback is being called or is queued to be called)
-  try
-    {
-      d_timer->expires_from_now(boost::posix_time::milliseconds(time_ms));
-    }
-  catch (...)
-    {
-      // LOG
-      assert(false);
-      return;
-    }
-  d_timer->async_wait([&](const boost::system::error_code& e){
-      timerCallBack(e,d_timer.get());
-    });
+  setTime(time);
+  restart();
 }
 
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::restart(std::chrono::milliseconds time)
-{
-  restartMs(time.count());
-}
-
-//----------------------------------------------------------------------//
-void AsioCallbackTimer::singleShot(std::chrono::milliseconds time)
+void AsioCallbackTimer::singleShot(const std::chrono::milliseconds& time)
 {
   restart(time);
   d_is_single_shot = true;
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::singleShotZero()
+{
+  singleShot(std::chrono::milliseconds(0));
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::singleShotZero(std::function<void()> callback)
+{
+  d_timeout_callback = callback;
+  singleShotZero();
+}
+		  
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::restartIfNotSet(const std::chrono::milliseconds& time)
+{
+  if (d_is_set)
+    {
+      return;
+    }
+  restart(time);
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::
+restartIfNotSetOrDisabled(const std::chrono::milliseconds& time)
+{
+  if (!d_is_set || !d_is_enabled)
+    {
+      restart(time);
+    }
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::disable()
+{
+  if (!d_is_enabled)
+    {
+      // log
+      std::cerr << "The timer '" << d_name << "' has already been disabled." << std::endl;
+      assert(false);
+      return;
+    }
+  
+  d_count_conseq_timeouts = 0;
+  d_is_enabled = false;
+  
+  try
+    {
+      d_timer->cancel(); // forces the completion of any asynchronous wait operations
+    }
+  catch (...)
+    {
+      // not sure how to deal with this, but at least disable the timer
+      // LOG
+      assert(false);
+    }
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::disableIfEnabled()
+{
+  if (d_is_enabled)
+    {
+      disable();
+    }
+}
+
+//----------------------------------------------------------------------//
+bool AsioCallbackTimer::isDisabled()
+{
+  return !d_is_enabled;
+}
+
+//----------------------------------------------------------------------//
+long AsioCallbackTimer::getConseqTimeOuts()
+{
+  return d_count_conseq_timeouts;
 }
 
 //----------------------------------------------------------------------//
@@ -93,7 +130,7 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
       // 1) Timer has been cancelled because async_wait() was not called before running the io_service.
       // 2) Timer has been cancelled because cancel() was called on the timer.
       // 3) Expiry time was reset before the wait time expired.
-      std::cout << "AsioCallbackTimer::timerCallBack - timer aborted. timeout = " << d_timeout_ms << ". Name is: " << d_name << std::endl;
+      std::cout << "AsioCallbackTimer::timerCallBack - timer aborted. timeout [ms] = " << d_timeout.count() << ". Name is: " << d_name << std::endl;
       return;
     }
 
@@ -113,11 +150,27 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
       return;
     }
 
-  // schedule to call again
-  assert(isSet());
+  scheduleCallback();
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::scheduleCallback()
+{
+  if (!d_is_set)
+    {
+      assert(false);
+      return;
+    }
+  
+  if (!d_timeout_callback)
+    {
+      assert(false);
+      return;
+    }
+  
   try
     {
-      d_timer->expires_from_now(boost::posix_time::milliseconds(d_timeout_ms));
+      d_timer->expires_from_now(boost::posix_time::milliseconds(d_timeout.count()));
     }
   catch (...)
     {
@@ -130,57 +183,19 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
       timerCallBack(e,d_timer.get());
     });
 }
-		  
+
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::restartMsIfNotSet(long time_ms)
+void AsioCallbackTimer::setTime(const std::chrono::milliseconds& time)
 {
-  if (!isSet())
-    {
-      restartMs(time_ms);
-    }
+  d_timeout = time;
+  d_is_set = true;
 }
 
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::restartMsIfNotSetOrDisabled(long time_ms)
+void AsioCallbackTimer::restart()
 {
-  if (!isSet()) // implies disabled
-    {
-      restartMs(time_ms);
-    }
-  else if (isDisabled()) // is set, but disabled
-    {
-      restart();
-    }
-}
-
-//----------------------------------------------------------------------//
-void AsioCallbackTimer::disable()
-{
-  if (!d_is_enabled)
-    {
-      // log
-      assert(false);
-      return;
-    }
-  
   d_count_conseq_timeouts = 0;
-  d_is_enabled = false;
-  
-  try
-    {
-      d_timer->cancel(); // forces the completion of any asynchronous wait operations
-    }
-  catch (...)
-    {
-      // not sure how to deal with this, but at least disable the timer
-      // LOG
-      assert(false);
-    }
-}
-   
-//----------------------------------------------------------------------//
-void AsioCallbackTimer::setTimeMs(long time)
-{
-  assert(time>=0);
-  d_timeout_ms = time;
+  d_is_enabled = true;
+
+  scheduleCallback();
 }

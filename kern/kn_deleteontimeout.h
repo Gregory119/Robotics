@@ -12,17 +12,17 @@
 namespace KERN
 {
   template <class T>
-  class DeleteOnTimeout
-  {
-  public:
-    DeleteOnTimeout();
-    void deletePtr(T*);
-    void deletePtr(std::unique_ptr<T>&); // releases and deletes
+    class DeleteOnTimeout
+    {
+    public:
+      DeleteOnTimeout();
+      void deletePtr(T*);
+      void deletePtr(std::unique_ptr<T>&); // releases and deletes
 
-  private:
-    std::vector<T*> d_pointers; // should not be much more than one pointer buffered on most occassions
-    KERN::AsioCallbackTimer d_timer = KERN::AsioCallbackTimer("KERN::DeleteOnTimeout - delete timer.");
-  };
+    private:
+      std::vector<T*> d_pointers; // should not be much more than one pointer buffered on most occassions
+      KERN::AsioCallbackTimer d_timer = KERN::AsioCallbackTimer("KERN::DeleteOnTimeout - delete timer.");
+    };
 
   //----------------------------------------------------------------------//
   template <class T>
@@ -41,10 +41,10 @@ namespace KERN
   template <class T>
     void DeleteOnTimeout<T>::deletePtr(T* ptr)
     {
+      // First check that the pointer is not already going to be deleted
       auto it = std::find(d_pointers.begin(), d_pointers.end(), ptr);
       if (it != d_pointers.end())
 	{
-	  // Make sure the pointer is not already going to be deleted
 	  // LOG
 	  assert(false);
 	  return;
@@ -60,7 +60,7 @@ namespace KERN
 	}
     }
 
-    //----------------------------------------------------------------------//
+  //----------------------------------------------------------------------//
   template <class T>
     void DeleteOnTimeout<T>::deletePtr(std::unique_ptr<T>& ptr)
     {
