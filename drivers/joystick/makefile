@@ -1,9 +1,9 @@
 BASE_DIR = ../..
-LIBNAME = DJS
+LIBNAME = JS
 
 include $(BASE_DIR)/makedef/makefile.set
 
-USES_LIBDJS=1
+USES_LIBJS=1
 HAS_TESTPROGS=1
 
 include $(BASE_DIR)/makedef/makefile.libs

@@ -1,6 +1,8 @@
 #include "djs_serialjoystick.h"
 
 #include <wiringSerial.h>
+
+#include <chrono>
 #include <iostream>
 #include <cmath>
 #include <unistd.h>
@@ -62,7 +64,7 @@ bool JoystickTransmitter::init(const std::string& serial_port,
 void JoystickTransmitter::start()
 {
   // initially made large to avoid holding up other timeouts
-  d_resend_timer.restartMs(d_resend_time_ms);
+  d_resend_timer.restart(std::chrono::milliseconds(d_resend_time_ms));
   assert(d_is_init);
   if (d_is_init)
     {
