@@ -25,7 +25,13 @@ psk="climb3708"
 for adsl:
 ssid="TP-LINK_AC5344"
 psk="19242316"
-	   
+
+The wifi settings can then be applied with the command:
+$ wpa_cli -i wlan0 reconfigure 
+
+Additional instructions on setting up wifi on the raspberry pi can be found at:
+https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
+
 ==ethernet==
 static ip for direct ethernet connection between laptop and pi [1]
 - edit /etc/dhcpcd.conf
