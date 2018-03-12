@@ -48,6 +48,11 @@ private:
   {
     std::cout << "handleSuccessfulRequest: " << std::endl;
   }
+
+  void handleInternalFailure(D_GP::ModeController*) override
+  {
+    std::cout << "handleSuccessfulRequest: " << std::endl;
+  }
   
 private:
   std::unique_ptr<D_GP::ModeController> d_gp_cont;

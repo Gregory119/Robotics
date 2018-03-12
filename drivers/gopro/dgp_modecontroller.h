@@ -41,6 +41,9 @@ namespace D_GP
     private:
       friend ModeController;
       virtual void handleFailedRequest(ModeController*, Req) = 0;
+
+      // Internal state is not guaranteed, so delete on a zero timer in this callback.
+      virtual void handleInternalFailure(ModeController*) = 0;
       virtual void handleSuccessfulRequest(ModeController*, Req) = 0;
     };
     
@@ -70,9 +73,25 @@ namespace D_GP
     void handleStreamDown(GoPro*) override;
 
   private:
-    void processStatus();
-    bool processNextMode();
-    void sendFailedRequest();
+    void startRequest(Req);
+
+    void processNextReq();
+    // This function will always result in calling a gopro command; it does not check if there is a request in process.
+    void processReqWithLastCmd(GoPro::Cmd last_cmd);
+
+    // For all of the following internal requests, providing a last command parameter of GoPro::Cmd::Unknown
+    // will start the request from its first command.
+    void internalConnect(GoPro::Cmd last_cmd); 
+    void internalNextMode(GoPro::Cmd last_cmd);
+    void internalTrigger(GoPro::Cmd last_cmd);
+    void internalStartStream(GoPro::Cmd last_cmd);
+    void internalStopStream(GoPro::Cmd last_cmd);
+    
+    void nextModeCmdsAfterStatus();
+    
+    void ownerFailedRequest();
+    void ownerInternalFailure();
+    void ownerSuccessfulRequest();
     
   private:		
     Owner* d_owner = nullptr;

@@ -1,9 +1,9 @@
 BASE_DIR = ../..
-LIBNAME = DGP
+LIBNAME = GP
 
 include $(BASE_DIR)/makedef/makefile.set
 
-USES_LIBDGP=1
+USES_LIBGP=1
 USES_LIBCUDP=1
 HAS_TESTPROGS=1
 
