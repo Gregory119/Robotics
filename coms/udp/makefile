@@ -1,9 +1,9 @@
 BASE_DIR = ../..
-LIBNAME = CUDP
+LIBNAME = UDP
 
 include $(BASE_DIR)/makedef/makefile.set
 
-USES_LIBCUDP=1
+USES_LIBUDP=1
 #HAS_TESTPROGS=1
 
 include $(BASE_DIR)/makedef/makefile.libs

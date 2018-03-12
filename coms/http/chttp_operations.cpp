@@ -1,6 +1,7 @@
 #include "chttp_operations.h"
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
 
 using namespace C_HTTP;
@@ -57,7 +58,7 @@ void Operations::init(std::chrono::seconds timeout)
   // NB: not thread safe
   if (curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) 
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
@@ -69,37 +70,37 @@ void Operations::init(std::chrono::seconds timeout)
   d_curl = curl_easy_init();
   if (d_curl == nullptr)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_TIMEOUT, timeout.count()) != CURLE_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_WRITEFUNCTION, respBodyWrite) != CURLE_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_WRITEDATA, this) != CURLE_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_HEADERFUNCTION, respHeaderWrite) != CURLE_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
   if (curl_easy_setopt(d_curl, CURLOPT_HEADERDATA, this) != CURLE_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
@@ -107,7 +108,7 @@ void Operations::init(std::chrono::seconds timeout)
     {
       if (curl_easy_setopt(d_curl, CURLOPT_HTTPHEADER, d_header_list) != CURLE_OK)
 	{
-	  d_timer_failed_init.restartMs(0);
+	  d_timer_failed_init.singleShotZero();
 	  return;
 	}
     }
@@ -116,7 +117,7 @@ void Operations::init(std::chrono::seconds timeout)
 #ifndef RELEASE
   if (curl_easy_setopt(d_curl, CURLOPT_VERBOSE, 1L) != CURLE_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 #endif
@@ -124,19 +125,19 @@ void Operations::init(std::chrono::seconds timeout)
   d_curl_multi = curl_multi_init();
   if (d_curl_multi == nullptr)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 	
   if (curl_multi_setopt(d_curl_multi, CURLMOPT_TIMERFUNCTION, timerRestart) != CURLM_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 
   if (curl_multi_setopt(d_curl_multi, CURLMOPT_TIMERDATA, this) != CURLM_OK)
     {
-      d_timer_failed_init.restartMs(0);
+      d_timer_failed_init.singleShotZero();
       return;
     }
 	
@@ -187,7 +188,7 @@ void Operations::get(const std::string& url)
   
   d_resp_body.clear();
   d_resp_headers.clear();
-  d_timer_process.restartMs(0);
+  d_timer_process.restart(std::chrono::milliseconds(0));
 }
 
 //----------------------------------------------------------------------//
@@ -218,7 +219,6 @@ void Operations::process()
 //----------------------------------------------------------------------//
 void Operations::failedInit()
 {
-  d_timer_failed_init.disable();
   d_owner->handleFailed(this,OpError::Internal);
 }
 
@@ -335,7 +335,7 @@ int Operations::timerRestart(CURLM *multi,
   Operations* ptr = static_cast<Operations*>(userdata);
   if (timeout_ms >= 0 && timeout_ms < 1000) // experienced receiving large timeouts
     {
-      ptr->d_timer_process.restartMs(timeout_ms);
+      ptr->d_timer_process.restart(std::chrono::milliseconds(timeout_ms));
     }
   else if (timeout_ms < 0)
     {
