@@ -1,6 +1,7 @@
 #include "ctrl_servo.h"
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
 
 using namespace CTRL;
@@ -72,7 +73,7 @@ void Servo::setVelocityParams(int min_time_for_max_velocity_ms,
   
   d_velocity_man.reset(new RCStepVelocityManager(p));
 
-  d_vel_inc_timer.restartMs(p.time_step_ms);
+  d_vel_inc_timer.restart(std::chrono::milliseconds(p.time_step_ms));
 }
 
 //----------------------------------------------------------------------//

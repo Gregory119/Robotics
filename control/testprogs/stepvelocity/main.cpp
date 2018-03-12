@@ -3,8 +3,8 @@
 #include "kn_asiokernel.h"
 #include "kn_asiocallbacktimer.h"
 
+#include <chrono>
 #include <iostream>
-
 #include <memory>
 
 class TestTimers
@@ -21,12 +21,12 @@ public:
     d_timer.setTimeoutCallback([this](){
 	processTimer();
       });
-    d_timer.restartMs(params.time_step_ms);
+    d_timer.restart(std::chrono::milliseconds(params.time_step_ms));
 
     d_input_timer.setTimeoutCallback([this](){
 	processInputTimer();
       });
-    d_input_timer.restartMs(7500);
+    d_input_timer.restart(std::chrono::milliseconds(7500));
   }
 
 private:
