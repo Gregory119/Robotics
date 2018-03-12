@@ -77,7 +77,7 @@ void FastController::processCurrentState()
 void FastController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 {
   std::cout << "D_GP::FastController::handleCommandSuccessful " << std::endl;
-  if (!d_gp->hasBufferedReqs())
+  if (!d_gp->hasBufferedCmds())
     {
       assert(!d_reqs.empty());
       d_reqs.pop_front(); // completed last request
@@ -165,7 +165,7 @@ void FastController::handleCommandFailed(GoPro*,
       
     case GoPro::Error::Internal:
       // LOG
-      d_timer_recreate_gopro.restartMs(5000); // can't reset gopro while in its callback.
+      d_timer_recreate_gopro.restart(std::chrono::milliseconds(5000)); // can't reset gopro while in its callback.
       d_reqs.clear();
       d_is_recording = false;
       setState(StateId::Disconnected);
