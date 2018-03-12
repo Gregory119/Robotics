@@ -19,6 +19,7 @@ void PrintHelp()
 //----------------------------------------------------------------------//
 int main(int argc, char *argv[])
 {
+  /*
   // provide led on and off timing parameters
   if (argc == 1)
     {
@@ -26,7 +27,7 @@ int main(int argc, char *argv[])
       return EXIT_SUCCESS;
     }
 
-  D_LED::Controller led_ctrl;
+  D_LED::Driver led_driver;
   
   if (std::string(argv[1]) == "on")
     {
@@ -36,7 +37,7 @@ int main(int argc, char *argv[])
 	  return EXIT_SUCCESS;
 	}
       
-      if (!led_ctrl.turnOn())
+      if (!led_driver.turnOn())
 	{
 	  return EXIT_FAILURE;
 	}
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
 	  return EXIT_SUCCESS;
 	}
       
-      if (!led_ctrl.turnOff())
+      if (!led_driver.turnOff())
 	{
 	  return EXIT_FAILURE;
 	}
@@ -72,7 +73,7 @@ int main(int argc, char *argv[])
 	  int ms_on = std::stoi(str_on);
 	  int ms_off = std::stoi(str_off);
 
-	  if (!led_ctrl.flashOnOff(std::chrono::milliseconds(ms_on),
+	  if (!led_driver.flashOnOff(std::chrono::milliseconds(ms_on),
 				   std::chrono::milliseconds(ms_off)))
 	    {
 	      return EXIT_FAILURE;
@@ -85,6 +86,6 @@ int main(int argc, char *argv[])
 	}
     }
 
-  PrintHelp();
+    PrintHelp();*/
   return EXIT_SUCCESS;
 }

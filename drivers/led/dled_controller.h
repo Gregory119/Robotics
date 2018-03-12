@@ -1,70 +1,92 @@
-#ifndef LEDCONTROLLER_H
-#define LEDCONTROLLER_H
+#ifndef D_LED_CONTROLLER_H
+#define D_LED_CONTROLLER_H
 
 #include "dled_driver.h"
 
-#include <string>
+#include "core_owner.h"
 #include <memory>
+#include <list>
+#include <string>
 
-class LedController final : D_LED::Driver::Owner
+namespace D_LED
 {
- public:
-  enum class State
+  class Controller final : Driver::Owner
   {
-    InvalidConfig,
-      Connecting,
-      Connected,
-      CommandSuccessful,
-      InternalFailure,
-      Unknown
-  };
+  public:
+    enum class Req
+    {
+      Memory,
+	On,
+	Off,
+	FlashOnOff,
+	FlashPerSec,
+	FlashAdvanced
+	};
 
- public:
-  class Owner
-  {
-  protected:
-    Owner() = default;
-    // Declaring a move special member function will implicitly delete the copy special members and implicitly not declare the other move special member
-    Owner(Owner&&) = delete;
-    // Move special member functions are not declared when the desctructor is.
-    ~Owner() = default; // must inherit and non-polymorphic
+  public:
+    class Owner
+    {
+      OWNER_SPECIAL_MEMBERS(Controller);
+      // This is only called for an advanced flash request that has a limited number of repetitions.
+      // It is called once the repetitions are complete.
+      virtual void handleFlashCycleEnd(Controller*) = 0;
     
+      virtual void handleReqFailed(Controller*, Req, const std::string& msg) = 0;
+      virtual void handleInternalError(Controller*) = 0;
+    };
+  
+  public:
+    // Do not make the last character a forward slash. eg. /sys/class/leds/led0
+    Controller(Owner*, const std::string& driver_dir = "/sys/class/leds/led0");
+    ~Controller();
+    // Declaring a move special member function will implicitly delete the copy special members and implicitly not declare the other move special member
+    Controller(Controller&&) = delete;
+
+    void setOwner(Owner*);
+  
+    void useMemory();
+    void turnOn();
+    void turnOff();
+    void flashOnOff(const std::chrono::milliseconds& delay_on,
+		    const std::chrono::milliseconds& delay_off);
+    void flashPerSec(unsigned); // limited to 10
+    void flashAdvanced(const Driver::AdvancedSettings&); // limited to 10
+
   private:
-    friend class LedController;
-    virtual void handleStateChange(LedController*, State) = 0;
-    virtual void handleOnceOffFlashCycleEnd(LedController*, State) = 0;
-    virtual void handleError(LedController*, const std::string& msg) = 0;
+    // Driver
+    void handleFlashCycleEnd(Driver*) override;
+    void handleError(Driver*,
+		     Driver::Error,
+		     const std::string&) override;
+
+  private:
+    struct ParamsFlashOnOff
+    {
+      std::chrono::milliseconds delay_on;
+      std::chrono::milliseconds delay_off;
+    };
+  
+  private:
+    void startReq(Req);
+    void replaceReqFlashAdvanced();
+    void popFrontReq();
+    void popBackReq();
+    void processReq();
+
+    void internalFlashAdvanced();
+  
+    void ownerReqFailed(const std::string& err_msg);
+    void ownerInternalError();
+  
+  private:
+    Owner* d_owner = nullptr;
+
+    std::unique_ptr<Driver> d_led_driver;
+
+    std::list<Req> d_reqs;
+    std::vector<ParamsFlashOnOff> d_reqs_flash_on_off;
+    std::vector<unsigned> d_reqs_flash_per_secs;
+    std::vector<Driver::AdvancedSettings> d_reqs_adv_settings;
   };
-  
- public:
-  // Do not make the last character a forward slash. eg. /sys/class/leds/led0
-  LedController(Owner*, const std::string& driver_dir = "/sys/class/leds/led0");
-  ~LedController();
-  // Declaring a move special member function will implicitly delete the copy special members and implicitly not declare the other move special member
-  LedController(LedController&&) = delete;
-
-  void setState(State);
-
-  void useMemory();
-  void turnOn();
-  void turnOff();
-  void flashOnOff(const std::chrono::milliseconds& delay_on,
-		  const std::chrono::milliseconds& delay_off);
-  void flashPerSec(unsigned); // limited to 10
-  void flashAdvanced(const D_LED::Driver::AdvancedSettings&); // limited to 10
-
- private:
-  // D_LED::Driver
-  void handleOnceOffFlashCycleEnd(D_LED::Driver*) override;
-  void handleError(D_LED::Driver*,
-		   D_LED::Driver::Error,
-		   const std::string&) override;
-  
- private:
-  Owner* d_owner = nullptr;
-  State d_state = State::Unknown;
-
-  std::unique_ptr<D_LED::Driver> d_led_driver;
-};
-
+}
 #endif

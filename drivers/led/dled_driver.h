@@ -3,6 +3,7 @@
 
 #include "kn_asiocallbacktimer.h"
 
+#include "core_owner.h"
 #include <chrono>
 #include <functional>
 #include <string>
@@ -22,6 +23,7 @@ namespace D_LED
     struct AdvancedSettings
     {
       bool valid() const;
+      const std::string print() const;
       
       unsigned flashes_per_sec = 0; // must be > 0
       unsigned flash_count = 0; // must be > 0
@@ -44,18 +46,12 @@ namespace D_LED
   public:
     class Owner
     {
-    protected:
-      Owner() = default;
-      // declared move special members implicitly delete copy special members
-      Owner(Owner&&) = delete;
-      Owner& operator=(Owner&&) = delete;
-      // move special members are implicitly not declared with a declared destructor
-      ~Owner() = default;
-	
-    private:
-      friend class Driver;
+      OWNER_SPECIAL_MEMBERS(Driver);
       virtual void handleError(Driver*, Error, const std::string&) = 0;
-      virtual void handleOnceOffFlashCycleEnd(Driver*) = 0;
+
+      // This is only called for an advanced flash request that has a limited number of repetitions.
+      // It is called once the repetitions are complete.
+      virtual void handleFlashCycleEnd(Driver*) = 0;
     };
     
   public:
@@ -124,7 +120,7 @@ namespace D_LED
     unsigned d_flash_count = 0;
     
     AdvancedSettings d_adv_settings;
-    KERN::AsioCallbackTimer d_adv_timer = KERN::AsioCallbackTimer("D_LED::Driver Timer");
+    KERN::AsioCallbackTimer d_adv_timer = KERN::AsioCallbackTimer("D_LED::Driver Advanced Settings Cycle Timer");
     unsigned d_flash_cycle_count = 0;
   };
 };

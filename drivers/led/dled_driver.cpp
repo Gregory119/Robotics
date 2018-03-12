@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 using namespace D_LED;
 
@@ -24,6 +25,18 @@ bool Driver::AdvancedSettings::valid() const
       return false;
     }
   return true;
+}
+
+//----------------------------------------------------------------------//
+const std::string Driver::AdvancedSettings::print() const
+{
+  std::ostringstream stream("D_LED::Driver::AdvancedSettings::print():\n", std::ios_base::app);
+  stream << "flahes_per_sec = " << flashes_per_sec << std::endl
+	 << "flash_count = " << flash_count << std::endl
+	 << "start_end_between_cycle_delay [ms] = " << start_end_between_cycle_delay.count() << std::endl
+	 << "cycle = " << static_cast<int>(cycle) << std::endl
+	 << "cycle_count = " << cycle_count << std::endl;
+  return stream.str();
 }
 
 //----------------------------------------------------------------------//
@@ -77,6 +90,9 @@ void Driver::flashPerSec(unsigned rate)
 //----------------------------------------------------------------------//
 void Driver::flashAdvanced(const AdvancedSettings& set)
 {
+#ifndef RELEASE
+  std::cout << set.print() << std::endl;;
+#endif
   d_adv_timer.disableIfEnabled();
   internalFlashAdvanced(set);
 }
@@ -270,12 +286,16 @@ void Driver::advCountFlashes()
 //----------------------------------------------------------------------//
 void Driver::advCheckRepeat()
 {
+  d_adv_timer.setTimeoutCallback([this](){
+      if (d_owner != nullptr)
+	{
+	  d_owner->handleFlashCycleEnd(this);
+	}
+    });
+  
   switch (d_adv_settings.cycle)
     {
     case FlashCycle::OnceOff:
-      d_adv_timer.setTimeoutCallback([this](){
-	  d_owner->handleOnceOffFlashCycleEnd(this);
-	});
       d_adv_timer.singleShot(d_adv_settings.start_end_between_cycle_delay);
       return;
       
@@ -292,7 +312,7 @@ void Driver::advCheckRepeat()
       else
 	{
 	  d_flash_cycle_count = 0;
-	  internalTurnOff();
+	  d_adv_timer.singleShot(d_adv_settings.start_end_between_cycle_delay);
 	}
       return;
     }

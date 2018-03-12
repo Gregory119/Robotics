@@ -1,5 +1,5 @@
 BASE_DIR = ../..
-LIBNAME = DLED
+LIBNAME = LED
 
 include $(BASE_DIR)/makedef/makefile.set
 
