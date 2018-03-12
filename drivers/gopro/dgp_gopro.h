@@ -81,7 +81,7 @@ namespace D_GP
     virtual void setBitRatePerSecond(unsigned) = 0;
     virtual void startLiveStream() = 0;
     virtual void stopLiveStream() = 0;
-    virtual bool hasBufferedReqs() = 0;
+    virtual bool hasBufferedCmds() = 0;
     virtual void cancelBufferedCmds() = 0;
     // Can add additional virtual functions which have asserts in their definition. The GoPro that supports the command will have it defined.
 

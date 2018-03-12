@@ -33,7 +33,7 @@ namespace D_GP
     void startLiveStream() override;
     void stopLiveStream() override;
     
-    bool hasBufferedReqs() override;
+    bool hasBufferedCmds() override;
     void cancelBufferedCmds() override; // will not stop a command currently being processed
 
   private:    

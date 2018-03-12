@@ -164,7 +164,7 @@ void GoProHero5::stopLiveStream()
 }
 
 //----------------------------------------------------------------------//
-bool GoProHero5::hasBufferedReqs()
+bool GoProHero5::hasBufferedCmds()
 {
   return d_http->hasBufferedReqs();
 }
@@ -304,13 +304,13 @@ void GoProHero5::handleFailed(C_HTTP::Operations* http,
 //----------------------------------------------------------------------//
 void GoProHero5::handleConnected(C_UDP::Client*)
 {
-  d_timer_stream.restartMsIfNotSetOrDisabled(2500);
+  d_timer_stream.restartIfNotSetOrDisabled(std::chrono::milliseconds(2500));
 }
 
 //----------------------------------------------------------------------//
 void GoProHero5::handleMessageSent(C_UDP::Client*)
 {
-  std::cout << "GoProHero5::handleMessageSent" << std::endl;
+  std::cout << "GoProHero5::handleMessageSent(C_UDP::Client*)" << std::endl;
   // timer will send the next one
 }
 
@@ -354,13 +354,7 @@ void GoProHero5::internalStopLiveStream()
 //----------------------------------------------------------------------//
 void GoProHero5::maintainStream()
 {
-  /*
-  // using the status command to maintain the stream
-  d_http->get(Utils::cmdToUrl(GoPro::Cmd::Status,
-			      CamModel::Hero5));
-  d_cmd_reqs.push_back(GoPro::Cmd::MaintainStream);
-  */
-  
+  std::cout << "GoProHero5::maintainStream()" << std::endl;
   // send udp message
   if (d_udp_client->isSending())
     {
