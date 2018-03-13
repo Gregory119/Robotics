@@ -18,6 +18,15 @@ PwmLimits<T>::PwmLimits(T max_v,
 {
   if (!std::is_fundamental<T>::value)
     {
+      // LOG
+      assert(false);
+      return;
+    }
+
+  if (max_dur.count() > getMaxPwmDuration().count() ||
+      min_dur.count() < getMinPwmDuration().count())
+    {
+      // LOG
       assert(false);
       return;
     }
@@ -36,6 +45,20 @@ template <class T>
 bool PwmLimits<T>::isValueValid(T val)
 {
   return !((val > max_val) || (val < min_val));
+}
+
+//----------------------------------------------------------------------//
+const std::chrono::microseconds& getMaxPwmDuration()
+{
+  static std::chrono::microseconds s_max_pwm_pulse_duration(2500);
+  return s_max_pwm_pulse_duration;
+}
+
+//----------------------------------------------------------------------//
+const std::chrono::microseconds& getMinPwmDuration()
+{
+  static const std::chrono::microseconds s_min_pwm_pulse_duration(500);
+  return s_min_pwm_pulse_duration;
 }
 
 //----------------------------------------------------------------------//

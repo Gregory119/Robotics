@@ -8,6 +8,9 @@
 
 namespace C_RC
 {
+  const std::chrono::microseconds& getMaxPwmDuration();
+  const std::chrono::microseconds& getMinPwmDuration();
+  
   template <class T>
   struct PwmLimits
   {

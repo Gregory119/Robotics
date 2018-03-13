@@ -36,7 +36,7 @@ namespace C_RC
     PwmReader(Owner*, P_WP::PinNum, PwmLimits<T>);
     PwmReader(PwmReader&&) = delete;
 
-    void setOwner(Owner* o) { d_owner = o; }
+    SET_OWNER();
 
   private:
     void ownerPulseDuration();
@@ -53,7 +53,7 @@ namespace C_RC
     std::chrono::steady_clock d_clock;
     std::chrono::time_point<std::chrono::steady_clock> d_pulse_start_pt;
 
-    KERN::SafeCallbackTimer d_update_timer = KERN::SafeCallbackTimer("C_RC::PwmReader Update Timer");
+    KERN::SafeCallbackTimer d_owner_timer = KERN::SafeCallbackTimer("C_RC::PwmReader Owner Timer");
     KERN::SafeCallbackTimer d_error_timer = KERN::SafeCallbackTimer("C_RC::PwmReader Zero Timer");
   };
 };

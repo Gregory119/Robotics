@@ -27,7 +27,7 @@ PwmReader<T>::PwmReader(Owner* o,
     }
 
   // This thread-safe timer is used to call commands in the main thread by using a zero time.
-  d_update_timer.setTimeoutCallback([this](){
+  d_owner_timer.setTimeoutCallback([this](){
       ownerPulseDuration();
     });
 }
@@ -64,7 +64,7 @@ void PwmReader<T>::processInterrupt()
   // OR THEY ARE MUTEXED. THIS IS FOR THREAD SAFETY;
   
   // determine the PWM pulse duration
-  std::chrono::time_point<std::chrono::steady_clock> point = d_clock.now(); // measure as soon as possibled
+  std::chrono::time_point<std::chrono::steady_clock> point = d_clock.now(); // measure as soon as possible
   bool new_state = d_interrupt->readPin();
   if (new_state) // start of pulse
     {
@@ -73,7 +73,7 @@ void PwmReader<T>::processInterrupt()
   else // end of pulse
     {
       d_pulse_durations.emplaceBack(point - d_pulse_start_pt);
-      d_update_timer.singleShotZero();
+      d_owner_timer.singleShotZero();
     }
 }
 
