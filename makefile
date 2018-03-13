@@ -19,7 +19,7 @@ testprogs:
 	$(MAKE) testprogs -C kern
 	$(MAKE) testprogs -C drivers
 	$(MAKE) testprogs -C coms
-	$(MAKE) testprogs -C core
+#	$(MAKE) testprogs -C core
 	$(MAKE) testprogs -C control
 
 projects:
