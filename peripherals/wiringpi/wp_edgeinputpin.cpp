@@ -20,6 +20,7 @@ bool EdgeInputPin::hasTriggered()
       return false;
     }
 
+  // switch debouncing
   // detected a state change at this point
   if (d_detected_change == false)
     {
