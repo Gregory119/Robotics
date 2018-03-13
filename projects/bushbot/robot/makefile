@@ -7,8 +7,8 @@ IS_TESTPROG=1
 TEST_NAME = robot
 
 USES_LIBCONTROL=1
-USES_LIBDJS=1
-USES_LIBDGP=1
+USES_LIBJS=1
+USES_LIBGP=1
 
 include $(BASE_DIR)/makedef/makefile.libs
 include $(BASE_DIR)/makedef/makefile.rules

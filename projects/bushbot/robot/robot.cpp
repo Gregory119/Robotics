@@ -2,6 +2,7 @@
 #include "ctrl_hardservo.h"
 
 #include <cassert>
+#include <chrono>
 #include <iostream>
 
 static const unsigned s_steer_min_pos_deg = 60;
@@ -56,8 +57,8 @@ Robot::Robot(Params& params)
       stopMoving();
     });
   
-  d_process_timer.restartMs(1);
-  d_watchdog_timer.restartMs(1000);
+  d_process_timer.restart(std::chrono::milliseconds(1));
+  d_watchdog_timer.restart(std::chrono::milliseconds(1000));
   std::cout << "constructed" << std::endl;
 }
 
