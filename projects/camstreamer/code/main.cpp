@@ -16,7 +16,6 @@
 //----------------------------------------------------------------------//
 // The following will be done for the first release:
 
-// - test flashing on a successful command and other failures etc
 // - test/modify usb scripts
 // - pin shutdown => led should use memory
 // - change pin detection to use with RC receivers (PPM) also check if they do high and low states

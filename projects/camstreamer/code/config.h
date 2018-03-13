@@ -16,10 +16,13 @@
 // -------------------------------------//
 // wifi_ssid=<ssid>
 // wifi_pw=<password>
-// mode_pin_num=<number>
-// mode_pin_pull_mode=<up/down/none>
-// trigger_pin_num=<number>
-// trigger_pin_pull_mode=<up/down/none>
+// ppm_pin_num=<number/none>
+// mode_pin_num=<number/ppm_channel>
+// mode_pin_mode=<up/down/none/pwm/ppm>
+// trigger_pin_num=<number/ppm_channel>
+// trigger_pin_mode=<up/down/none/pwm/ppm>
+// power_pin_num=<number/ppm_channel>
+// power_pin_mode=<up/down/none/pwm/ppm>
 // -------------------------------------//
 
 class Config

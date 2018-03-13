@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#include "ledcontroller.h"
+#include "dled_controller.h"
 #include "dgp_modecontroller.h"
 
 #include "kn_asiocallbacktimer.h"
@@ -15,7 +15,7 @@
 
 class CamStreamer final : Config::Owner,
   D_GP::ModeController::Owner,
-  LedController::Owner,
+  D_LED::Controller::Owner,
   P_WIFI::Configurator::Owner
 {
  public:
@@ -28,13 +28,15 @@ class CamStreamer final : Config::Owner,
   
   // D_GP::ModeController::Owner
   void handleFailedRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
+  void handleInternalFailure(D_GP::ModeController*) override;
   void handleSuccessfulRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
 
-  // LedController::Owner
-  void handleStateChange(LedController*, LedController::State) override;
-  void handleOnceOffFlashCycleEnd(LedController*,
-				  LedController::State) override;
-  void handleError(LedController*, const std::string& msg) override;
+  // D_LED::Controller::Owner
+  void handleFlashCycleEnd(D_LED::Controller*) override;
+  void handleReqFailed(D_LED::Controller*,
+		       D_LED::Controller::Req req,
+		       const std::string& msg) override;
+  void handleInternalError(D_LED::Controller*) override;
 
   // P_WIFI::Owner
   void handleError(P_WIFI::Configurator*,
@@ -42,11 +44,24 @@ class CamStreamer final : Config::Owner,
 		   const std::string& msg) override;
 
  private:
+  enum class State
+  {
+    InvalidConfig,
+      Connecting,
+      Connected,
+      CommandSuccessful,
+      InternalFailure,
+      Unknown
+      };
+  
+ private:
   void setupWifi();
   void restartGPController();
   void processModePinState(bool);
   void processTriggerPinState(bool);
 
+  void setState(State);
+  
   void stop();
 
  private:
@@ -62,7 +77,7 @@ class CamStreamer final : Config::Owner,
   std::unique_ptr<P_WP::EdgeInputPin> d_mode_pin;
   std::unique_ptr<P_WP::EdgeInputPin> d_trigger_pin;
 
-  std::unique_ptr<LedController> d_led_ctrl;
+  std::unique_ptr<D_LED::Controller> d_led_ctrl;
 
   KERN::AnyDeleteOnTimeout d_timeout_deleter;
 };
