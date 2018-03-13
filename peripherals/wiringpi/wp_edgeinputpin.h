@@ -1,11 +1,11 @@
-#ifndef PWP_EDGEINPUTPIN
-#define PWP_EDGEINPUTPIN
+#ifndef PWP_EDGEINPUTPIN_H
+#define PWP_EDGEINPUTPIN_H
 
 #include "wp_inputpin.h"
 
 namespace P_WP
 {
-  // Triggers on an pin edge state change
+  // Triggers on a pin edge state change. Uses a polling method. Good for pin switches that have bounce noise.
   class EdgeInputPin final : public InputPin
   {
   public:
@@ -20,10 +20,7 @@ namespace P_WP
     EdgeInputPin(PinNum,
 		 PullMode,
 		 EdgeType);
-    EdgeInputPin(const EdgeInputPin&) = delete;
-    EdgeInputPin& operator=(const EdgeInputPin&) = delete;
     EdgeInputPin(EdgeInputPin&&) = delete;
-    EdgeInputPin& operator=(EdgeInputPin&&) = delete;
    
   private:
     bool hasTriggered() override;
