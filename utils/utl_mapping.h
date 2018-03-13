@@ -19,8 +19,10 @@ namespace UTIL
       d_out_mid(o_mid)
     {}
     Map(double in_max, double in_min, double o_max, double o_min); // most common
-    Map(const Map &copy) = default;
-    Map& operator=(const Map &copy) = default;
+    Map(const Map&) = default;
+    Map& operator=(const Map&) = default;
+    Map(Map&&) = default;
+    Map& operator=(Map&&) = default;
 
     void setInputRange(double in_max, double in_min);
     void setOutputRange(double out_max, double out_min);
@@ -30,10 +32,14 @@ namespace UTIL
     void map(double in_val, T& out_val) const;
     template <class T>
     T map(double in_val) const;
+
+    // The input value here is actually in the units of the internal output members,
+    // and the output value here is actually in the units of the internal input members.
     template <class T>
     void inverseMap(double in_val, T& out_val) const;
     template <class T>
     T inverseMap(double in_val) const;
+
     template <class T>
       T flipOnOutAxis(T) const;
     template <class T>
@@ -52,9 +58,19 @@ namespace UTIL
   template <class T>
     void Map::map(double in_val, T& out_val) const
     {
-      assert(std::is_fundamental<T>::value);
-      assert(in_val <= d_in_max);
-      assert(in_val >= d_in_min);
+      if (!std::is_fundamental<T>::value)
+	{
+	  assert(false);
+	  //LOG!!!
+	  return;
+	}
+
+      if (in_val > d_in_max || in_val < d_in_min)
+	{
+	  assert(false);
+	  //LOG!!!
+	  return;
+	}
 
       if (in_val >= d_in_mid)
 	{
@@ -88,11 +104,21 @@ namespace UTIL
   template <class T>
     void Map::inverseMap(double in_val, T& out_val) const
     {
-      // The input here value is actually in the units of the internal output members,
+      // The input value here is actually in the units of the internal output members,
       // and the output value here is actually in the units of the internal input members.
-      assert(std::is_fundamental<T>::value);
-      assert(in_val <= d_out_max);
-      assert(in_val >= d_out_min);
+      if (!std::is_fundamental<T>::value)
+	{
+	  assert(false);
+	  //LOG!!!
+	  return;
+	}
+      
+      if (in_val > d_out_max || in_val < d_out_min)
+	{
+	  assert(false);
+	  //LOG!!!
+	  return;
+	}
 
       if (in_val >= d_out_mid)
 	{
@@ -126,6 +152,11 @@ namespace UTIL
   template <class T>
     T Map::flipOnOutAxis(T val) const
     {
+      if (val > d_out_max || val < d_out_min)
+	{
+	  assert(false);
+	  //LOG!!!
+	}
       return (d_out_max - val) + d_out_min;
     }
 
@@ -133,6 +164,12 @@ namespace UTIL
   template <class T>
     T Map::flipOnInAxis(T val) const
     {
+      if (val > d_in_max || val < d_in_min)
+	{
+	  assert(false);
+	  //LOG!!!
+	  return;
+	}
       return (d_in_max - val) + d_in_min;
     }
 
