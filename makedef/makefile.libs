@@ -27,6 +27,26 @@ ifdef USES_LIBCONTROL
       USES_LIBWIRINGPI=1
 endif
 
+ifdef USES_LIBCRC
+      LIBCRCPATH = $(BASE_DIR)/coms/rc
+      INCLUDES += -I$(LIBCRCPATH)
+      LIBS +=
+      LIBSRC += $(wildcard $(LIBCRCPATH)/*.cpp)
+      USES_LIBKERN=1
+      USES_LIBWIRINGPI=1
+      USES_LIBUTILS=1
+endif
+
+ifdef USES_LIBJS
+      LIBJSPATH = $(BASE_DIR)/drivers/joystick
+      INCLUDES += -I$(LIBJSPATH)
+      LIBS += -lpthread
+      LIBSRC += $(wildcard $(LIBJSPATH)/*.cpp)
+      USES_LIBKERN=1
+      USES_LIBUTILS=1
+      USES_LIBWIRINGPI=1
+endif
+
 ifdef USES_LIBWIRINGPI
       LIBWIRINGPIPATH = $(BASE_DIR)/peripherals/wiringpi
       INCLUDES += -I$(LIBWIRINGPIPATH)
@@ -35,38 +55,29 @@ ifdef USES_LIBWIRINGPI
       USES_LIBKERN=1
 endif
 
-ifdef USES_LIBDGP
-      LIBDGPPATH = $(BASE_DIR)/drivers/gopro
-      INCLUDES += -I$(LIBDGPPATH)
-      LIBS += -lwiringPi -lpthread
-      LIBSRC += $(wildcard $(LIBDGPPATH)/*.cpp)
-      USES_LIBCHTTP=1
+ifdef USES_LIBGP
+      LIBGPPATH = $(BASE_DIR)/drivers/gopro
+      INCLUDES += -I$(LIBGPPATH)
+      LIBS += -lpthread
+      LIBSRC += $(wildcard $(LIBGPPATH)/*.cpp)
+      USES_LIBHTTP=1
       USES_LIBKERN=1
-      USES_LIBCUDP=1
+      USES_LIBUDP=1
 endif
 
-ifdef USES_LIBCUDP
-      LIBCUDPPATH = $(BASE_DIR)/coms/udp
-      INCLUDES += -I$(LIBCUDPPATH)
-      LIBSRC += $(wildcard $(LIBCUDPPATH)/*.cpp)
+ifdef USES_LIBUDP
+      LIBUDPPATH = $(BASE_DIR)/coms/udp
+      INCLUDES += -I$(LIBUDPPATH)
+      LIBSRC += $(wildcard $(LIBUDPPATH)/*.cpp)
       USES_LIBKERN=1
 endif
 
-ifdef USES_LIBCHTTP
-      LIBCHTTPPATH = $(BASE_DIR)/coms/http
-      INCLUDES += -I$(LIBCHTTPPATH)
+ifdef USES_LIBHTTP
+      LIBHTTPPATH = $(BASE_DIR)/coms/http
+      INCLUDES += -I$(LIBHTTPPATH)
       LIBS += -lcurl
-      LIBSRC += $(wildcard $(LIBCHTTPPATH)/*.cpp)
+      LIBSRC += $(wildcard $(LIBHTTPPATH)/*.cpp)
       USES_LIBKERN=1
-endif
-
-ifdef USES_LIBDJS
-      LIBDJSPATH = $(BASE_DIR)/drivers/joystick
-      INCLUDES += -I$(LIBDJSPATH)
-      LIBS += -lwiringPi -lpthread
-      LIBSRC += $(wildcard $(LIBDJSPATH)/*.cpp)
-      USES_LIBKERN=1
-      USES_LIBUTILS=1
 endif
 
 ifdef USES_LIBWIFI
@@ -148,33 +159,39 @@ ifndef BUILT_WIFI
 	$(MAKE) -C $(LIBWIFIPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBDJS
+ifdef USES_LIBJS
 ifndef BUILT_DJS
 	$(eval built_libs+=BUILT_DJS=1)
-	$(MAKE) -C $(LIBDJSPATH) $(built_libs)
+	$(MAKE) -C $(LIBJSPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBCHTTP
-ifndef BUILT_CHTTP
-	$(eval built_libs+=BUILT_CHTTP=1)
-	$(MAKE) -C $(LIBCHTTPPATH) $(built_libs)
+ifdef USES_LIBHTTP
+ifndef BUILT_HTTP
+	$(eval built_libs+=BUILT_HTTP=1)
+	$(MAKE) -C $(LIBHTTPPATH) $(built_libs)
 endif
-ifdef USES_LIBCUDP
-ifndef BUILT_CUDP
-	$(eval built_libs+=BUILT_CUDP=1)
-	$(MAKE) -C $(LIBCUDPPATH) $(built_libs)
+ifdef USES_LIBUDP
+ifndef BUILT_UDP
+	$(eval built_libs+=BUILT_UDP=1)
+	$(MAKE) -C $(LIBUDPPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBDGP
+ifdef USES_LIBGP
 ifndef BUILT_DGP
 	$(eval built_libs+=BUILT_DGP=1)
-	$(MAKE) -C $(LIBDGPPATH) $(built_libs)
+	$(MAKE) -C $(LIBGPPATH) $(built_libs)
 endif
 endif
 ifdef USES_LIBWIRINGPI
 ifndef BUILT_WIRINGPI
 	$(eval built_libs+=BUILT_WIRINGPI=1)
 	$(MAKE) -C $(LIBWIRINGPIPATH) $(built_libs)
+endif
+endif
+ifdef USES_LIBCRC
+ifndef BUILT_CRC
+	$(eval built_libs+=BUILT_CRC=1)
+	$(MAKE) -C $(LIBCRC) $(built_libs)
 endif
 endif
 ifdef USES_LIBCONTROL
