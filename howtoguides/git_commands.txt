@@ -1,0 +1,18 @@
+Definitions:
+  Index - holds staged files by adding them from the working directory.
+  Head - holds the commits of the staged files
+
+- Change the last commit message, assuming it has not been pushed.
+
+  $ git commit --amend -m "New message"
+  or
+  $ git commit --amend
+  will open a text editor with the previous message to be edited.
+
+- You have committed additional files by mistake in the last commit.
+  The last commit can be undone, reverting the head and index,
+  but not touching the working directory, with the following command:
+
+  $ git reset <commit>
+  <commit> commit hash for the Head to reset to.
+  
