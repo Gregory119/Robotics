@@ -1,5 +1,5 @@
-#ifndef PWP_INPUTPIN
-#define PWP_INPUTPIN
+#ifndef PWP_INPUTPIN_H
+#define PWP_INPUTPIN_H
 
 #include "wp_pins.h"
 #include "kn_asiocallbacktimer.h"
@@ -17,10 +17,7 @@ namespace P_WP
   public:
     InputPin(PinNum,
 	     PullMode pull);
-    InputPin(const InputPin&) = delete;
-    InputPin& operator=(const InputPin&) = delete;
     InputPin(InputPin&&) = delete;
-    InputPin& operator=(InputPin&&) = delete;
     
     void setTriggerCallback(std::function<void(bool)>); // set function to be called when a trigger is detected
     void setUpdateInterval(std::chrono::milliseconds delay =
