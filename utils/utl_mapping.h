@@ -24,9 +24,12 @@ namespace UTIL
     Map(Map&&) = default;
     Map& operator=(Map&&) = default;
 
-    void setInputRange(double in_max, double in_min);
-    void setOutputRange(double out_max, double out_min);
-    void setOutputMiddle(double out_mid);
+    void setInputRange(double in_max,
+		       double in_min,
+		       double in_mid);
+    void setOutputRange(double out_max,
+			double out_min,
+			double out_mid);
 
     template <class T>
     void map(double in_val, T& out_val) const;
