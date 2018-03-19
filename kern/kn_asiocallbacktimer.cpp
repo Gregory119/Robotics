@@ -12,13 +12,21 @@ using namespace KERN;
 //----------------------------------------------------------------------//
 AsioCallbackTimer::AsioCallbackTimer()
   : d_timer(new boost::asio::deadline_timer(AsioKernel::getService()))
-{}
+{
+  d_internal_callback = [this](const boost::system::error_code& err){
+    timerCallback(err);
+  };
+}
 
 //----------------------------------------------------------------------//
 AsioCallbackTimer::AsioCallbackTimer(std::string name)
   : d_name(std::move(name)),
     d_timer(new boost::asio::deadline_timer(AsioKernel::getService()))
-{}
+{
+  d_internal_callback = [this](const boost::system::error_code& err){
+    timerCallback(err);
+  };
+}
 
 //----------------------------------------------------------------------//
 void AsioCallbackTimer::setTimeoutCallback(std::function<void()> callback)
@@ -121,8 +129,14 @@ long AsioCallbackTimer::getConseqTimeOuts()
 }
 
 //----------------------------------------------------------------------//
-void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
-				      boost::asio::deadline_timer* t)
+void AsioCallbackTimer::
+setInternalTimerCallback(std::function<void(const boost::system::error_code& err)> f)
+{
+  d_internal_callback = f;
+}
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::timerCallback(const boost::system::error_code& err)
 {
   if (err == boost::asio::error::operation_aborted)
     {
@@ -130,23 +144,31 @@ void AsioCallbackTimer::timerCallBack(const boost::system::error_code& err,
       // 1) Timer has been cancelled because async_wait() was not called before running the io_service.
       // 2) Timer has been cancelled because cancel() was called on the timer.
       // 3) Expiry time was reset before the wait time expired.
-      std::cout << "AsioCallbackTimer::timerCallBack - timer aborted. timeout [ms] = " << d_timeout.count() << ". Name is: " << d_name << std::endl;
+      std::cout << "AsioCallbackTimer::timerCallback - timer aborted. timeout [ms] = " << d_timeout.count() << ". Name is: " << d_name << std::endl;
+      d_is_scheduled_to_expire = false;
       return;
     }
 
   if (!d_is_enabled) 
     {
       // to catch timers that have already expired and have been queued, but need to be cancelled
+      d_is_scheduled_to_expire = false;
       return;
     }
+
+  if (d_is_single_shot)
+    {
+      d_is_enabled = false;
+      d_is_scheduled_to_expire = false;
+    }
   
-  assert(t != nullptr);
   ++d_count_conseq_timeouts;
-  d_timeout_callback();
+  d_timeout_callback(); // timer can be enabled here
   
-  if (!d_is_enabled || d_is_single_shot) 
+  if (!d_is_enabled) 
     {
       // to catch disables requested in the user callback function
+      d_is_scheduled_to_expire = false;
       return;
     }
 
@@ -179,8 +201,9 @@ void AsioCallbackTimer::scheduleCallback()
       return;
     }
 
+  d_is_scheduled_to_expire = true;
   d_timer->async_wait([&](const boost::system::error_code& e){
-      timerCallBack(e,d_timer.get());
+      d_internal_callback(e);
     });
 }
 

@@ -8,6 +8,7 @@
 namespace KERN
 {
   class AsioKernel;
+  class SafeCallbackTimer;
   class AsioCallbackTimer
   {    
   public:
@@ -20,32 +21,34 @@ namespace KERN
     AsioCallbackTimer& operator=(AsioCallbackTimer&&) = default;
     // implicitly not copyable from unique pointer, and cannot move the deadline timer
  
-    virtual void setTimeoutCallback(std::function<void()> callback); // this must be called before starting timer unless stated otherwise
-    virtual void restart(const std::chrono::milliseconds&);
+    void setTimeoutCallback(std::function<void()> callback); // this must be called before starting timer unless stated otherwise
+    void restart(const std::chrono::milliseconds&);
     
     // The time must be set for the timer to restart
-    virtual void restart(); // re-enable with the already set time
+    void restart(); // re-enable with the already set time
 
-    virtual void restartIfNotSet(const std::chrono::milliseconds&);
-    virtual void restartIfNotSetOrDisabled(const std::chrono::milliseconds&);
+    void restartIfNotSet(const std::chrono::milliseconds&);
+    void restartIfNotSetOrDisabled(const std::chrono::milliseconds&);
     
-    virtual void singleShot(const std::chrono::milliseconds&);
-    virtual void singleShotZero();
-    virtual void singleShotZero(std::function<void()> callback);
-    virtual void disable();
-    virtual void disableIfEnabled();
+    void singleShot(const std::chrono::milliseconds&);
+    void singleShotZero();
+    void singleShotZero(std::function<void()> callback);
+    void disable();
+    void disableIfEnabled();
 
-    virtual bool isDisabled();
+    bool isDisabled();
+    bool isScheduledToExpire() { return d_is_scheduled_to_expire; }
     
     // Any restarts or disabling will set the consequetive time out count to zero.
     // Will eventually overflow if timer repeats timeouts and is never disabled.
-    virtual long getConseqTimeOuts();
+    long getConseqTimeOuts();
 
-    virtual void setTime(const std::chrono::milliseconds&);
+    void setTime(const std::chrono::milliseconds&);
 
   protected:
-    virtual void timerCallBack(const boost::system::error_code& err,
-			       boost::asio::deadline_timer* t);
+    friend class SafeCallbackTimer;
+    void setInternalTimerCallback(std::function<void(const boost::system::error_code& err)>);
+    void timerCallback(const boost::system::error_code& err);
 
   private:
     void scheduleCallback();
@@ -54,11 +57,13 @@ namespace KERN
     std::string d_name;
     
     std::function<void()> d_timeout_callback;
+    std::function<void(const boost::system::error_code& err)> d_internal_callback;
     
     std::chrono::milliseconds d_timeout = std::chrono::milliseconds(0);
     bool d_is_set = false;
     
     bool d_is_enabled = false;
+    bool d_is_scheduled_to_expire = false;
     long d_count_conseq_timeouts = 0;
     bool d_is_single_shot = false;
 
