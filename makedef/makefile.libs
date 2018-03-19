@@ -47,14 +47,6 @@ ifdef USES_LIBJS
       USES_LIBWIRINGPI=1
 endif
 
-ifdef USES_LIBWIRINGPI
-      LIBWIRINGPIPATH = $(BASE_DIR)/peripherals/wiringpi
-      INCLUDES += -I$(LIBWIRINGPIPATH)
-      LIBS += -lwiringPi
-      LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
-      USES_LIBKERN=1
-endif
-
 ifdef USES_LIBGP
       LIBGPPATH = $(BASE_DIR)/drivers/gopro
       INCLUDES += -I$(LIBGPPATH)
@@ -63,6 +55,22 @@ ifdef USES_LIBGP
       USES_LIBHTTP=1
       USES_LIBKERN=1
       USES_LIBUDP=1
+endif
+
+ifdef USES_LIBWIFI
+      LIBWIFIPATH = $(BASE_DIR)/peripherals/wifi
+      INCLUDES += -I$(LIBWIFIPATH)
+      LIBSRC += $(wildcard $(LIBWIFIPATH)/*.cpp)
+      USES_LIBCORE=1
+      USES_LIBKERN=1
+endif
+
+ifdef USES_LIBWIRINGPI
+      LIBWIRINGPIPATH = $(BASE_DIR)/peripherals/wiringpi
+      INCLUDES += -I$(LIBWIRINGPIPATH)
+      LIBS += -lwiringPi
+      LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
+      USES_LIBKERN=1
 endif
 
 ifdef USES_LIBUDP
@@ -77,14 +85,6 @@ ifdef USES_LIBHTTP
       INCLUDES += -I$(LIBHTTPPATH)
       LIBS += -lcurl
       LIBSRC += $(wildcard $(LIBHTTPPATH)/*.cpp)
-      USES_LIBKERN=1
-endif
-
-ifdef USES_LIBWIFI
-      LIBWIFIPATH = $(BASE_DIR)/peripherals/wifi
-      INCLUDES += -I$(LIBWIFIPATH)
-      LIBSRC += $(wildcard $(LIBWIFIPATH)/*.cpp)
-      USES_LIBCORE=1
       USES_LIBKERN=1
 endif
 
@@ -135,70 +135,81 @@ ifndef BUILT_CORE
 	$(MAKE) -C $(LIBCOREPATH) $(built_libs)
 endif
 endif
+
 ifdef USES_LIBUTILS
 ifndef BUILT_UTILS
 	$(eval built_libs+=BUILT_UTILS=1)
 	$(MAKE) -C $(LIBUTILSPATH) $(built_libs)
 endif
 endif
+
 ifdef USES_LIBKERN
 ifndef BUILT_KERN
 	$(eval built_libs+=BUILT_KERN=1)
 	$(MAKE) -C $(LIBKERNPATH) $(built_libs)
 endif
 endif
+
 ifdef USES_LIBLED
 ifndef BUILT_LED
 	$(eval built_libs+=BUILT_LED=1)
 	$(MAKE) -C $(LIBLEDPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBWIFI
-ifndef BUILT_WIFI
-	$(eval built_libs+=BUILT_WIFI=1)
-	$(MAKE) -C $(LIBWIFIPATH) $(built_libs)
-endif
-endif
+
 ifdef USES_LIBJS
 ifndef BUILT_DJS
 	$(eval built_libs+=BUILT_DJS=1)
 	$(MAKE) -C $(LIBJSPATH) $(built_libs)
 endif
 endif
+
 ifdef USES_LIBHTTP
 ifndef BUILT_HTTP
 	$(eval built_libs+=BUILT_HTTP=1)
 	$(MAKE) -C $(LIBHTTPPATH) $(built_libs)
 endif
+endif
+
 ifdef USES_LIBUDP
 ifndef BUILT_UDP
 	$(eval built_libs+=BUILT_UDP=1)
 	$(MAKE) -C $(LIBUDPPATH) $(built_libs)
 endif
 endif
-ifdef USES_LIBGP
-ifndef BUILT_DGP
-	$(eval built_libs+=BUILT_DGP=1)
-	$(MAKE) -C $(LIBGPPATH) $(built_libs)
-endif
-endif
+
 ifdef USES_LIBWIRINGPI
 ifndef BUILT_WIRINGPI
 	$(eval built_libs+=BUILT_WIRINGPI=1)
 	$(MAKE) -C $(LIBWIRINGPIPATH) $(built_libs)
 endif
 endif
+
+ifdef USES_LIBWIFI
+ifndef BUILT_WIFI
+	$(eval built_libs+=BUILT_WIFI=1)
+	$(MAKE) -C $(LIBWIFIPATH) $(built_libs)
+endif
+endif
+
+ifdef USES_LIBGP
+ifndef BUILT_DGP
+	$(eval built_libs+=BUILT_DGP=1)
+	$(MAKE) -C $(LIBGPPATH) $(built_libs)
+endif
+endif
+
 ifdef USES_LIBCRC
 ifndef BUILT_CRC
 	$(eval built_libs+=BUILT_CRC=1)
-	$(MAKE) -C $(LIBCRC) $(built_libs)
+	$(MAKE) -C $(LIBCRCPATH) $(built_libs)
 endif
 endif
+
 ifdef USES_LIBCONTROL
 ifndef BUILT_CONTROL
 	$(eval built_libs+=BUILT_CONTROL=1)
 	$(MAKE) -C $(LIBCONTROLPATH) $(built_libs)
-endif
 endif
 endif
 	$(MAKE) thisdir
