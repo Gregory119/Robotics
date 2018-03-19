@@ -6,21 +6,18 @@
 #include <wiringPi.h>
 #include <iostream>
 
-//ORDER:
-// RC transmitter and receiver
-// pi 2, 3, sd cards, double check power requirements
-// 4/8 GB sd cards for a small image size => will need to expand to used sd card size
-
-
 // TO DO:
 //----------------------------------------------------------------------//
-// The following will be done for the first release:
+// Still to do for the first release:
 
-// - test/modify usb scripts
-// - pin shutdown => led should use memory
-// - change pin detection to use with RC receivers (PPM) also check if they do high and low states
-// - add logging and copy to usb when inserted so that the user can see the logs (check if logs auto backup)
-// - encryption
+// - change pin detection to be used with RC receivers (PPM and PWM). (1)
+//   - test pwm and ppm readers
+// - duplicate pin number in config check (2)
+// - check that the selected PPM pin number is in range of the measured number of channels
+// - pin shutdown/restart => led should use memory (3) **
+// - test/modify usb scripts (4)
+// - add logging and copy to usb when inserted so that the user can see the logs (check if logs auto backup) (5)
+// - encryption (6)
 
 // - test video analog output
 // - test and support most GoPro models (consider adding older ones if time permits - add to config file)
@@ -37,9 +34,7 @@
 // To be added after the first release:
 
 // - support older GoPro models
-// - research common pin control methods using an rc receiver (PWM, HIGH/LOW STATE, SERIAL TYPES). These will be supported in future releases.
-
-// - logs (helpful to some users)
+// - research common pin control methods using an rc receiver (PWM, HIGH/LOW STATE, SERIAL TYPES). Add support for additional protocols in future releases.
 
 // - config xml doc (will support app config)
 
