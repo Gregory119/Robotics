@@ -7,6 +7,7 @@ IS_TESTPROG=1
 TEST_NAME = hardservo
 
 USES_LIBCONTROL=1
+USES_LIBKERN=1
 
 include $(BASE_DIR)/makedef/makefile.libs
 include $(BASE_DIR)/makedef/makefile.rules
