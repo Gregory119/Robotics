@@ -7,6 +7,7 @@ all:
 
 testprogs:
 	$(MAKE) testprogs -C http
+	$(MAKE) testprogs -C rc
 
 clean:
 	$(RM) *~ *.d* *.o* *# *.core
