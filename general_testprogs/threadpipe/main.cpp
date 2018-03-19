@@ -12,8 +12,13 @@ public:
   ThreadPipe(const ThreadPipe<T>& rhs) { *this = rhs; }
   ThreadPipe<T>& operator=(const ThreadPipe<T>& rhs)
   {
-    std::lock_guard<std::mutex> lk(rhs.d_m);
-    d_m = rhs.d_m;
+    if (this == &rhs)
+      {
+	return;
+      }
+    
+    std::lock_guard<std::mutex> lk_rhs(rhs.d_m);
+    std::lock_guard<std::mutex> lk(d_m);
     d_max_size = rhs.d_max_size;
     d_data = rhs.d_data;
 
