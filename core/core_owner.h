@@ -14,8 +14,11 @@ private:								\
 #define OWNER_ERROR_FUNC(friend_name)		\
   virtual void handleError(friend_name*, Error, const std::string& msg) = 0
 
-#include <functional>
+#define SET_OWNER()		\
+  void setOwner(Owner* o) { d_owner = o; }
+
 #include <cassert>
+#include <functional>
 
 namespace CORE
 {
@@ -23,48 +26,95 @@ namespace CORE
   class Owner final
   {
   public:
-    Owner(T* o)
-      {
-	if (o == nullptr)
-	  {
-	    // LOG
-	    assert(false);
-	    return;
-	  }
-      }
-    
-    Owner& operator=(T* o)
-      {
-	if (o == nullptr)
-	  {
-	    // LOG
-	    assert(false);
-	    d_is_disabled = true;
-	    return;
-	  }
-
-	d_is_disabled = false;
-      }
-    Owner(Owner&&) = delete; // implicitly not moveable or copyable
+    Owner(T* o);
+    Owner& operator=(T* o);
+    Owner& operator=(const Owner&) = delete;
+    Owner(const Owner&) = delete;
+    Owner& operator=(Owner&& rhs);
+    Owner(Owner&&);
 
     template <class F, class... Args>
-      void call(F&& f, Args&&... args)
-    {
-      if (!d_is_disabled)
-	{
-	  auto func = std::bind(f, d_owner, std::forward<Args>(args)...);
-	  func();
-	}
-    }
+      void call(F&& f, Args&&... args);
     
-  protected:
-    Owner& operator=(Owner&&) = delete; // implicitly not declare other move members, and delete copy members
-    ~Owner() = default; // non-polymorphic
-
   private:
     T* d_owner = nullptr;
     bool d_is_disabled = false;
   };
+
+  template <class T>
+    Owner<T>::Owner(T* o)
+    : d_owner(o)
+    {
+      if (o == nullptr)
+	{
+	  // LOG
+	  assert(false);
+	  d_is_disabled = true;
+	  return;
+	}
+    }
+
+  template <class T>
+    Owner<T>& Owner<T>::operator=(T* o)
+    {
+      if (o == nullptr)
+	{
+	  // LOG
+	  assert(false);
+	  d_is_disabled = true;
+	  return *this;
+	}
+      
+      d_is_disabled = false;
+      d_owner = o;
+    }
+
+  template <class T>
+  Owner<T>& Owner<T>::operator=(Owner&& rhs)
+    {
+      if (this == &rhs)
+	{
+	  return *this;
+	}
+
+      if (rhs.d_owner == nullptr)
+	{
+	  // LOG
+	  assert(false);
+	  d_is_disabled = true;
+	  return *this;
+	}
+      
+      d_owner = rhs.d_owner;
+      rhs.d_is_disabled = true;
+      return *this;
+    }
+
+  template <class T>
+    Owner<T>::Owner(Owner&& rhs)
+    {
+      *this = rhs;
+    }
+
+  template <class T>
+    template <class F, class... Args>
+    void Owner<T>::call(F&& f, Args&&... args)
+  {
+    if (!d_is_disabled)
+      {
+	try
+	  {
+	    auto func = std::bind(f, d_owner, std::forward<Args>(args)...);
+	    func();
+	  }
+	catch (...)
+	  {
+	    // LOG
+	    assert(false);
+	    return;
+	  }
+      }
+  }
 };
 
 #endif
