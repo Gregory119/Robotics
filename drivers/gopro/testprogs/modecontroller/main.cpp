@@ -73,7 +73,7 @@ void PrintHelp()
 //----------------------------------------------------------------------//
 int main(int argc, char *argv[])
 {
-  if ((argc == 1) || (argc != 2))
+  if (argc != 2)
     {
       PrintHelp();
       return EXIT_SUCCESS;
