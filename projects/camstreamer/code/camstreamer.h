@@ -13,18 +13,21 @@
 
 #include <memory>
 
-class CamStreamer final : Config::Owner,
+class CamStreamer final : RequestManager::Owner,
   D_GP::ModeController::Owner,
   D_LED::Controller::Owner,
   P_WIFI::Configurator::Owner
 {
  public:
-  CamStreamer(const std::string& config_file_path);
+  CamStreamer(std::string config_file_path);
   void start();
 
  private:
-  // Config::Owner
-  void handleError(Config*, Config::Error, const std::string& msg) override;
+  // RequestManager::Owner
+  void handleReqMode(RequestManager*) override;
+  void handleReqTrigger(RequestManager*) override;
+  void handleReqShutdown(RequestManager*) override;
+  void handleReqRestartPower(RequestManager*) override;
   
   // D_GP::ModeController::Owner
   void handleFailedRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
@@ -53,19 +56,15 @@ class CamStreamer final : Config::Owner,
       InternalFailure,
       Unknown
       };
-  
+
  private:
   void setupWifi();
   void restartGPController();
-  void processModePinState(bool);
-  void processTriggerPinState(bool);
-
   void setState(State);
-  
   void stop();
 
  private:
-  std::unique_ptr<Config> d_config;
+  std::unique_ptr<RequestManager> d_req_man;
   std::unique_ptr<P_WIFI::Configurator> d_wifi_config;
   
   D_GP::ModeController::CtrlParams d_gpcont_params;
@@ -73,9 +72,6 @@ class CamStreamer final : Config::Owner,
   KERN::AsioCallbackTimer d_restart_gp_timer = KERN::AsioCallbackTimer("CamStreamer - reset gopro timer.");
   
   // C_BLE::Serial d_bl_connection; use for phone app messages (pairing request, gopro details, pin numbers)
-
-  std::unique_ptr<P_WP::EdgeInputPin> d_mode_pin;
-  std::unique_ptr<P_WP::EdgeInputPin> d_trigger_pin;
 
   std::unique_ptr<D_LED::Controller> d_led_ctrl;
 

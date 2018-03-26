@@ -4,12 +4,9 @@
 #include <fstream>
 #include <iostream>
 
-static const std::chrono::milliseconds s_pin_update_time =
-  std::chrono::milliseconds(25);
-
 //----------------------------------------------------------------------//
-CamStreamer::CamStreamer(const std::string& config_file_path)
-  : d_config(new Config(this, config_file_path)),
+CamStreamer::CamStreamer(std::string config_file_path)
+  : d_req_man(new RequestManager(this, std::move(config_file_path))),
     d_led_ctrl(new D_LED::Controller(this))
 {}
 
@@ -23,24 +20,9 @@ void CamStreamer::start()
       return;
     }
 
-  // Set up wifi
   setupWifi();
-  
-  // Pins
-  d_mode_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Mode),
-					  d_config->getPinPullMode(Config::PinId::Mode),
-					  P_WP::EdgeInputPin::EdgeType::Both));
-  d_trigger_pin.reset(new P_WP::EdgeInputPin(d_config->getPinNum(Config::PinId::Trigger),
-					     d_config->getPinPullMode(Config::PinId::Trigger),
-					     P_WP::EdgeInputPin::EdgeType::Both));
-  d_mode_pin->setTriggerCallback([this](bool state){
-      processModePinState(state);
-    });
-  d_trigger_pin->setTriggerCallback([this](bool state){
-      processTriggerPinState(state);
-    });  
-  d_mode_pin->setUpdateInterval(s_pin_update_time);
-  d_trigger_pin->setUpdateInterval(s_pin_update_time);
+
+  d_req_man->start();
 
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
   restartGPController();
@@ -49,6 +31,44 @@ void CamStreamer::start()
   d_restart_gp_timer.setTimeoutCallback([this](){
       restartGPController();
     });
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleReqMode(RequestManager*)
+{
+  std::cout << "CamStreamer::handleReqMode()" << std::endl;
+  if (d_gp_controller == nullptr)
+    {
+      return;
+    }
+  d_gp_controller->nextMode();
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleReqTrigger(RequestManager*)
+{
+  std::cout << "CamStreamer::handleReqTrigger()" << std::endl;
+  if (d_gp_controller == nullptr)
+    {
+      return;
+    }
+  d_gp_controller->trigger();
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleReqShutdown(RequestManager*)
+{
+  std::cout << "CamStreamer::handleReqShutdown()" << std::endl;
+  stop();
+  int resp = system("shutdown now");
+  std::cout << "The system call of 'shutdown now' returned with the value "
+  	    << resp << "." << std::endl;
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::handleReqRestartPower(RequestManager*)
+{
+  
 }
 
 //----------------------------------------------------------------------//
@@ -99,28 +119,6 @@ void CamStreamer::restartGPController()
   d_gp_controller.reset(new D_GP::ModeController(this, d_gpcont_params));
   d_gp_controller->connect();
   d_gp_controller->startStream();
-}
-
-//----------------------------------------------------------------------//
-void CamStreamer::processModePinState(bool)
-{
-  std::cout << "CamStreamer::processModePinState()" << std::endl;
-  if (d_gp_controller == nullptr)
-    {
-      return;
-    }
-  d_gp_controller->nextMode();
-}
-
-//----------------------------------------------------------------------//
-void CamStreamer::processTriggerPinState(bool)
-{
-  std::cout << "CamStreamer::processTriggerPinState()" << std::endl;
-  if (d_gp_controller == nullptr)
-    {
-      return;
-    }
-  d_gp_controller->trigger();
 }
 
 //----------------------------------------------------------------------//
@@ -196,8 +194,8 @@ void CamStreamer::stop()
   d_wifi_config->setOwner(nullptr); // disable any other callbacks
   d_timeout_deleter.deletePtr(d_wifi_config);   
   
-  d_config->setOwner(nullptr);
-  d_timeout_deleter.deletePtr(d_config);   
+  d_request_man->setOwner(nullptr);
+  d_timeout_deleter.deletePtr(d_request_man);   
   
   d_gp_controller->setOwner(nullptr);
   d_timeout_deleter.deletePtr(d_gp_controller); 

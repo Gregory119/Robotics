@@ -4,9 +4,11 @@
 #include <sstream>
 #include <fstream>
 
-static const std::string s_pin_pull_mode_up = "up";
-static const std::string s_pin_pull_mode_down = "down";
-static const std::string s_pin_pull_mode_none = "none";
+static const std::string s_req_mode_up = "up";
+static const std::string s_req_mode_down = "down";
+static const std::string s_req_mode_float = "float";
+static const std::string s_req_mode_pwm = "pwm";
+static const std::string s_req_mode_ppm = "ppm";
 
 //----------------------------------------------------------------------//
 Config::Config(Owner* o,
@@ -51,33 +53,49 @@ void Config::parseFile()
   
   // Note: these pins cannot be the shutdown pin (this pin is still to be selected)
 
-  if (!extractPinNumber(d_mode_pin,
-			"mode_pin_num=",
-			Error::ModePinNum))
+  if (!extractReqNumber(d_mode_req_conf,
+			"mode_req_num=",
+			Error::ModeReqNum))
     {
       return;
     }
   
-  if (!extractPinPullMode(d_mode_pin,
-			  "mode_pin_pull_mode=",
-			  Error::ModePinPullMode))
+  if (!extractReqMode(d_mode_req_conf,
+		      "mode_req_mode=",
+		      Error::ModeReqMode))
     {
       return;
     }
   
-  if (!extractPinNumber(d_trigger_pin,
-			"trigger_pin_num=",
-			Error::TriggerPinNum))
+  if (!extractReqNumber(d_trigger_req_conf,
+			"trigger_req_num=",
+			Error::TriggerReqNum))
     {
       return;
     }
   
-  if (!extractPinPullMode(d_trigger_pin,
-			  "trigger_pin_pull_mode=",
-			  Error::TriggerPinPullMode))
+  if (!extractReqMode(d_trigger_req_conf,
+		      "trigger_req_mode=",
+		      Error::TriggerReqMode))
     {
       return;
     }
+
+  if (!extractReqNumber(d_power_req_conf,
+			"power_req_num=",
+			Error::PowerReqNum))
+    {
+      return;
+    }
+  
+  if (!extractReqMode(d_power_req_conf,
+		      "power_req_mode=",
+		      Error::PowerReqMode))
+    {
+      return;
+    }
+
+  checkDuplicateReqNums();
 }
 
 //----------------------------------------------------------------------//
@@ -117,147 +135,160 @@ bool Config::extractWifiPw()
 }
 
 //----------------------------------------------------------------------//
-bool Config::extractPinPullMode(PinConfig& pin_conf,
-				const std::string& pin_mode_match,
-				Error e)
+bool Config::extractReqMode(ReqConfig& req_conf,
+			    const std::string& req_mode_match,
+			    Error e)
 {
   // is empty on a failure
-  std::string mode_text = d_file_param_man->getParam(pin_mode_match);
+  std::string mode_text = d_file_param_man->getParam(req_mode_match);
 
   if (d_file_param_man->hasError())
     {
-      std::ostringstream stream("extractPinPullMode - Failed to extract the pin pull mode of '",
+      std::ostringstream stream("extractReqMode - Failed to extract the request mode of '",
 				std::ios_base::app);
-      stream << pin_mode_match << "' because of the following error: \n" << d_file_param_man->getErrorMsg();
+      stream << req_mode_match << "' because of the following error: \n" << d_file_param_man->getErrorMsg();
       ownerHandleError(e, stream.str());
       return false;
     }
 
-  if (mode_text == s_pin_pull_mode_up)
+  if (mode_text == s_req_mode_pwm)
     {
-      pin_conf.pull_mode = P_WP::PullMode::Up;
+      req_conf.mode = ReqMode::Pwm;
       return true;
     }
 
-  if (mode_text == s_pin_pull_mode_none)
+  if (mode_text == s_req_mode_ppm)
     {
-      pin_conf.pull_mode = P_WP::PullMode::None;
-      return true;
-    }
-
-  if (mode_text == s_pin_pull_mode_down)
-    {
-      pin_conf.pull_mode = P_WP::PullMode::Down;
+      req_conf.mode = ReqMode::Ppm;
       return true;
     }
   
-  std::ostringstream stream("extractPinPullMode - The pin pull mode of '",std::ios_base::app);
-  stream << pin_mode_match << "' is set to an invalid value of '" << mode_text << "' in the file '"
+  if (mode_text == s_req_mode_up)
+    {
+      req_conf.mode = ReqMode::Up;
+      return true;
+    }
+
+  if (mode_text == s_req_mode_float)
+    {
+      req_conf.mode = ReqMode::Float;
+      return true;
+    }
+
+  if (mode_text == s_req_mode_down)
+    {
+      req_conf.mode = ReqMode::Down;
+      return true;
+    }
+  
+  std::ostringstream stream("extractReqMode - The request mode of '",std::ios_base::app);
+  stream << req_mode_match << "' is set to an invalid value of '" << mode_text << "' in the file '"
 	 <<  d_file_param_man->getFilePath() << "'. The options are '"
-	 << s_pin_pull_mode_up << "', '"
-	 << s_pin_pull_mode_down << "', or '"
-	 << s_pin_pull_mode_none << "'.";
+	 << s_req_mode_up << "', '"
+	 << s_req_mode_down << "', '"
+	 << s_req_mode_float << "', '"
+	 << s_req_mode_pwm << "', or '"
+	 << s_req_mode_ppm << ".";
   ownerHandleError(e, stream.str());
   return false;
 }
 
 //----------------------------------------------------------------------//
-bool Config::extractPinNumber(PinConfig& pin_conf,
-			      const std::string& pin_num_match,
+bool Config::extractReqNumber(ReqConfig& req_conf,
+			      const std::string& req_num_match,
 			      Error e)
 {
   // is empty on a failure
-  std::string num_text = d_file_param_man->getParam(pin_num_match);
+  std::string num_text = d_file_param_man->getParam(req_num_match);
 
   if (d_file_param_man->hasError())
     {
-      std::ostringstream stream("extractPinNumber - Failed to extract the pin number of '",std::ios_base::app);
-      stream << pin_num_match <<  "' because of the following error: \n" << d_file_param_man->getErrorMsg();
+      std::ostringstream stream("extractReqNumber - Failed to extract the request number of '",std::ios_base::app);
+      stream << req_num_match <<  "' because of the following error: \n" << d_file_param_man->getErrorMsg();
       ownerHandleError(e, stream.str());
       return false;
     }
 
-  int pin_num = 0;
   try
     {
-      pin_num = std::stoi(num_text);
+      req_conf.num = std::stoi(num_text);
     }
   catch (...)
     {
-      std::ostringstream stream("extractPinNumber - Failed to convert text '",
+      std::ostringstream stream("extractReqNumber - Failed to convert text '",
 				std::ios_base::app);
-      stream << num_text << "' to a number for '" << pin_num_match << "'.";
+      stream << num_text << "' to a number for '" << req_num_match << "'.";
       ownerHandleError(e, stream.str());
       return false;
     }
 
-  if (pin_num < 0 || pin_num >= static_cast<int>(P_WP::PinNum::Unknown))
-    {
-      std::ostringstream stream("extractPinNumber - The pin number of '",
-				std::ios_base::app);
-      stream << num_text << "' is out of range for '" << pin_num_match << "'." ;
-      ownerHandleError(e, stream.str());
-      return false;
-    }
-  pin_conf.num = static_cast<P_WP::PinNum>(pin_num);
   return true;
 }
 
 //----------------------------------------------------------------------//
-Config::PinConfig Config::getPinConfig(PinId id)
+Config::ReqConfig Config::getReqConfig(Request req)
 {
-  switch (id)
+  switch (req)
     {
-    case PinId::Mode:
-      return d_mode_pin;
+    case Request::Mode:
+      return d_mode_req_conf;
       
-    case PinId::Trigger:
-      return d_trigger_pin;
+    case Request::Trigger:
+      return d_trigger_req_conf;
+
+    case Request::Power:
+      return d_power_req_conf;
     }
   assert(false);
-  std::ostringstream stream("getPinConfig - the pin ID '",
+  std::ostringstream stream("getReqConfig - the request '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
-  ownerHandleError(Error::PinId, stream.str());
-  return PinConfig();
+  stream << static_cast<int>(req) << "' does not exist.";
+  ownerHandleError(Error::Request, stream.str());
+  return ReqConfig();
 }
 
 //----------------------------------------------------------------------//
-P_WP::PinNum Config::getPinNum(PinId id)
+int Config::getReqNum(Request req)
 {
-  switch (id)
+  switch (req)
     {
-    case PinId::Mode:
-      return d_mode_pin.num;
+    case Request::Mode:
+      return d_mode_req_conf.num;
       
-    case PinId::Trigger:
-      return d_trigger_pin.num;
+    case Request::Trigger:
+      return d_trigger_req_conf.num;
+
+    case Request::Power:
+      return d_power_req_conf.num;
     }
   assert(false);
-  std::ostringstream stream("getPinNum - the pin ID '",
+  std::ostringstream stream("getReqNum - the request '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine the pin number.";
-  ownerHandleError(Error::PinId, stream.str());
-  return P_WP::PinNum::W0;
+  stream << static_cast<int>(req) << "' does not exist.";
+  ownerHandleError(Error::Request, stream.str());
+  return -1;
 }
 
 //----------------------------------------------------------------------//
-P_WP::PullMode Config::getPinPullMode(PinId id)
+ReqMode Config::getReqMode(Request req)
 {
-  switch (id)
+  switch (req)
     {
-    case PinId::Mode:
-      return d_mode_pin.pull_mode;
+    case Request::Mode:
+      return d_mode_req_conf.mode;
       
-    case PinId::Trigger:
-      return d_trigger_pin.pull_mode;
+    case Request::Trigger:
+      return d_trigger_req_conf.mode;
+
+    case Request::Power:
+      return d_power_req_conf.mode;
     }
   assert(false);
-  std::ostringstream stream("getPinPullMode - the pin ID '",
+  std::ostringstream stream("getReqMode - the request '",
 			    std::ios_base::app);
-  stream << static_cast<int>(id) << "' does not exist. Failed to determine pull mode.";
-  ownerHandleError(Error::PinId, stream.str());
-  return P_WP::PullMode::Up;
+  stream << static_cast<int>(req) << "' does not exist.";
+  ownerHandleError(Error::Request, stream.str());
+  return ReqMode::Unknown;
 }
 
 //----------------------------------------------------------------------//
@@ -269,5 +300,31 @@ void Config::ownerHandleError(Error e, const std::string& msg)
   if (d_owner != nullptr)
     {
       d_owner->handleError(this,e,final_msg);
+    }
+}
+
+//----------------------------------------------------------------------//
+void Config::checkDuplicateReqNums()
+{
+  if ((d_mode_req_conf.num == d_trigger_req_conf.num) &&
+      (d_mode_req_conf.mode != d_trigger_req_conf.mode))
+    {
+      ownerHandleError(Error::CombinedControl,
+		       "checkDuplicateReqNums - The mode and trigger request numbers can be the same, only if their request modes are the same, which they are currently not.");
+      return;
+    }
+
+  if (d_mode_req_conf.num == d_power_req_conf.num)
+    {
+      ownerHandleError(Error::DuplicateReqNum,
+		       "checkDuplicateReqNums - The mode and power request numbers cannot be the same.");
+      return;
+    }
+
+  if (d_trigger_req_conf.num == d_power_req_conf.num)
+    {
+      ownerHandleError(Error::DuplicateReqNum,
+		       "checkDuplicateReqNums - The trigger and power request numbers cannot be the same.");
+      return;
     }
 }

@@ -4,6 +4,7 @@
 #include "core_fileparammanager.h"
 #include "core_owner.h"
 #include "kn_asiocallbacktimer.h"
+#include "types.h"
 #include "wp_pins.h"
 
 #include <string>
@@ -16,13 +17,13 @@
 // -------------------------------------//
 // wifi_ssid=<ssid>
 // wifi_pw=<password>
-// ppm_pin_num=<number/none>
-// mode_pin_num=<number/ppm_channel>
-// mode_pin_mode=<up/down/none/pwm/ppm>
-// trigger_pin_num=<number/ppm_channel>
-// trigger_pin_mode=<up/down/none/pwm/ppm>
-// power_pin_num=<number/ppm_channel>
-// power_pin_mode=<up/down/none/pwm/ppm>
+// ppm_pin_num=<number/float>
+// mode_req_num=<pin_number/ppm_channel>
+// mode_req_mode=<up/down/float/pwm/ppm>
+// trigger_req_num=<pin_number/ppm_channel>
+// trigger_req_mode=<up/down/float/pwm/ppm>
+// power_req_num=<pin_number/ppm_channel>
+// power_req_mode=<up/down/float/pwm/ppm>
 // -------------------------------------//
 
 class Config
@@ -33,25 +34,28 @@ class Config
     OpenFile,
       WifiSSID,
       WifiPassword,
-      ModePinNum,
-      ModePinPullMode,
-      TriggerPinNum,
-      TriggerPinPullMode,
-      ConnectPinNum,
-      ConnectPinPullMode,
-      PinId
+      ModeReqNum,
+      ModeReqMode,
+      TriggerReqNum,
+      TriggerReqMode,
+      PowerReqNum,
+      PowerReqMode,
+      Request,
+      CombinedControl, // request and mode control on the same pin/channel
+      DuplicateReqNum
   };
 
-  enum class PinId
+  enum class Request
   {
     Mode,
-      Trigger
+      Trigger,
+      Power
   };
 
-  struct PinConfig
+  struct ReqConfig
   {
-    P_WP::PinNum num = P_WP::PinNum::Unknown;
-    P_WP::PullMode pull_mode = P_WP::PullMode::Up;
+    int num = -1;
+    ReqMode mode = ReqMode::Unknown;
   };
 
  public:
@@ -70,9 +74,9 @@ class Config
   // parseFile() must be called before any other functions
   void parseFile(); 
 
-  PinConfig getPinConfig(PinId);
-  P_WP::PinNum getPinNum(PinId);
-  P_WP::PullMode getPinPullMode(PinId);
+  ReqConfig getReqConfig(Request);
+  int getReqNum(Request);
+  ReqMode getReqMode(Request);
   const std::string& getWifiSsid() const { return d_wifi_ssid; }
   const std::string& getWifiPassword() const { return d_wifi_pw; }
 
@@ -82,12 +86,13 @@ class Config
   void ownerHandleError(Error, const std::string& msg);
   bool extractWifiSSID();
   bool extractWifiPw();
-  bool extractPinNumber(PinConfig&,
-			const std::string& pin_num_match,
+  bool extractReqNumber(ReqConfig&,
+			const std::string& req_num_match,
 			Error); // the error type is only used on an internal error condition
-  bool extractPinPullMode(PinConfig&,
-			  const std::string& pin_mode_match,
-			  Error);
+  bool extractReqMode(ReqConfig&,
+		      const std::string& req_mode_match,
+		      Error);
+  void checkDuplicateReqNums();
   
  private:
   Owner* d_owner = nullptr;
@@ -96,8 +101,9 @@ class Config
   
   std::string d_wifi_ssid;
   std::string d_wifi_pw;
-  PinConfig d_mode_pin;
-  PinConfig d_trigger_pin;
+  ReqConfig d_mode_req_conf;
+  ReqConfig d_trigger_req_conf;
+  ReqConfig d_power_req_conf;
 
   bool d_has_error = false;
 
