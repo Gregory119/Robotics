@@ -29,15 +29,16 @@ namespace KERN
 
     void restartIfNotSet(const std::chrono::milliseconds&);
     void restartIfNotSetOrDisabled(const std::chrono::milliseconds&);
-    
+
     void singleShot(const std::chrono::milliseconds&);
     void singleShotZero();
+    void singleShot(); // time has already been set
     void singleShotZero(std::function<void()> callback);
     void disable();
     void disableIfEnabled();
 
-    bool isDisabled();
-    bool isScheduledToExpire() { return d_is_scheduled_to_expire; }
+    bool isDisabled() { return !d_is_enabled; }
+    bool isScheduledToExpire() { return d_is_enabled; }
     
     // Any restarts or disabling will set the consequetive time out count to zero.
     // Will eventually overflow if timer repeats timeouts and is never disabled.
@@ -63,7 +64,6 @@ namespace KERN
     bool d_is_set = false;
     
     bool d_is_enabled = false;
-    bool d_is_scheduled_to_expire = false;
     long d_count_conseq_timeouts = 0;
     bool d_is_single_shot = false;
 

@@ -60,7 +60,14 @@ void AsioCallbackTimer::singleShotZero(std::function<void()> callback)
   d_timeout_callback = callback;
   singleShotZero();
 }
-		  
+
+//----------------------------------------------------------------------//
+void AsioCallbackTimer::singleShot()
+{
+  restart();
+  d_is_single_shot = true;
+}
+
 //----------------------------------------------------------------------//
 void AsioCallbackTimer::restartIfNotSet(const std::chrono::milliseconds& time)
 {
@@ -117,12 +124,6 @@ void AsioCallbackTimer::disableIfEnabled()
 }
 
 //----------------------------------------------------------------------//
-bool AsioCallbackTimer::isDisabled()
-{
-  return !d_is_enabled;
-}
-
-//----------------------------------------------------------------------//
 long AsioCallbackTimer::getConseqTimeOuts()
 {
   return d_count_conseq_timeouts;
@@ -145,21 +146,20 @@ void AsioCallbackTimer::timerCallback(const boost::system::error_code& err)
       // 2) Timer has been cancelled because cancel() was called on the timer.
       // 3) Expiry time was reset before the wait time expired.
       std::cout << "AsioCallbackTimer::timerCallback - timer aborted. timeout [ms] = " << d_timeout.count() << ". Name is: " << d_name << std::endl;
-      d_is_scheduled_to_expire = false;
+      // already disabled => not scheduled
       return;
     }
 
   if (!d_is_enabled) 
     {
       // to catch timers that have already expired and have been queued, but need to be cancelled
-      d_is_scheduled_to_expire = false;
+      assert(false); // should not be necessary
       return;
     }
 
   if (d_is_single_shot)
     {
       d_is_enabled = false;
-      d_is_scheduled_to_expire = false;
     }
   
   ++d_count_conseq_timeouts;
@@ -168,7 +168,6 @@ void AsioCallbackTimer::timerCallback(const boost::system::error_code& err)
   if (!d_is_enabled) 
     {
       // to catch disables requested in the user callback function
-      d_is_scheduled_to_expire = false;
       return;
     }
 
@@ -201,7 +200,8 @@ void AsioCallbackTimer::scheduleCallback()
       return;
     }
 
-  d_is_scheduled_to_expire = true;
+  d_is_enabled = true;
+  
   d_timer->async_wait([&](const boost::system::error_code& e){
       d_internal_callback(e);
     });
@@ -218,7 +218,7 @@ void AsioCallbackTimer::setTime(const std::chrono::milliseconds& time)
 void AsioCallbackTimer::restart()
 {
   d_count_conseq_timeouts = 0;
-  d_is_enabled = true;
+  disableIfEnabled();
 
-  scheduleCallback();
+  scheduleCallback(); // re-enables after cancel/disable
 }

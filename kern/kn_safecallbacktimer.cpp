@@ -7,9 +7,9 @@ SafeCallbackTimer::SafeCallbackTimer(std::string name)
   : d_timer(new AsioCallbackTimer(std::move(name)))
 {
   d_timer->setInternalTimerCallback([this](const boost::system::error_code& err){
-				      std::lock_guard<std::mutex> lk(d_m);
-				      d_timer->timerCallback(err);
-				    });
+      std::lock_guard<std::mutex> lk(d_m);
+      d_timer->timerCallback(err);
+    });
 }
 
 //----------------------------------------------------------------------//
@@ -25,9 +25,9 @@ SafeCallbackTimer& SafeCallbackTimer::operator=(SafeCallbackTimer&& rhs)
   std::lock_guard<std::mutex> lk(d_m);
   d_timer = std::move(rhs.d_timer);
   d_timer->setInternalTimerCallback([this](const boost::system::error_code& err){
-				      std::lock_guard<std::mutex> lk(d_m);
-				      d_timer->timerCallback(err);
-				    });
+      std::lock_guard<std::mutex> lk(d_m);
+      d_timer->timerCallback(err);
+    });
   return *this;
 }
 
