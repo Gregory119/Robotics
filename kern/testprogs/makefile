@@ -1,12 +1,9 @@
-#no test yet
-BASE_DIR = ../..
+testprogs:
+	$(MAKE) -C stdkernel
+	$(MAKE) -C asiokernel
 
-include $(BASE_DIR)/makedef/makefile.set
-
-IS_TESTPROG=1
-TEST_NAME=test_stdkernel
-#add -l lib names here
-USES_LIBKERN=1
-
-include $(BASE_DIR)/makedef/makefile.libs
-include $(BASE_DIR)/makedef/makefile.rules
+.PHONY:clean
+clean:
+	$(RM) *~ *.d* *.o* *# *.core
+	$(MAKE) clean -C stdkernel
+	$(MAKE) clean -C asiokernel
