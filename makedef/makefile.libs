@@ -22,7 +22,7 @@ ifdef USES_LIBCONTROL
       INCLUDES += -I$(LIBCONTROLPATH)
       LIBS += -lpthread
       LIBSRC += $(wildcard $(LIBCONTROLPATH)/*.cpp)
-      USES_LIBUTILS=1
+      USES_LIBUTILSMAPPING=1
       USES_LIBKERN=1
       USES_LIBWIRINGPI=1
 endif
@@ -34,7 +34,7 @@ ifdef USES_LIBCRC
       LIBSRC += $(wildcard $(LIBCRCPATH)/*.cpp)
       USES_LIBKERN=1
       USES_LIBWIRINGPI=1
-      USES_LIBUTILS=1
+      USES_LIBUTILSMAPPING=1
 endif
 
 ifdef USES_LIBJS
@@ -43,7 +43,7 @@ ifdef USES_LIBJS
       LIBS += -lpthread
       LIBSRC += $(wildcard $(LIBJSPATH)/*.cpp)
       USES_LIBKERN=1
-      USES_LIBUTILS=1
+      USES_LIBUTILSMAPPING=1
       USES_LIBWIRINGPI=1
 endif
 
@@ -70,7 +70,7 @@ ifdef USES_LIBWIRINGPI
       INCLUDES += -I$(LIBWIRINGPIPATH)
       LIBS += -lwiringPi
       LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
-      USES_LIBKERN=1
+      USES_LIBUTILSTHREADING=1      
 endif
 
 ifdef USES_LIBUDP
@@ -96,6 +96,14 @@ ifdef USES_LIBLED
       USES_LIBKERN=1
 endif
 
+ifdef USES_LIBUTILSTHREADING
+      LIBUTILSTHREADINGPATH = $(BASE_DIR)/utils/threading
+      INCLUDES += -I$(LIBUTILSTHREADINGPATH)
+      LIBS += 
+      LIBSRC += $(wildcard $(LIBUTILSTHREADINGPATH)/*.cpp)
+      USES_LIBKERN=1
+endif
+
 ifdef USES_LIBKERN
       LIBKERNPATH = $(BASE_DIR)/kern
       INCLUDES += -I$(LIBKERNPATH)
@@ -110,11 +118,11 @@ ifdef USES_LIBCORE
       LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
 endif
 
-ifdef USES_LIBUTILS
-      LIBUTILSPATH = $(BASE_DIR)/utils
-      INCLUDES += -I$(LIBUTILSPATH)
+ifdef USES_LIBUTILSMAPPING
+      LIBUTILSMAPPINGPATH = $(BASE_DIR)/utils/mapping
+      INCLUDES += -I$(LIBUTILSMAPPINGPATH)
       LIBS += 
-      LIBSRC += $(wildcard $(LIBUTILSPATH)/*.cpp)
+      LIBSRC += $(wildcard $(LIBUTILSMAPPINGPATH)/*.cpp)
 endif
 
 OBJ+=$(LIBSRC:.cpp=.o)
@@ -129,6 +137,13 @@ makelibs:
 # make prerequisite libraries
 # List the most independent ones first: this ensures that the most independent libraries are marked as built for any further dependent libraries.
 
+ifdef USES_LIBUTILSMAPPING
+ifndef BUILT_UTILSMAPPING
+	$(eval built_libs+=BUILT_UTILSMAPPING=1)
+	$(MAKE) -C $(LIBUTILSMAPPINGPATH) $(built_libs)
+endif
+endif
+
 ifdef USES_LIBCORE
 ifndef BUILT_CORE
 	$(eval built_libs+=BUILT_CORE=1)
@@ -136,17 +151,17 @@ ifndef BUILT_CORE
 endif
 endif
 
-ifdef USES_LIBUTILS
-ifndef BUILT_UTILS
-	$(eval built_libs+=BUILT_UTILS=1)
-	$(MAKE) -C $(LIBUTILSPATH) $(built_libs)
-endif
-endif
-
 ifdef USES_LIBKERN
 ifndef BUILT_KERN
 	$(eval built_libs+=BUILT_KERN=1)
 	$(MAKE) -C $(LIBKERNPATH) $(built_libs)
+endif
+endif
+
+ifdef USES_LIBUTILSTHREADING
+ifndef BUILT_UTILSTHREADING
+	$(eval built_libs+=BUILT_UTILSTHREADING=1)
+	$(MAKE) -C $(LIBUTILSTHREADINGPATH) $(built_libs)
 endif
 endif
 

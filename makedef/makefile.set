@@ -58,7 +58,11 @@ else ifneq ($(filter PI3,$(TARGET)),) # if pi 3
      SYSROOT= # STILL TO DO!!!
      LIBPATHS= # STILL TO DO!!!
 endif
-	CXXFLAGS += $(MTUNE) $(MARCH) -mfloat-abi=hard $(MFPU) $(SYSROOT) $(LIBPATHS)
+	CXXFLAGS+= $(MTUNE) $(MARCH) -mfloat-abi=hard $(MFPU) $(SYSROOT) $(LIBPATHS)
+endif
+
+ifdef VERBOSE
+      CXXFLAGS+=-v
 endif
 
 # load debug symbols
