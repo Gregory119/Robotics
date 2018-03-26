@@ -6,13 +6,13 @@ normal:
 .PHONY:clean libs testprogs projects all control
 
 libs:
-	$(MAKE) -C coms
+	$(MAKE) -C core
+	$(MAKE) -C utils
 	$(MAKE) -C kern
 	$(MAKE) -C drivers
-	$(MAKE) -C utils
-	$(MAKE) -C core
-	$(MAKE) -C control
+	$(MAKE) -C coms
 	$(MAKE) -C peripherals
+	$(MAKE) -C control
 
 testprogs:
 	$(MAKE) testprogs -C utils
