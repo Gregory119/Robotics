@@ -1,40 +1,49 @@
 #ifndef CRC_PPMREADER_H
 #define CRC_PPMREADER_H
 
-#include "core_owner.h"
+#include "core_observer.h"
 #include "crc_pwmutils.h"
-#include "kn_safecallbacktimer.h"
-#include "wp_interrupt.h"
+#include "kn_asiocallbacktimer.h"
+#include "wp_syncedinterrupt.h"
 
 #include <chrono>
 #include <list>
+#include <map>
+
+#include <iostream>
 
 namespace C_RC
 {
-  template <class T>
-    class PpmReader final
-    {
-    public:
-      enum class Error
-      {
-	InternalInterruptSetup,
-	  InvalidDuration
-	  };
+  enum class PpmReaderError
+  {
+    InternalInterrupt,
+      InvalidDuration
+      };
 
-      template <class Type>
-	struct Value
-	{
-	  const Type val = 0;
-	  const unsigned channel = 0;
-	};
-    
+  // Multiple observers can exist with the same channel.
+  template <class T>
+    class PpmReader final : P_WP::SyncedInterrupt::Owner
+    {
     public:
       class Owner
       {
 	OWNER_SPECIAL_MEMBERS(PpmReader);
+
+	// Remember to set the owner to null and clear the observers to disable callbacks, or call disableCallbacks()
+	virtual void handleError(PpmReader*,
+				 PpmReaderError,
+				 const std::string& msg) = 0;
+      };
+      
+      class Observer
+      {
+	OBSERVER_SPECIAL_MEMBERS(PpmReader);
 	// this will only be called when a new duration has been measured
-	virtual void handleValue(PpmReader*, const Value<T>&) = 0;
-	virtual void handleError(PpmReader*, Error, const std::string& msg) = 0;
+	virtual void handleValue(PpmReader*, T) = 0;
+	virtual void handleValueOutOfRange(PpmReader*, T) = 0;
+	
+	// The channel value should never change and it should be greater than zero.
+	virtual unsigned getChannel() const = 0;
       };
     
     public:
@@ -43,15 +52,31 @@ namespace C_RC
 
       SET_OWNER();
 
+      void capData() { d_cap_data = true; }
+      
+      bool attachObserver(Observer*);
+      void clearObservers() { d_observers.clear(); }
+      void disableCallbacks() { setOwner(nullptr); clearObservers(); }
+
+      T getMaxVal() { return d_map.getPwmLimits().max_val; }
+      T getMinVal() { return d_map.getPwmLimits().min_val; }
+      T getValRange() { return d_map.getPwmLimits().val_range; }
+      
       // This will only fail if the number of channels has not been detected yet.
-      bool getNumChannels(unsigned&) { return d_channels; }
+      bool getNumChannels(unsigned&);
 
     private:
-      void processData();
-      void ownerValue();
+      void handleInterrupt(P_WP::SyncedInterrupt*,
+			   P_WP::Interrupt::Vals) override;
+      void handleError(P_WP::SyncedInterrupt*,
+		       P_WP::Interrupt::Error,
+		       const std::string&) override;
+      
+    private:
+      void processAllChannelData();
+      void observerValue();
       void clearData();
-      void processInterrupt();
-      void ownerError(Error, const std::string& msg);
+      void ownerError(PpmReaderError, const std::string& msg);
 
       struct Duration
       {
@@ -65,22 +90,22 @@ namespace C_RC
       };
     
     private:
-      CORE::Owner<PpmReader::Owner> d_owner;
-      std::unique_ptr<P_WP::Interrupt> d_interrupt;
+      CORE::Owner<Owner> d_owner;
+      std::multimap<unsigned, Observer*> d_observers;
 
+      bool d_cap_data = false;
+      
+      std::unique_ptr<P_WP::SyncedInterrupt> d_interrupt;
+      
       PwmMap<T> d_map;
       unsigned d_channels = 0; // will be auto-detected
-      unsigned d_current_channel = 0; // zero represents the start pulse
-      unsigned d_count_conseq_diff_channels = 0;
+      unsigned d_channel_count = 0; // zero represents the start pulse
+      unsigned d_prev_channel_count = 0; // zero represents the start pulse
 
-      std::list<Duration> d_pulse_durations;
-      std::chrono::steady_clock d_clock;
+      std::list<Duration> d_all_channel_durs;
       std::chrono::time_point<std::chrono::steady_clock> d_pulse_start_pt;
 
-      KERN::SafeCallbackTimer d_data_timer = KERN::SafeCallbackTimer("C_RC::PpmReader Data Timer");
-      KERN::SafeCallbackTimer d_error_timer = KERN::SafeCallbackTimer("C_RC::PpmReader Zero Timer");
-
-      std::mutex d_data_mutex;
+      KERN::AsioCallbackTimer d_data_end_timer = KERN::AsioCallbackTimer("C_RC::PpmReader Data End Timer");
     };
 
   //----------------------------------------------------------------------//
@@ -90,121 +115,174 @@ namespace C_RC
 			    PwmLimits<T> limits)
     : d_owner(o),
     d_map(std::move(limits))
-      {
-	// setup interrupt
-	d_interrupt.reset(new P_WP::Interrupt(pin,
-					      P_WP::Interrupt::Mode::Rising,
-					      [this](){
-						processInterrupt();
-					      }));
+    {
+      if (!std::is_fundamental<T>::value)
+	{
+	  assert(false);
+	  //LOG!!!
+	  return;
+	}
 
-	if (d_interrupt->hasError())
-	  {
-	    d_error_timer.singleShotZero([this](){
-		ownerError(&PpmReader::handleError,
-			   Error::InternalInterruptSetup,
-			   "PpmReader::PpmReader - Failed to setup the interrupt.");
-	      });
-	  }
+      d_interrupt.reset(new P_WP::SyncedInterrupt(this,
+						  pin,
+						  P_WP::Interrupt::EdgeMode::Rising));
 
-	// This thread-safe timer is used to call commands in the main thread by using a zero time.
-	d_data_timer.setTimeoutCallback([this](){
-	    std::lock_guard<std::mutex> lk(d_data_mutex);
-	    processData();
-	  });
-      }
+      d_data_end_timer.setTimeoutCallback([this](){
+	  processAllChannelData();
+	});
+    }
 
   //----------------------------------------------------------------------//
   template <class T>
-    void PpmReader<T>::processData()
-    {
-      // Check if the number of detected channels has changed.
-      if (d_current_channel != d_channels)
+    bool PpmReader<T>::attachObserver(Observer* ob)		
+    {						
+      if (ob == nullptr)				
+	{						
+	  assert(false);				
+	  return false;				
+	}
+
+      // the pointer should not be in the observer list
+      for (const auto& pair : d_observers)
 	{
-	  ++d_count_conseq_diff_channels;
-	  if (d_count_conseq_diff_channels < 2)
+	  if (pair.second == ob)
 	    {
-	      d_pulse_durations.clear();
+	      assert(false);
+	      return false;
+	    }
+	}
+
+      d_observers.insert(std::pair<unsigned, Observer*>(ob->getChannel(), ob));
+      return false;
+    }
+      
+  //----------------------------------------------------------------------//
+  template <class T>
+    bool PpmReader<T>::getNumChannels(unsigned& channels)
+    {
+      if (d_channels == 0)
+	{
+	  return false;
+	}
+      channels = d_channels;
+      return true;
+    }
+      
+  //----------------------------------------------------------------------//
+  template <class T>
+    void PpmReader<T>::processAllChannelData()
+    {
+      std::cout << "data" << std::endl;
+      // Check if the number of detected channels has changed.
+      if (d_channel_count != d_channels)
+	{
+	  if (d_channel_count != d_prev_channel_count)
+	    {
+	      d_all_channel_durs.clear();
+	      d_channel_count = 0;
+	      d_prev_channel_count = d_channel_count;
 	      return;
 	    }
 
 	  // LOG: the number of data channels has changed
-	  d_channels = d_current_channel;
+	  d_channels = d_channel_count;
 	}
 
-      d_count_conseq_diff_channels = 0;
-  
-      // send data to owner
-      for (unsigned i=0; i<d_current_channel; ++i)
+      // send data to observers
+      std::cout << "obsend" << std::endl;
+      for (unsigned i=0; i<d_channel_count; ++i)
 	{
-	  ownerValue();
+	  observerValue();
 	}
-      d_current_channel = 0;
+      d_channel_count = 0;
+      assert(d_all_channel_durs.empty());
     }
-
+  
   //----------------------------------------------------------------------//
   template <class T>
-    void PpmReader<T>::ownerValue()
+    void PpmReader<T>::observerValue()
     {
-      Duration dur;
-      if (!d_pulse_durations.tryPopFront(dur))
+      assert(!d_all_channel_durs.empty());
+      Duration dur = d_all_channel_durs.front();
+      d_all_channel_durs.pop_front();
+
+      if (d_observers.empty())
 	{
-	  // LOG
-	  assert(false);
 	  return;
 	}
 
+      auto obs_range = d_observers.equal_range(dur.channel);
+      // cap value
+      if (d_cap_data)
+	{
+	  unsigned cap_val = d_map.getValue(d_map.capDuration(dur.duration)); // cache for multiple observers with the same channel
+	  for (auto i=obs_range.first; i!=obs_range.second; ++i)
+	    {
+	      i->second->handleValue(this, cap_val);
+	    }
+	  return;
+	}
+
+      // out of range
       if (!d_map.isDurationValid(dur.duration))
 	{
-	  assert(false);
-	  std::ostringstream stream("PpmReader::ownerValue - The measured pulse duration of ",
-				    std::ios_base::app);
-	  stream << dur.duration.count() << " [us] for channel "
-		 << dur.channel << " is invalid because it is out of bounds. Max [us] = "
-		 << d_map.getPwmLimits().max_duration_micros << ", Min [us] = "
-		 << d_map.getPwmLimits().min_duration_micros << ".";
-	  ownerError(Error::InvalidDuration, stream.str());
+	  unsigned val = d_map.getValue(dur.duration); 
+	  for (auto i=obs_range.first; i!=obs_range.second; ++i)
+	    {
+	      i->second->handleValueOutOfRange(this, val);
+	    }
 	  return;
 	}
-  
-      d_owner.call(&PpmReader::handleValue,
-		   this,
-		   {dur.channel, d_map.getValue(dur.duration)});
+
+      // in range
+      unsigned val = d_map.getValue(dur.duration); 
+      for (auto i=obs_range.first; i!=obs_range.second; ++i)
+	{
+	  i->second->handleValue(this, val);
+	}
     }
 
   //----------------------------------------------------------------------//
   template <class T>
-    void PpmReader<T>::processInterrupt()
+  void PpmReader<T>::handleInterrupt(P_WP::SyncedInterrupt*,
+				     P_WP::Interrupt::Vals vals)
     {
-      // For thread safety, make sure d_clock is not used anywhere else except during class construction
-      std::chrono::time_point<std::chrono::steady_clock> point = d_clock.now(); // measure as soon as possible
-
-      std::lock_guard<std::mutex> lk(d_data_mutex);
-  
+      d_data_end_timer.singleShot(std::chrono::milliseconds(d_map.getPwmLimits().max_duration_micros*115/100));
+      
       // detect start edge
-      if (d_current_channel == 0)
+      if (d_channel_count == 0)
 	{
-	  d_pulse_start_pt = point;
-	  ++d_current_channel;
-	}
-      // measure channel duration
-      else // d_current_channel > 0
-	{
-	  d_pulse_durations.pushBack(std::chrono::cast<std::chrono::microseconds>(point - d_pulse_start_pt),
-				     d_current_channel);
-	  d_pulse_start_pt = point; // for next channel
-	  ++d_current_channel;
+	  d_pulse_start_pt = vals.time_point;
+	  ++d_channel_count;
+	  return;
 	}
 
-      // Start/restart the timer to detect the end of the new channel values
-      d_data_timer.singleShot(std::chrono::milliseconds(d_map.getPwmLimits().max_duration_micros*115/100)); // add 15% to longest expected duration
+      // => d_channel_count > 0
+      // add the new single channel data
+      d_all_channel_durs.emplace_back(std::chrono::duration_cast<std::chrono::microseconds>(vals.time_point - d_pulse_start_pt),
+				      d_channel_count);
+      d_pulse_start_pt = vals.time_point; // for next channel
+      ++d_channel_count;
     }
 
   //----------------------------------------------------------------------//
   template <class T>
-    void PpmReader<T>::ownerError(Error e, const std::string& msg)
+    void PpmReader<T>::handleError(P_WP::SyncedInterrupt*,
+				   P_WP::Interrupt::Error e,
+				   const std::string& msg)
     {
-      d_owner.call(&PpmReader::handleError, this, e, msg);
+      std::string new_msg = "PpmReader::PpmReader - Interrupt failure with the message:\n";
+      new_msg += msg;
+      ownerError(PpmReaderError::InternalInterrupt,
+		 new_msg);
+    }
+
+  //----------------------------------------------------------------------//
+  template <class T>
+    void PpmReader<T>::ownerError(PpmReaderError e,
+				  const std::string& msg)
+    {
+      d_owner.call(&Owner::handleError, this, e, msg);
     }
 };
 
