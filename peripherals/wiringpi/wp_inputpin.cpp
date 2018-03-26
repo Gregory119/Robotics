@@ -12,31 +12,8 @@ InputPin::InputPin(PinNum pin_num, PullMode pull)
     d_pull_mode(pull)
 {
   pinMode(d_num, INPUT);
-  setPullMode(pull);
+  PIN_UTILS::setPullMode(d_num, pull);
   updateState(); // read initial state
-}
-
-//----------------------------------------------------------------------//
-void InputPin::setPullMode(PullMode pull)
-{
-  switch (pull)
-    {
-    case PullMode::Up:
-      pullUpDnControl(d_num, PUD_UP);
-      break;
-      
-    case PullMode::Down:
-      pullUpDnControl(d_num, PUD_DOWN);
-      break;
-
-    case PullMode::None:
-      pullUpDnControl(d_num, PUD_OFF);
-      break;
-
-    default:
-      assert(false);
-      break;
-    }
 }
 
 //----------------------------------------------------------------------//
@@ -47,6 +24,12 @@ void InputPin::setTriggerCallback(std::function<void(bool)> f)
 
 //----------------------------------------------------------------------//
 void InputPin::setUpdateInterval(std::chrono::milliseconds delay)
+{
+  d_check_state.setTime(delay);
+}
+
+//----------------------------------------------------------------------//
+void InputPin::start()
 {
   if (!d_trigger)
     {
@@ -60,7 +43,7 @@ void InputPin::setUpdateInterval(std::chrono::milliseconds delay)
 	  d_trigger(d_state);
 	}
     });
-  d_check_state.restart(delay);
+  d_check_state.restart();
 }
 
 //----------------------------------------------------------------------//

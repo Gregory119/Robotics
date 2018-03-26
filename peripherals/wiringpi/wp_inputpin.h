@@ -23,6 +23,9 @@ namespace P_WP
     void setUpdateInterval(std::chrono::milliseconds delay =
 			   std::chrono::milliseconds(50));
 
+    // this function must be called to start processing
+    void start();
+
     void setPullMode(PullMode);
     bool readState(); // reads and returns the current physical pin state, but does not update the saved pin state
     bool getSavedState(); // gets the cached pin state
