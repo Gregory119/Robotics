@@ -14,7 +14,7 @@ class Test final : C_RC::StatePwmReader::Owner
   Test(P_WP::PinNum pin)
     : d_reader(new C_RC::StatePwmReader(this,
 					pin,
-					C_RC::PwmLimitsType::Wide))
+					C_RC::PwmLimitsType::Narrow))
     {}
   
  private:

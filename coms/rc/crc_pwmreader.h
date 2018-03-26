@@ -2,24 +2,23 @@
 #define CRC_PWMREADER_H
 
 #include "core_owner.h"
-#include "core_threadpipe.h"
-
 #include "crc_pwmutils.h"
 
 #include "kn_safecallbacktimer.h"
-#include "wp_interrupt.h"
+#include "wp_syncedinterrupt.h"
 
 #include <chrono>
+//#include <iostream>
 
 namespace C_RC
 {
   enum class PwmReaderError
-      {
-	InternalInterruptSetup
-	  };
+  {
+    InternalInterrupt
+      };
   
   template <class T>
-    class PwmReader final : P_WP::Interrupt::Owner
+    class PwmReader final : P_WP::SyncedInterrupt::Owner
     {
     public:
       class Owner
@@ -48,46 +47,30 @@ namespace C_RC
       const PwmMap<T>& getMap() { return d_map; }
 
     private:
-      void handleInterrupt(P_WP::Interrupt* interrupt) override;
+      void handleInterrupt(P_WP::SyncedInterrupt*,
+			   P_WP::Interrupt::Vals) override;
+      void handleError(P_WP::SyncedInterrupt*,
+		       P_WP::Interrupt::Error,
+		       const std::string&) override;
     
     private:
-      void processData();
       std::chrono::nanoseconds getFilteredDuration();
       void ownerPulseDuration(const std::chrono::microseconds& dur);
       void ownerError(PwmReaderError e, const std::string& msg);
 
     private:
-      struct InterruptVals
-      {
-	InterruptVals() = default;
-      InterruptVals(std::chrono::time_point<std::chrono::high_resolution_clock> t_point,
-		    bool state)
-      : time_point(t_point),
-	  pin_state(state)
-	{}
-      
-	std::chrono::time_point<std::chrono::high_resolution_clock> time_point;
-	bool pin_state = false;
-      };
-    
-    private:
       CORE::Owner<PwmReader::Owner> d_owner;
-      std::unique_ptr<P_WP::Interrupt> d_interrupt;
+      std::unique_ptr<P_WP::SyncedInterrupt> d_interrupt;
 
       PwmMap<T> d_map;
     
-      CORE::ThreadPipe<InterruptVals> d_interrupt_vals;
-      std::chrono::high_resolution_clock d_clock;
-      std::chrono::time_point<std::chrono::high_resolution_clock> d_pulse_start_pt;
+      std::chrono::time_point<std::chrono::steady_clock> d_pulse_start_pt;
 
       std::vector<std::chrono::nanoseconds> d_durations_buffer;
     
       bool d_had_first_interrupt = false;
       bool d_prev_pin_state = false;
       bool d_cap_data = false;
-
-      KERN::SafeCallbackTimer d_owner_timer = KERN::SafeCallbackTimer("C_RC::PwmReader Owner Timer");
-      KERN::SafeCallbackTimer d_error_timer = KERN::SafeCallbackTimer("C_RC::PwmReader Error Timer");
     };
 
   //----------------------------------------------------------------------//
@@ -98,83 +81,63 @@ namespace C_RC
     : d_owner(o),
     d_map(std::move(limits))
       {
-	// This thread-safe timer is used to call commands in the main thread by using a zero time.
-	d_owner_timer.setTimeoutCallback([this](){
-	    processData();
-	  });
-	
-	// setup interrupt
-	d_interrupt.reset(new P_WP::Interrupt(this,
-					      pin,
-					      P_WP::Interrupt::Mode::Both));
-
-	if (d_interrupt->hasError())
+	if (!std::is_fundamental<T>::value)
 	  {
-	    d_error_timer.singleShotZero([this](){
-		ownerError(PwmReaderError::InternalInterruptSetup,
-			   "PwmReader::PwmReader - Failed to setup the interrupt.");
-	      });
+	    assert(false);
+	    //LOG!!!
+	    return;
 	  }
+	
+	d_interrupt.reset(new P_WP::SyncedInterrupt(this,
+						    pin,
+						    P_WP::Interrupt::EdgeMode::Both));
       }
 
   //----------------------------------------------------------------------//
   template <class T>
-    void PwmReader<T>::handleInterrupt(P_WP::Interrupt* interrupt)
+    void PwmReader<T>::handleInterrupt(P_WP::SyncedInterrupt*,
+				       P_WP::Interrupt::Vals vals)
     {
-      // MAKE SURE THE PRIVATE MEMBERS USED HERE ARE EITHER NOT USED ANYWHERE ELSE EXCEPT DURING CONSTRUCTION,
-      // OR THEY ARE MUTEXED. THIS IS FOR THREAD SAFETY;
-  
-      // Pass measured values ASAP
-      std::chrono::time_point<std::chrono::high_resolution_clock> point = d_clock.now(); // measure as soon as possible
-      d_interrupt_vals.emplaceBack(std::move(point),interrupt->readPin());
-      if (!d_owner_timer.isScheduledToExpire())
+      if (!d_had_first_interrupt)
 	{
-	  d_owner_timer.singleShotZero();
+	  d_had_first_interrupt = true;
+	  d_prev_pin_state = vals.pin_state;
+	  return;
 	}
+
+      // avoid duplicate detections
+      if (vals.pin_state == d_prev_pin_state)
+	{
+	  return;
+	}
+
+      // determine the PWM pulse duration
+      if (vals.pin_state) // start of pulse
+	{
+	  d_pulse_start_pt = std::move(vals.time_point);
+	}
+      // implied low state
+      else if (d_prev_pin_state) // end of pulse
+	{
+	  std::chrono::nanoseconds dur_raw = vals.time_point - d_pulse_start_pt;
+	  d_durations_buffer.push_back(std::move(dur_raw));
+	  ownerPulseDuration(std::chrono::duration_cast<std::chrono::microseconds>(getFilteredDuration()));
+	}
+      d_prev_pin_state = vals.pin_state;
     }
-  
+
   //----------------------------------------------------------------------//
   template <class T>
-    void PwmReader<T>::processData()
+  void PwmReader<T>::handleError(P_WP::SyncedInterrupt*,
+				 P_WP::Interrupt::Error,
+				 const std::string& msg)
     {
-      while (!d_interrupt_vals.empty())
-	{
-	  InterruptVals vals;
-	  if (!d_interrupt_vals.tryPopFront(vals))
-	    {
-	      assert(false);
-	      return;
-	    }
-      
-	  if (!d_had_first_interrupt)
-	    {
-	      d_had_first_interrupt = true;
-	      d_prev_pin_state = vals.pin_state;
-	      return;
-	    }
-
-	  // avoid duplicate detections
-	  if (vals.pin_state == d_prev_pin_state)
-	    {
-	      return;
-	    }
-
-	  // determine the PWM pulse duration
-	  if (vals.pin_state) // start of pulse
-	    {
-	      d_pulse_start_pt = vals.time_point;
-	    }
-	  // implied low state
-	  else if (d_prev_pin_state) // end of pulse
-	    {
-	      std::chrono::nanoseconds dur_raw = vals.time_point - d_pulse_start_pt;
-	      d_durations_buffer.push_back(std::move(dur_raw));
-	      ownerPulseDuration(std::chrono::duration_cast<std::chrono::microseconds>(getFilteredDuration()));
-	    }
-	  d_prev_pin_state = vals.pin_state;
-	}
+      std::string new_msg = "PwmReader::handleError(P_WP::SyncedInterrupt*..) - Interrupt failure with the message:\n";
+      new_msg += msg;
+      ownerError(PwmReaderError::InternalInterrupt,
+		 new_msg);
     }
-    
+  
   //----------------------------------------------------------------------//
   template <class T>
     std::chrono::nanoseconds PwmReader<T>::getFilteredDuration()

@@ -15,7 +15,7 @@ class Test final : C_RC::PwmReader<unsigned>::Owner
   Test(P_WP::PinNum pin)
     : d_pwmreader(new C_RC::PwmReader<unsigned>(this,
 						pin,
-						C_RC::PwmWideLimits<unsigned>(2000,0))) // keep output the same as the pulse duration limits
+						C_RC::PwmNarrowLimits<unsigned>(2000,0)))
     {
       d_pwmreader->capData();
     }

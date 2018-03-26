@@ -4,12 +4,11 @@
 #include "core_owner.h"
 
 #include "crc_pwmreader.h"
+#include "crc_pwmstatechangedetector.h"
 
 namespace C_RC
 {
-  using PwmReaderType = PwmReader<unsigned>;
-  
-  class StatePwmReader final : PwmReaderType::Owner
+  class StatePwmReader final : PwmReader<unsigned>::Owner
   {
   public:
     class Owner
@@ -27,27 +26,18 @@ namespace C_RC
     
     SET_OWNER();
 
-    // percentage is of the range
-    void setDetectPercentage(unsigned);
-    
   private:
-    void handleValue(PwmReaderType*, unsigned) override;
-    void handleValueOutOfRange(PwmReaderType*, unsigned) override;
-    void handleError(PwmReaderType*,
+    void handleValue(PwmReader<unsigned>*, unsigned) override;
+    void handleValueOutOfRange(PwmReader<unsigned>*, unsigned) override;
+    void handleError(PwmReader<unsigned>*,
 		     PwmReaderError,
 		     const std::string& msg) override;
 
   private:
-    bool isValHigh(unsigned val);
-    bool isValLow(unsigned val);
-    
-  private:
     CORE::Owner<StatePwmReader::Owner> d_owner;
-    std::unique_ptr<PwmReaderType> d_reader;
+    std::unique_ptr<PwmReader<unsigned>> d_reader;
 
-    unsigned d_detect_perc = 15;
-    bool d_state = false;
-    bool d_first_val = true;
+    std::unique_ptr<PwmStateChangeDetector<unsigned>> d_state_detector;
   };
 };
 

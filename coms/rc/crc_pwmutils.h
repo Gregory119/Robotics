@@ -159,6 +159,8 @@ namespace C_RC
       case PwmLimitsType::Wide:
 	return PwmWideLimits<T>(max_val, min_val);
       }
+    assert(false);
+    return PwmNarrowLimits<T>(max_val, min_val);
   }
   
   //----------------------------------------------------------------------//
