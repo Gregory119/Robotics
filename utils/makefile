@@ -1,10 +1,14 @@
-BASE_DIR = ..
-LIBNAME = UTILS
+all: 
+	$(MAKE) mapping
+	$(MAKE) threading
 
-include $(BASE_DIR)/makedef/makefile.set
+.PHONY:clean testprogs
 
-USES_LIBUTILS=1
-HAS_TESTPROGS=1
+testprogs:
+	$(MAKE) testprogs -C mapping
+	$(MAKE) testprogs -C threading
 
-include $(BASE_DIR)/makedef/makefile.libs
-include $(BASE_DIR)/makedef/makefile.rules
+clean:
+	$(RM) *~ *.d* *.o* *# *.core
+	$(MAKE) clean -C mapping
+	$(MAKE) clean -C threading
