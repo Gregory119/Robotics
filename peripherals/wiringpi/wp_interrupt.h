@@ -4,7 +4,9 @@
 #include "wp_pins.h"
 
 #include "core_owner.h"
+#include "kn_asiocallbacktimer.h"
 
+#include <chrono>
 #include <functional>
 
 namespace P_WP
@@ -13,39 +15,64 @@ namespace P_WP
   class Interrupt final
   {
   public:
-    enum class Mode
+    enum class EdgeMode
     {
       Rising,
 	Falling,
 	Both
     };
 
+    enum class Error
+    {
+      EdgeMode,
+	SetupInterrupt,
+	MaxInstances,
+	DuplicatePin,
+	Pin,
+	None
+    };
+
+    struct Vals
+    {
+      Vals() = default;
+    Vals(std::chrono::time_point<std::chrono::steady_clock> t_point,
+	 bool state)
+    : time_point(std::move(t_point)),
+	pin_state(state)
+      {}
+      
+      std::chrono::time_point<std::chrono::steady_clock> time_point;
+      bool pin_state = false;
+    };
+    
   public:
     class Owner
     {
       OWNER_SPECIAL_MEMBERS(Interrupt);
-      virtual void handleInterrupt(Interrupt*) = 0;
+      // this function is called from a thread
+      virtual void handleInterrupt(Interrupt*,
+				   Vals) = 0;
+      virtual void handleError(Interrupt*, Error, const std::string&) = 0;
     };
     
   public:
+    // A failure in the constructor will be called on a zero timer
     Interrupt(Owner*,
 	      PinNum,
-	      Mode);
+	      EdgeMode);
     Interrupt(Interrupt&&) = delete;
+    ~Interrupt();
 
     SET_OWNER();
     
-    // should be checked after construction
-    bool hasError() { return d_has_error; }
-
     bool readPin(); // reads physical pin value and updates cached value
     bool getCachedPinState();
     
     PinNum getPinNum() { return d_pin; }
-    Mode getMode() { return d_mode; }
+    EdgeMode getEdgeMode() { return d_mode; }
 
   private:
-    int getWiringPiMode(Mode);
+    int getWiringPiEdgeMode(EdgeMode);
 
   private:
     enum class FuncCount
@@ -62,10 +89,16 @@ namespace P_WP
   private:
     CORE::Owner<Interrupt::Owner> d_owner;
     
-    PinNum d_pin = PinNum::Unknown;
-    Mode d_mode = Mode::Both;
-    bool d_has_error = false;
+    const PinNum d_pin = PinNum::Unknown;
+    EdgeMode d_mode = EdgeMode::Both;
     bool d_pin_state = false;
+    const int d_callback_index = -1;
+
+    Error d_error = Error::None;
+    std::string d_err_msg;
+    KERN::AsioCallbackTimer d_error_timer = KERN::AsioCallbackTimer("P_WP::Interrupt - Error timer.");
+
+    std::chrono::steady_clock d_clock;
   };
 };
 

@@ -1,6 +1,8 @@
 #ifndef PWP_PINS_H
 #define PWP_PINS_H
 
+#include <cassert>
+
 namespace P_WP
 {
   enum class PullMode
@@ -44,8 +46,15 @@ namespace P_WP
       W25 = 25, // H37 GPIO, SDIO
       W28 = 28, // H38 GPIO, SPI
       W29 = 29, // H40 GPIO, SPI
-      Unknown
+      Unknown = 32
       };
+
+  namespace PIN_UTILS
+  {
+    void setPullMode(int pin, PullMode pull);
+    void setPullMode(PinNum pin, PullMode pull);
+    bool isNumInPinRange(int num);
+  };
 };
 
 #endif
