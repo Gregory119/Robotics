@@ -16,13 +16,9 @@ FileParamManager::FileParamManager(std::string file_path)
 //----------------------------------------------------------------------//
 std::string FileParamManager::getParam(const std::string& name_match)
 {
-  std::string empty_str;
-  if (hasError())
-    {
-      // LOG!!!!!
-      return empty_str;
-    }
-
+  d_error = Error::None;
+  d_error_msg.clear();
+  
   std::fstream file(d_file_path);
   if (file.fail())
     {
@@ -30,7 +26,7 @@ std::string FileParamManager::getParam(const std::string& name_match)
 				std::ios_base::app);
       stream << d_file_path << "'.";
       setError(Error::FileOpen, stream.str());
-      return empty_str;
+      return std::string();
     }
   
   std::string value;
@@ -39,7 +35,7 @@ std::string FileParamManager::getParam(const std::string& name_match)
       goToParamValue(file,name_match);
       if (hasError())
 	{
-	  return empty_str;
+	  return std::string();
 	}
       
       file >> value;
@@ -50,7 +46,7 @@ std::string FileParamManager::getParam(const std::string& name_match)
 				    std::ios_base::app);
 	  stream << name_match << "' from the file '" << d_file_path << "'.";
 	  setError(Error::ParamExtraction, stream.str());
-	  return empty_str;
+	  return std::string();
 	}
     }
   catch (...)
@@ -59,7 +55,7 @@ std::string FileParamManager::getParam(const std::string& name_match)
 				std::ios_base::app);
       stream << name_match << "' from the file '" << d_file_path << "'.";
       setError(Error::GetParamException, stream.str());
-      return empty_str;
+      return std::string();
     }
   return value;
 }
@@ -68,11 +64,8 @@ std::string FileParamManager::getParam(const std::string& name_match)
 void FileParamManager::setParamFromTo(const std::string& name_match,
 				      const std::string& new_value)
 {
-  if (hasError())
-    {
-      // LOG!!!!!
-      return;
-    }
+  d_error = Error::None;
+  d_error_msg.clear();
 
   std::fstream file(d_file_path);
   if (file.fail())

@@ -4,7 +4,7 @@
 
 #include "crc_statepwmreader.h"
 #include "kn_asiokernel.h"
-#include "wiringPi.h"
+#include <wiringPi.h>
 
 #include <iostream>
 
@@ -15,7 +15,9 @@ class Test final : C_RC::StatePwmReader::Owner
     : d_reader(new C_RC::StatePwmReader(this,
 					pin,
 					C_RC::PwmLimitsType::Narrow))
-    {}
+    {
+      d_reader->start();
+    }
   
  private:
   void handleState(C_RC::StatePwmReader*, bool state) override

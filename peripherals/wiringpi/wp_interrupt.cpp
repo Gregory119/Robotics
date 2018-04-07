@@ -57,119 +57,118 @@ Interrupt::Interrupt(Owner* o,
     }
 
   // callback function for interrupt
-  void (*f)(void) = nullptr;
   switch (d_pin)
     {
     case PinNum::W8:
-      f = InterruptFunc<PinNum::W8>;
+      d_temp_callback = InterruptFunc<PinNum::W8>;
       break;
       
     case PinNum::W9:
-      f = InterruptFunc<PinNum::W9>;
+      d_temp_callback = InterruptFunc<PinNum::W9>;
       break;
       
     case PinNum::W7:
-      f = InterruptFunc<PinNum::W7>;
+      d_temp_callback = InterruptFunc<PinNum::W7>;
       break;
       
     case PinNum::W15:
-      f = InterruptFunc<PinNum::W15>;
+      d_temp_callback = InterruptFunc<PinNum::W15>;
       break;
       
     case PinNum::W16:
-      f = InterruptFunc<PinNum::W16>;
+      d_temp_callback = InterruptFunc<PinNum::W16>;
       break;
       
     case PinNum::W0:
-      f = InterruptFunc<PinNum::W0>;
+      d_temp_callback = InterruptFunc<PinNum::W0>;
       break;
       
     case PinNum::W1:
-      f = InterruptFunc<PinNum::W1>;
+      d_temp_callback = InterruptFunc<PinNum::W1>;
       break;
       
     case PinNum::W2:
-      f = InterruptFunc<PinNum::W2>;
+      d_temp_callback = InterruptFunc<PinNum::W2>;
       break;
       
     case PinNum::W3:
-      f = InterruptFunc<PinNum::W3>;
+      d_temp_callback = InterruptFunc<PinNum::W3>;
       break;
       
     case PinNum::W4:
-      f = InterruptFunc<PinNum::W4>;
+      d_temp_callback = InterruptFunc<PinNum::W4>;
       break;
       
     case PinNum::W5:
-      f = InterruptFunc<PinNum::W5>;
+      d_temp_callback = InterruptFunc<PinNum::W5>;
       break;
       
     case PinNum::W12:
-      f = InterruptFunc<PinNum::W12>;
+      d_temp_callback = InterruptFunc<PinNum::W12>;
       break;
       
     case PinNum::W13:
-      f = InterruptFunc<PinNum::W13>;
+      d_temp_callback = InterruptFunc<PinNum::W13>;
       break;
       
     case PinNum::W6:
-      f = InterruptFunc<PinNum::W6>;
+      d_temp_callback = InterruptFunc<PinNum::W6>;
       break;
       
     case PinNum::W14:
-      f = InterruptFunc<PinNum::W14>;
+      d_temp_callback = InterruptFunc<PinNum::W14>;
       break;
       
     case PinNum::W10:
-      f = InterruptFunc<PinNum::W10>;
+      d_temp_callback = InterruptFunc<PinNum::W10>;
       break;
       
     case PinNum::W11:
-      f = InterruptFunc<PinNum::W11>;
+      d_temp_callback = InterruptFunc<PinNum::W11>;
       break;
       
     case PinNum::W30:
-      f = InterruptFunc<PinNum::W30>;
+      d_temp_callback = InterruptFunc<PinNum::W30>;
       break;
       
     case PinNum::W31:
-      f = InterruptFunc<PinNum::W31>;
+      d_temp_callback = InterruptFunc<PinNum::W31>;
       break;
       
     case PinNum::W21:
-      f = InterruptFunc<PinNum::W21>;
+      d_temp_callback = InterruptFunc<PinNum::W21>;
       break;
       
     case PinNum::W22:
-      f = InterruptFunc<PinNum::W22>;
+      d_temp_callback = InterruptFunc<PinNum::W22>;
       break;
       
     case PinNum::W26:
-      f = InterruptFunc<PinNum::W26>;
+      d_temp_callback = InterruptFunc<PinNum::W26>;
       break;
       
     case PinNum::W23:
-      f = InterruptFunc<PinNum::W23>;
+      d_temp_callback = InterruptFunc<PinNum::W23>;
       break;
       
     case PinNum::W24:
-      f = InterruptFunc<PinNum::W24>;
+      d_temp_callback = InterruptFunc<PinNum::W24>;
       break;
       
     case PinNum::W27:
-      f = InterruptFunc<PinNum::W27>;
+      d_temp_callback = InterruptFunc<PinNum::W27>;
       break;
       
     case PinNum::W25:
-      f = InterruptFunc<PinNum::W25>;
+      d_temp_callback = InterruptFunc<PinNum::W25>;
       break;
       
     case PinNum::W28:
-      f = InterruptFunc<PinNum::W28>;
+      d_temp_callback = InterruptFunc<PinNum::W28>;
       break;
       
     case PinNum::W29:
-      f = InterruptFunc<PinNum::W29>;
+      d_temp_callback = InterruptFunc<PinNum::W29>;
       break;
       
     case PinNum::Unknown:
@@ -209,23 +208,39 @@ Interrupt::Interrupt(Owner* o,
 
   PIN_UTILS::setPullMode(d_pin, P_WP::PullMode::None);
   d_pin_state = digitalRead(static_cast<int>(d_pin));
-  
-  if (wiringPiISR(static_cast<int>(d_pin),
-		  getWiringPiEdgeMode(d_mode),
-		  f) < 0)
-    {
-      s_callbacks.erase(d_callback_index);
-      d_error = Error::SetupInterrupt;
-      d_err_msg = "Interrupt::start - Failed to setup the WiringPi interrupt.";
-      d_error_timer.singleShotZero();
-      return;
-    }
 }
 
 //----------------------------------------------------------------------//
 Interrupt::~Interrupt()
 {
   s_callbacks.erase(d_callback_index);
+}
+
+//----------------------------------------------------------------------//
+void Interrupt::start()
+{
+  if (d_started)
+    {
+      assert(false);
+      d_owner.call(&Owner::handleError,
+		   this,
+		   Error::AlreadyStarted,
+		   "Interrupt::start - Failed to start when already started.");
+      return;
+    }
+  d_started = true;
+  
+  if (wiringPiISR(static_cast<int>(d_pin),
+		  getWiringPiEdgeMode(d_mode),
+		  *d_temp_callback.target<void(*)(void)>()) < 0)
+    {
+      s_callbacks.erase(d_callback_index);
+      d_owner.call(&Owner::handleError,
+		   this,
+		   Error::Start,
+		   "Interrupt::start - Failed to setup the WiringPi interrupt.");
+      return;
+    }
 }
 
 //----------------------------------------------------------------------//

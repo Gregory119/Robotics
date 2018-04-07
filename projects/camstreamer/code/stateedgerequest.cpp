@@ -1,55 +1,75 @@
 #include "stateedgerequest.h"
 
 //----------------------------------------------------------------------//
-void StateEdgeRequest::activateDurationTriggers(const std::chrono::milliseconds& dur,
-						bool trig_state)
+void StateEdgeRequest::setTrigger(TriggerSetting trigger_set,
+				  const std::chrono::milliseconds& dur)
 {
-  d_has_dur_trig = true;
-  d_state_timer.setTime(dur);
-
-  if (!d_has_dur_trig)
+  d_trigger_set = trigger_set;
+  d_state_timer.disableIfEnabled();
+  
+  switch (d_trigger_set)
     {
-      d_state_timer.disableIfEnabled();
+    case TriggerSetting::None:
+      return;
+      
+    case TriggerSetting::Combination:
+      d_state_timer.setTime(dur);
+      d_state_timer.setTimeoutCallback([this](){
+	  d_owner.call(&StateEdgeRequest::Owner::handleRequest,
+		       this,
+		       Trigger::AfterDuration);
+	});
       return;
     }
-  
-  d_trig_state = trig_state;
-  d_state_timer.disableIfEnabled();
-  d_state_timer.setTimeoutCallback([this](){
-      d_owner.call(StateEdgeRequest::Owner::handleRequest,
-		   this,
-		   DurationTrigger::AfterDuration);
-    });
+  assert(false);
+  std::ostringstream stream("setTrigger - invalid TriggerSetting of ",
+			    std::ios_base::app);
+  stream << static_cast<int>(d_trigger_set) << ".";
+  ownerError(stream.str());
 }
 
 //----------------------------------------------------------------------//
 void StateEdgeRequest::processState(bool state)
 {
-  if (!d_has_dur_trig)
+  switch (d_trigger_set)
     {
-      d_owner.call(StateEdgeRequest::Owner::handleRequest,
+    case TriggerSetting::None:
+      d_owner.call(&StateEdgeRequest::Owner::handleRequest,
 		   this,
-		   DurationTrigger::None);
+		   Trigger::None);
       return;
-    }
-  
-  if (state == d_trig_state)
-    {
-      d_on_off_wait_set = true;
-      d_state_timer.singleShot();
-      return;
-    }
+      
+    case TriggerSetting::Combination:
+      if (!d_on_off_wait_set)
+	{
+	  d_on_off_wait_set = true;
+	  d_state_timer.singleShot();
+	  return;
+	}
 
-  // state != d_trig_state
-  // if changed before timeout then trigger
-  if (d_on_off_wait_set && d_state_timer.isScheduledToExpire())
-    {
-      d_on_off_wait_set = false;
-      d_state_timer.disable();
-      d_owner.call(StateEdgeRequest::Owner::handleRequest,
-		   this,
-		   DurationTrigger::OnOffBeforeDuration);
+      if (d_state_timer.isScheduledToExpire())
+	{
+	  d_on_off_wait_set = false;
+	  d_state_timer.disable();
+	  d_owner.call(&StateEdgeRequest::Owner::handleRequest,
+		       this,
+		       Trigger::OnOffBeforeDuration);
+	  return;
+	}
+      d_state_timer.singleShot(); // on off wait still set
       return;
     }
-  return;
+  assert(false);
+  std::ostringstream stream("processState - invalid TriggerSetting of ",
+			    std::ios_base::app);
+  stream << static_cast<int>(d_trigger_set) << ".";
+  ownerError(stream.str());
+}
+
+//----------------------------------------------------------------------//
+void StateEdgeRequest::ownerError(const std::string& msg)
+{
+  std::string new_msg = "StateEdgeRequest::";
+  new_msg += msg;
+  d_owner.call(&Owner::handleError, this, new_msg);
 }

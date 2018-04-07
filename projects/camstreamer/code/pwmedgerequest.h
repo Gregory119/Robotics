@@ -5,21 +5,28 @@
 #include "kn_asiocallbacktimer.h"
 #include "crc_statepwmreader.h"
 
-class PwmEdgeRequest final : StateEdgeRequest,
+#include <chrono>
+
+class PwmEdgeRequest final : public StateEdgeRequest,
   C_RC::StatePwmReader::Owner
 {
  public:
+  // the PwmLimits max and min vals are changed internally, so any number can be used for these
   PwmEdgeRequest(StateEdgeRequest::Owner* o,
 		 int num,
-		 C_RC::PwmLimitsType); // add a pointer to a pwm reader so that this can be attached to it as an observer
+		 std::chrono::microseconds max_pulse_duration,
+		 std::chrono::microseconds min_pulse_duration);
 
-  void handleState(StatePwmReader*, bool) override;
-  void handleError(StatePwmReader*,
-		   PwmReaderError,
+  void start() override;
+  
+ private:
+  void handleState(C_RC::StatePwmReader*, bool) override;
+  void handleError(C_RC::StatePwmReader*,
+		   C_RC::PwmReaderError,
 		   const std::string& msg) override;
   
  private:
-  std::unique_ptr<C_RC::StatePwmReader> d_pwm_reader;
+  std::unique_ptr<C_RC::StatePwmReader> d_reader;
 };
 
 #endif

@@ -10,6 +10,7 @@ USES_LIBGP=1
 USES_LIBWIRINGPI=1
 USES_LIBLED=1
 USES_LIBWIFI=1
+USES_LIBCRC=1
 
 include $(BASE_DIR)/makedef/makefile.libs
 include $(BASE_DIR)/makedef/makefile.rules

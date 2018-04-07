@@ -3,6 +3,16 @@
 using namespace KERN;
 
 //----------------------------------------------------------------------//
+SafeCallbackTimer::SafeCallbackTimer()
+  : d_timer(new AsioCallbackTimer())
+{
+  d_timer->setInternalTimerCallback([this](const boost::system::error_code& err){
+      std::lock_guard<std::mutex> lk(d_m);
+      d_timer->timerCallback(err);
+    });
+}
+
+//----------------------------------------------------------------------//
 SafeCallbackTimer::SafeCallbackTimer(std::string name)
   : d_timer(new AsioCallbackTimer(std::move(name)))
 {
@@ -39,7 +49,7 @@ void SafeCallbackTimer::setTimeoutCallback(std::function<void()> callback)
 }
 
 //----------------------------------------------------------------------//
-void SafeCallbackTimer::restart(const std::chrono::milliseconds& time)
+void SafeCallbackTimer::restart(const std::chrono::microseconds& time)
 {
   std::lock_guard<std::mutex> lk(d_m);
   d_timer->restart(time);
@@ -53,21 +63,21 @@ void SafeCallbackTimer::restart()
 }
 
 //----------------------------------------------------------------------//
-void SafeCallbackTimer::restartIfNotSet(const std::chrono::milliseconds& time)
+void SafeCallbackTimer::restartIfNotSet(const std::chrono::microseconds& time)
 {
   std::lock_guard<std::mutex> lk(d_m);
   d_timer->restartIfNotSet(time);
 }
 
 //----------------------------------------------------------------------//
-void SafeCallbackTimer::restartIfNotSetOrDisabled(const std::chrono::milliseconds& time)
+void SafeCallbackTimer::restartIfNotSetOrDisabled(const std::chrono::microseconds& time)
 {
   std::lock_guard<std::mutex> lk(d_m);
   d_timer->restartIfNotSetOrDisabled(time);
 }
     
 //----------------------------------------------------------------------//
-void SafeCallbackTimer::singleShot(const std::chrono::milliseconds& time)
+void SafeCallbackTimer::singleShot(const std::chrono::microseconds& time)
 {
   std::lock_guard<std::mutex> lk(d_m);
   d_timer->singleShot(time);
@@ -123,7 +133,7 @@ long SafeCallbackTimer::getConseqTimeOuts()
 }
 
 //----------------------------------------------------------------------//
-void SafeCallbackTimer::setTime(const std::chrono::milliseconds& time)
+void SafeCallbackTimer::setTime(const std::chrono::microseconds& time)
 {
   std::lock_guard<std::mutex> lk(d_m);
   d_timer->setTime(time);

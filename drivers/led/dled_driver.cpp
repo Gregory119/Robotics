@@ -1,7 +1,6 @@
 #include "dled_driver.h"
 
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 using namespace D_LED;
@@ -90,9 +89,6 @@ void Driver::flashPerSec(unsigned rate)
 //----------------------------------------------------------------------//
 void Driver::flashAdvanced(const AdvancedSettings& set)
 {
-#ifndef RELEASE
-  std::cout << set.print() << std::endl;;
-#endif
   d_adv_timer.disableIfEnabled();
   internalFlashAdvanced(set);
 }

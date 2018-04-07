@@ -13,21 +13,4 @@ enum class ReqMode
       Unknown
       };
 
-//----------------------------------------------------------------------//
-bool isValidPullMode(ReqMode mode)
-{
-  switch (mode)
-    {
-    case ReqMode::Up:
-    case ReqMode::Down:
-    case ReqMode::Float:
-      return true;
-      
-    case ReqMode::Pwm:
-    case ReqMode::Ppm:
-    case ReqMode::Unknown:
-    }
-  return false;
-};
-
 #endif

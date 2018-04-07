@@ -14,8 +14,11 @@ namespace C_RC
   enum class PwmLimitsType
   {
     Narrow,
-      Wide
+      Wide,
+      PpmFlySky
       };
+
+  
   
   template <class T>
   struct PwmLimits
@@ -36,40 +39,18 @@ namespace C_RC
 
     static PwmLimits<T> create(PwmLimitsType, T max_val, T min_val);
     
-    const T max_val;
-    const T min_val;
-    const T val_range;
+    const T max_val = 0;
+    const T min_val = 0;
+    const T val_range = 0;
     const unsigned max_duration_micros = 0;
     const unsigned min_duration_micros = 0;
   };
-
-  template <class T>
-  struct PwmNarrowLimits : public PwmLimits<T>
-  {
-  PwmNarrowLimits(T max_v, T min_v)
-    : PwmLimits<T>(max_v,
-		   min_v,
-		   std::chrono::microseconds(2000),
-		   std::chrono::microseconds(1000))
-      {}
-  };
-
-  template <class T>
-  struct PwmWideLimits : public PwmLimits<T>
-  {
-  PwmWideLimits(T max_v, T min_v)
-    : PwmLimits<T>(max_v,
-		   min_v,
-		   std::chrono::microseconds(2500),
-		   std::chrono::microseconds(500))
-      {}
-  };
-
+  
   template <class T>
   class PwmMap
   {
   public:
-    PwmMap(PwmLimits<T> limits);
+    PwmMap(const PwmLimits<T>& limits);
     PwmMap(PwmMap&&) = default;
     PwmMap& operator=(PwmMap&&) = default;
     virtual ~PwmMap() = default;
@@ -94,11 +75,11 @@ namespace C_RC
 			    T min_v,
 			    std::chrono::microseconds max_dur,
 			    std::chrono::microseconds min_dur)
-    : max_val(std::move(max_v)),
-    min_val(std::move(min_v)),
+    : max_val(max_v),
+    min_val(min_v),
     val_range(max_val-min_val),
-    max_duration_micros(std::move(max_dur.count())),
-    min_duration_micros(std::move(min_dur.count()))
+    max_duration_micros(max_dur.count()),
+    min_duration_micros(min_dur.count())
       {
 	if (!std::is_fundamental<T>::value)
 	  {
@@ -107,8 +88,15 @@ namespace C_RC
 	    return;
 	  }
 
-	if (max_dur.count() > 2500 || //getMaxPwmDuration().count() ||
-	    min_dur.count() < 500 ) //getMinPwmDuration().count())
+	if (max_val < min_val)
+	  {
+	    // LOG
+	    assert(false);
+	    return;
+	  }
+	
+	if (max_dur.count() > 3000 ||
+	    max_dur.count() < min_dur.count()) // implies min_dur.count() >= 0
 	  {
 	    // LOG
 	    assert(false);
@@ -154,21 +142,36 @@ namespace C_RC
     switch (type)
       {
       case PwmLimitsType::Narrow:
-	return PwmNarrowLimits<T>(max_val, min_val);
+	return PwmLimits<T>(max_val,
+			    min_val,
+			    std::chrono::microseconds(2000),
+			    std::chrono::microseconds(1000));
 
       case PwmLimitsType::Wide:
-	return PwmWideLimits<T>(max_val, min_val);
+	return PwmLimits<T>(max_val,
+			    min_val,
+			    std::chrono::microseconds(2500),
+			    std::chrono::microseconds(500));
+
+      case PwmLimitsType::PpmFlySky:
+	return PwmLimits<T>(max_val,
+			    min_val,
+			    std::chrono::microseconds(2000),
+			    std::chrono::microseconds(1000));
       }
     assert(false);
-    return PwmNarrowLimits<T>(max_val, min_val);
+    return PwmLimits<T>(max_val,
+			min_val,
+			std::chrono::microseconds(2000),
+			std::chrono::microseconds(1000));
   }
   
   //----------------------------------------------------------------------//
   // PwmMap
   //----------------------------------------------------------------------//
   template <class T>
-    PwmMap<T>::PwmMap(PwmLimits<T> limits)
-    : d_limits(std::move(limits))
+    PwmMap<T>::PwmMap(const PwmLimits<T>& limits)
+    : d_limits(limits)
     {
       if (!std::is_fundamental<T>::value)
 	{

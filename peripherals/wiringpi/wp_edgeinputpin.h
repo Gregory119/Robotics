@@ -21,6 +21,8 @@ namespace P_WP
 		 PullMode,
 		 EdgeType);
     EdgeInputPin(EdgeInputPin&&) = delete;
+
+    // use inherited functions from InputPin
    
   private:
     bool hasTriggered() override;

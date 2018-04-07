@@ -29,9 +29,6 @@ Configurator::Configurator(Owner* o, std::string file_path)
 }
 
 //----------------------------------------------------------------------//
-void Configurator::setOwner(Owner* o) { assert(o!=nullptr); d_owner = o; }
-
-//----------------------------------------------------------------------//
 void Configurator::parseFile()
 {
   if (hasError())
@@ -42,25 +39,13 @@ void Configurator::parseFile()
   d_ssid.erase();
   d_pw.erase();
   
-  if (!extractSSID())
-    {
-      return;
-    }
-
-  if (!extractPassword())
-    {
-      return;
-    }
+  extractSSID();
+  extractPassword();
 }
 
 //----------------------------------------------------------------------//
 void Configurator::setSsid(const std::string& new_ssid)
 {
-  if (hasError())
-    {
-      return;
-    }
-
   std::cout << "setSsid: ssid match = " << s_ssid_match << " new ssid = " << new_ssid << std::endl;
   d_file_param_man->setParamFromTo(s_ssid_match, new_ssid);
   if (d_file_param_man->hasError())
@@ -76,11 +61,6 @@ void Configurator::setSsid(const std::string& new_ssid)
 //----------------------------------------------------------------------//
 void Configurator::setSsidWithQuotes(const std::string& ssid)
 {
-  if (hasError())
-    {
-      return;
-    }
-  
   std::string new_ssid = "\"";
   new_ssid += ssid;
   new_ssid += "\"";
@@ -90,11 +70,6 @@ void Configurator::setSsidWithQuotes(const std::string& ssid)
 //----------------------------------------------------------------------//
 void Configurator::setPasswordWithQuotes(const std::string& pw)
 {
-  if (hasError())
-    {
-      return;
-    }
-  
   std::string new_pw = "\"";
   new_pw += pw;
   new_pw += "\"";
@@ -104,11 +79,6 @@ void Configurator::setPasswordWithQuotes(const std::string& pw)
 //----------------------------------------------------------------------//
 void Configurator::setPassword(const std::string& new_pw)
 {
-  if (hasError())
-    {
-      return;
-    }
-
   std::cout << "setPassword: password match = " << s_pw_match << " new password = " << new_pw << std::endl;
   d_file_param_man->setParamFromTo(s_pw_match, new_pw);
   if (d_file_param_man->hasError())
@@ -122,7 +92,7 @@ void Configurator::setPassword(const std::string& new_pw)
 }
 
 //----------------------------------------------------------------------//
-bool Configurator::extractSSID()
+void Configurator::extractSSID()
 {
   d_ssid.erase();
   Error e = Error::SSID;
@@ -134,7 +104,7 @@ bool Configurator::extractSSID()
       std::ostringstream stream("extractSSID - Failed to extract the SSID because of the following error: \n", std::ios_base::app);
       stream << d_file_param_man->getErrorMsg();
       ownerHandleError(e, stream.str());
-      return false;
+      return;
     }
 
   if (!d_file_param_man->removeQuotesFromTo(ssid_text,d_ssid))
@@ -144,13 +114,12 @@ bool Configurator::extractSSID()
       stream << ssid_text << "' is not in the correct format in the file '"
 	     << d_file_param_man->getFilePath() << "'.";
       ownerHandleError(e,stream.str());
-      return false;
+      return;
     }
-  return true;
 }
 
 //----------------------------------------------------------------------//
-bool Configurator::extractPassword()
+void Configurator::extractPassword()
 {
   d_pw.erase();
   Error e = Error::Password;
@@ -163,7 +132,7 @@ bool Configurator::extractPassword()
 				std::ios_base::app);
       stream << d_file_param_man->getErrorMsg();
       ownerHandleError(e, stream.str());
-      return false;
+      return;
     }
   
   if (!d_file_param_man->removeQuotesFromTo(pw_text,d_pw))
@@ -173,9 +142,8 @@ bool Configurator::extractPassword()
       stream << pw_text << "' is not in the correct format in the file '"
 	     << d_file_param_man->getFilePath() << "'.";
       ownerHandleError(e,stream.str());
-      return false;
+      return;
     }
-  return true;
 }
   
 //----------------------------------------------------------------------//
@@ -184,8 +152,5 @@ void Configurator::ownerHandleError(Error e, const std::string& msg)
   d_has_error=true;
   std::string final_msg = "P_WIFI::Configurator::";
   final_msg += msg;
-  if (d_owner != nullptr)
-    {
-      d_owner->handleError(this,e,final_msg);
-    }
+  d_owner.call(&Owner::handleError,this,e,final_msg);
 }

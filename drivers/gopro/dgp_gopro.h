@@ -2,6 +2,7 @@
 #define DGP_GOPRO_H
 
 #include "dgp_types.h"
+#include "core_owner.h"
 
 /*
   This is the gopro interface.
@@ -49,20 +50,12 @@ namespace D_GP
 
     class Owner // inherit privately
     {
-    public:
-      Owner(const Owner&) = delete;
-      Owner& operator=(const Owner&) = delete;
-      Owner(Owner&&) = delete;
-      Owner&& operator=(Owner&&) = delete;
-
-    protected:
-      Owner() = default;
-      ~Owner() = default;
-
-    private:
-      friend GoPro;
+      OWNER_SPECIAL_MEMBERS(GoPro);
       // queued commands should be cleared on a failure
-      virtual void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) = 0;
+      virtual void handleCommandFailed(GoPro*,
+				       GoPro::Cmd,
+				       GoPro::Error,
+				       const std::string&) = 0;
       virtual void handleCommandSuccessful(GoPro*, GoPro::Cmd) = 0;
       virtual void handleStreamDown(GoPro*) = 0;
     };
@@ -85,9 +78,9 @@ namespace D_GP
     virtual void cancelBufferedCmds() = 0;
     // Can add additional virtual functions which have asserts in their definition. The GoPro that supports the command will have it defined.
 
-    void ownerHandleCommandFailed(GoPro::Cmd, GoPro::Error);
-    void ownerHandleCommandSuccessful(GoPro::Cmd);
-    void ownerHandleStreamDown();
+    void ownerCommandFailed(GoPro::Cmd, GoPro::Error, const std::string&);
+    void ownerCommandSuccessful(GoPro::Cmd);
+    void ownerStreamDown();
 
     const Status& getStatus() { return d_status; }
     

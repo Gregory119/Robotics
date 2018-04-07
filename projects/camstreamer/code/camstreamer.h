@@ -2,6 +2,7 @@
 #define CAMSTREAMER_H
 
 #include "config.h"
+#include "requestmanager.h"
 
 #include "dled_controller.h"
 #include "dgp_modecontroller.h"
@@ -16,7 +17,8 @@
 class CamStreamer final : RequestManager::Owner,
   D_GP::ModeController::Owner,
   D_LED::Controller::Owner,
-  P_WIFI::Configurator::Owner
+  P_WIFI::Configurator::Owner,
+  Config::Owner
 {
  public:
   CamStreamer(std::string config_file_path);
@@ -24,10 +26,13 @@ class CamStreamer final : RequestManager::Owner,
 
  private:
   // RequestManager::Owner
-  void handleReqMode(RequestManager*) override;
+  void handleReqNextMode(RequestManager*) override;
   void handleReqTrigger(RequestManager*) override;
   void handleReqShutdown(RequestManager*) override;
-  void handleReqRestartPower(RequestManager*) override;
+  void handleReqReboot(RequestManager*) override;
+  void handleError(RequestManager*,
+		   RequestManager::Error,
+		   const std::string& msg) override;
   
   // D_GP::ModeController::Owner
   void handleFailedRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
@@ -44,6 +49,11 @@ class CamStreamer final : RequestManager::Owner,
   // P_WIFI::Owner
   void handleError(P_WIFI::Configurator*,
 		   P_WIFI::Configurator::Error,
+		   const std::string& msg) override;
+
+  // Config::Owner
+  void handleError(Config*,
+		   Config::Error,
 		   const std::string& msg) override;
 
  private:
@@ -66,6 +76,7 @@ class CamStreamer final : RequestManager::Owner,
  private:
   std::unique_ptr<RequestManager> d_req_man;
   std::unique_ptr<P_WIFI::Configurator> d_wifi_config;
+  std::unique_ptr<Config> d_config;
   
   D_GP::ModeController::CtrlParams d_gpcont_params;
   std::unique_ptr<D_GP::ModeController> d_gp_controller;

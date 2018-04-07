@@ -6,6 +6,8 @@
 #include "crc_pwmreader.h"
 #include "crc_pwmstatechangedetector.h"
 
+#include <chrono>
+
 namespace C_RC
 {
   class StatePwmReader final : PwmReader<unsigned>::Owner
@@ -21,12 +23,19 @@ namespace C_RC
     };
 
   public:
-    StatePwmReader(Owner*, P_WP::PinNum, PwmLimitsType);
+    // the PwmLimits max and min vals are changed internally, so any number can be used for these
+    StatePwmReader(Owner*,
+		   P_WP::PinNum,
+		   std::chrono::microseconds max_pulse_duration,
+		   std::chrono::microseconds min_pulse_duration);
     StatePwmReader(StatePwmReader&&) = delete;
     
     SET_OWNER();
 
+    void start();
+
   private:
+    // PwmReader<unsigned>::Owner
     void handleValue(PwmReader<unsigned>*, unsigned) override;
     void handleValueOutOfRange(PwmReader<unsigned>*, unsigned) override;
     void handleError(PwmReader<unsigned>*,

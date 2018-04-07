@@ -63,14 +63,13 @@ namespace CORE
     {
       if (o == nullptr)
 	{
-	  // LOG
-	  assert(false);
 	  d_is_disabled = true;
 	  return *this;
 	}
       
       d_is_disabled = false;
       d_owner = o;
+      return *this;
     }
 
   template <class T>
@@ -108,8 +107,7 @@ namespace CORE
       {
 	try
 	  {
-	    auto func = std::bind(f, d_owner, std::forward<Args>(args)...);
-	    func();
+	    (d_owner->*f)(std::forward<Args>(args)...);
 	  }
 	catch (...)
 	  {

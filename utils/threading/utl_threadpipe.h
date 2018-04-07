@@ -18,6 +18,7 @@ namespace UTIL
       ThreadPipe& operator=(ThreadPipe&& rhs);
 
       bool empty() const;
+      void pushBack(T&& val);
       void pushBack(const T& val);
 
       template <class... Args>
@@ -91,7 +92,21 @@ namespace UTIL
       return *this;
     }
 
-    //----------------------------------------------------------------------//
+  //----------------------------------------------------------------------//
+  template <class T>
+    void ThreadPipe<T>::pushBack(T&& val)
+    {
+      std::lock_guard<std::mutex> lk(d_m);
+      if (d_data.size() > d_max_size)
+	{
+	  assert(false);
+	  ++d_data_drop_count;
+	  return;
+	}
+      d_data.push_back(std::move(val));
+    }
+
+  //----------------------------------------------------------------------//
   template <class T>
     void ThreadPipe<T>::pushBack(const T& val)
     {

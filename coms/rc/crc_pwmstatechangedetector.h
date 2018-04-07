@@ -3,6 +3,9 @@
 
 #include "crc_pwmstatechecker.h"
 
+#include <functional>
+#include <memory>
+
 namespace C_RC
 {
   template <class T>
@@ -53,14 +56,12 @@ namespace C_RC
 	  if (d_state_checker->isHigh(val))
 	    {
 	      d_state = true;
-	      d_callback(d_state);
 	      return;
 	    }
 
 	  if (d_state_checker->isLow(val))
 	    {
 	      d_state = false;
-	      d_callback(d_state);
 	      return;
 	    }
 	}

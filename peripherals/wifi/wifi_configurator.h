@@ -41,7 +41,7 @@ namespace P_WIFI
   
   public:
     Configurator(Owner*, std::string file_path); // commonly used with the systemd wpa_supplicant.conf file
-    void setOwner(Owner* o);
+    SET_OWNER();
     
     // The cached parameters are cleared before parsing.
     void parseFile();
@@ -58,12 +58,12 @@ namespace P_WIFI
     bool hasError() { return d_has_error; }
   
   private:
-    bool extractSSID();
-    bool extractPassword();
+    void extractSSID();
+    void extractPassword();
     void ownerHandleError(Error, const std::string& msg);
   
   private:
-    Owner* d_owner = nullptr;
+    CORE::Owner<Owner> d_owner;
   
     std::unique_ptr<CORE::FileParamManager> d_file_param_man;
   

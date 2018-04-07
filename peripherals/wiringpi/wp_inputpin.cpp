@@ -14,6 +14,7 @@ InputPin::InputPin(PinNum pin_num, PullMode pull)
   pinMode(d_num, INPUT);
   PIN_UTILS::setPullMode(d_num, pull);
   updateState(); // read initial state
+  setUpdateInterval();
 }
 
 //----------------------------------------------------------------------//

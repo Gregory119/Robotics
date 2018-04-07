@@ -8,14 +8,20 @@ SyncedInterrupt::SyncedInterrupt(Owner* o,
 				 Interrupt::EdgeMode mode)
   : d_owner(o),
     d_interrupt(new Interrupt(this, pin, mode)),
-    d_pipe(new UTIL::SyncedThreadPipe<Interrupt::Vals>([this](Interrupt::Vals vals){
+    d_pipe(new UTIL::SyncedThreadPipe<Interrupt::Vals>([this](Interrupt::Vals&& vals){
 	  d_owner.call(&Owner::handleInterrupt, this, std::move(vals));
 	}))
 {}
 
 //----------------------------------------------------------------------//
+void SyncedInterrupt::start()
+{
+  d_interrupt->start();
+}
+
+//----------------------------------------------------------------------//
 void SyncedInterrupt::handleInterrupt(Interrupt*,
-				      Interrupt::Vals vals)
+				      Interrupt::Vals&& vals)
 {
   // Called by thread, so syncronize with a syncronized pipe.
   d_pipe->pushBack(std::move(vals));

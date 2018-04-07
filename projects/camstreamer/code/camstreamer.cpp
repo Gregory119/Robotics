@@ -6,7 +6,8 @@
 
 //----------------------------------------------------------------------//
 CamStreamer::CamStreamer(std::string config_file_path)
-  : d_req_man(new RequestManager(this, std::move(config_file_path))),
+  : d_req_man(new RequestManager(this, config_file_path)),
+    d_config(new Config(this, std::move(config_file_path))),
     d_led_ctrl(new D_LED::Controller(this))
 {}
 
@@ -22,8 +23,6 @@ void CamStreamer::start()
 
   setupWifi();
 
-  d_req_man->start();
-
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
   restartGPController();
   setState(State::Connecting);
@@ -31,12 +30,14 @@ void CamStreamer::start()
   d_restart_gp_timer.setTimeoutCallback([this](){
       restartGPController();
     });
+
+  d_req_man->start(); // enable requests once everything is constructed and set
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleReqMode(RequestManager*)
+void CamStreamer::handleReqNextMode(RequestManager*)
 {
-  std::cout << "CamStreamer::handleReqMode()" << std::endl;
+  std::cout << "CamStreamer::handleReqNextMode()" << std::endl;
   if (d_gp_controller == nullptr)
     {
       return;
@@ -66,59 +67,28 @@ void CamStreamer::handleReqShutdown(RequestManager*)
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleReqRestartPower(RequestManager*)
+void CamStreamer::handleReqReboot(RequestManager*)
 {
-  
-}
-
-//----------------------------------------------------------------------//
-void CamStreamer::setupWifi()
-{
-  // open the file and extract the current settings
-  d_wifi_config.reset(new P_WIFI::Configurator(this,"/etc/wpa_supplicant/wpa_supplicant.conf"));
-  d_wifi_config->parseFile();
-  if (d_wifi_config->hasError())
-    {
-      assert(false);
-      return;
-    }
-
-  // only set wifi config and restart if the new config is different
-  const std::string& new_ssid = d_config->getWifiSsid();
-  const std::string& new_pw = d_config->getWifiPassword();
-
-  if (new_ssid == d_wifi_config->getSsid() &&
-      new_pw == d_wifi_config->getPassword())
-    {
-      return;
-    }
-  
-  d_wifi_config->setSsidWithQuotes(new_ssid);
-  d_wifi_config->setPasswordWithQuotes(new_pw);
-  
-  // Restart the wifi
-  // These commands are currently synchronous
-  // If they need the sudo password then add the following in front: echo raspberry | sudo -S 
-  int resp = system("wpa_cli -i wlan0 reconfigure");
-  std::cout << "The system call of 'wpa_cli -i wlan0 reconfigure' returned with the value "
+  std::cout << "CamStreamer::handleReqShutdown()" << std::endl;
+  stop();
+  int resp = system("shutdown -r now");
+  std::cout << "The system call of 'shutdown now' returned with the value "
   	    << resp << "." << std::endl;
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::handleError(Config*,
-			      Config::Error e,
+void CamStreamer::handleError(RequestManager*,
+			      RequestManager::Error e,
 			      const std::string& msg)
 {
   std::cerr << msg << std::endl;
-  setState(State::InvalidConfig);
-}
-
-//----------------------------------------------------------------------//
-void CamStreamer::restartGPController()
-{
-  d_gp_controller.reset(new D_GP::ModeController(this, d_gpcont_params));
-  d_gp_controller->connect();
-  d_gp_controller->startStream();
+  // any config related errors here should be picked up first by the local config
+  if (e == RequestManager::Error::Config)
+    {
+      setState(State::InvalidConfig);
+      return;
+    }
+  setState(State::InternalFailure);
 }
 
 //----------------------------------------------------------------------//
@@ -189,17 +159,54 @@ void CamStreamer::handleError(P_WIFI::Configurator*,
 }
 
 //----------------------------------------------------------------------//
-void CamStreamer::stop()
+void CamStreamer::handleError(Config*,
+			      Config::Error e,
+			      const std::string& msg)
 {
-  d_wifi_config->setOwner(nullptr); // disable any other callbacks
-  d_timeout_deleter.deletePtr(d_wifi_config);   
+  std::cerr << msg << std::endl;
+  setState(State::InvalidConfig);
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::setupWifi()
+{
+  // open the file and extract the current settings
+  d_wifi_config.reset(new P_WIFI::Configurator(this,"/etc/wpa_supplicant/wpa_supplicant.conf"));
+  d_wifi_config->parseFile();
+  if (d_wifi_config->hasError())
+    {
+      assert(false);
+      return;
+    }
+
+  // only set wifi config and restart if the new config is different
+  const std::string& new_ssid = d_config->getWifiSsid();
+  const std::string& new_pw = d_config->getWifiPassword();
+
+  if (new_ssid == d_wifi_config->getSsid() &&
+      new_pw == d_wifi_config->getPassword())
+    {
+      return;
+    }
   
-  d_request_man->setOwner(nullptr);
-  d_timeout_deleter.deletePtr(d_request_man);   
+  d_wifi_config->setSsidWithQuotes(new_ssid);
+  d_wifi_config->setPasswordWithQuotes(new_pw);
   
-  d_gp_controller->setOwner(nullptr);
-  d_timeout_deleter.deletePtr(d_gp_controller); 
-  d_restart_gp_timer.disable();
+  // Restart the wifi
+  // These commands are currently synchronous
+  // If they need the sudo password then add the following in front: echo raspberry | sudo -S 
+  int resp = system("wpa_cli -i wlan0 reconfigure");
+  // LOG!!!!
+  std::cout << "The system call of 'wpa_cli -i wlan0 reconfigure' returned with the value "
+  	    << resp << "." << std::endl;
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::restartGPController()
+{
+  d_gp_controller.reset(new D_GP::ModeController(this, d_gpcont_params));
+  d_gp_controller->connect();
+  d_gp_controller->startStream();
 }
 
 //----------------------------------------------------------------------//
@@ -209,6 +216,8 @@ void CamStreamer::setState(State s)
     {
     case State::InvalidConfig:
       {
+	stop();
+	
 	D_LED::Driver::AdvancedSettings adv_set;
 	adv_set.flashes_per_sec = 5;
 	adv_set.flash_count = 2;
@@ -273,4 +282,21 @@ void CamStreamer::setState(State s)
   assert(false);
   std::cerr << "CamStreamer::setState - Camstreamer::State is invalid." << std::endl;
   setState(State::InternalFailure);
+}
+
+//----------------------------------------------------------------------//
+void CamStreamer::stop()
+{
+  d_config->setOwner(nullptr); // disable any other callbacks
+  d_timeout_deleter.deletePtr(d_config);
+  
+  d_wifi_config->setOwner(nullptr);
+  d_timeout_deleter.deletePtr(d_wifi_config);   
+  
+  d_req_man->setOwner(nullptr);
+  d_timeout_deleter.deletePtr(d_req_man);   
+  
+  d_gp_controller->setOwner(nullptr);
+  d_timeout_deleter.deletePtr(d_gp_controller); 
+  d_restart_gp_timer.disable();
 }

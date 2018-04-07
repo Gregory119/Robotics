@@ -15,13 +15,14 @@ namespace P_WP
   class InputPin
   {      
   public:
+    // the default update interval is set on construction
     InputPin(PinNum,
 	     PullMode pull);
     InputPin(InputPin&&) = delete;
     
     void setTriggerCallback(std::function<void(bool)>); // set function to be called when a trigger is detected
     void setUpdateInterval(std::chrono::milliseconds delay =
-			   std::chrono::milliseconds(50));
+			   std::chrono::milliseconds(25));
 
     // this function must be called to start processing
     void start();

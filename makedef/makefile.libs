@@ -22,7 +22,7 @@ ifdef USES_LIBCONTROL
       INCLUDES += -I$(LIBCONTROLPATH)
       LIBS += -lpthread
       LIBSRC += $(wildcard $(LIBCONTROLPATH)/*.cpp)
-      USES_LIBUTILSMAPPING=1
+      USES_LIBUTILMAPPING=1
       USES_LIBKERN=1
       USES_LIBWIRINGPI=1
 endif
@@ -34,7 +34,8 @@ ifdef USES_LIBCRC
       LIBSRC += $(wildcard $(LIBCRCPATH)/*.cpp)
       USES_LIBKERN=1
       USES_LIBWIRINGPI=1
-      USES_LIBUTILSMAPPING=1
+      USES_LIBUTILMAPPING=1
+      USES_LIBUTILFILTERING=1
 endif
 
 ifdef USES_LIBJS
@@ -43,7 +44,7 @@ ifdef USES_LIBJS
       LIBS += -lpthread
       LIBSRC += $(wildcard $(LIBJSPATH)/*.cpp)
       USES_LIBKERN=1
-      USES_LIBUTILSMAPPING=1
+      USES_LIBUTILMAPPING=1
       USES_LIBWIRINGPI=1
 endif
 
@@ -70,7 +71,7 @@ ifdef USES_LIBWIRINGPI
       INCLUDES += -I$(LIBWIRINGPIPATH)
       LIBS += -lwiringPi
       LIBSRC += $(wildcard $(LIBWIRINGPIPATH)/*.cpp)
-      USES_LIBUTILSTHREADING=1      
+      USES_LIBUTILTHREADING=1      
 endif
 
 ifdef USES_LIBUDP
@@ -96,11 +97,11 @@ ifdef USES_LIBLED
       USES_LIBKERN=1
 endif
 
-ifdef USES_LIBUTILSTHREADING
-      LIBUTILSTHREADINGPATH = $(BASE_DIR)/utils/threading
-      INCLUDES += -I$(LIBUTILSTHREADINGPATH)
+ifdef USES_LIBUTILTHREADING
+      LIBUTILTHREADINGPATH = $(BASE_DIR)/utils/threading
+      INCLUDES += -I$(LIBUTILTHREADINGPATH)
       LIBS += 
-      LIBSRC += $(wildcard $(LIBUTILSTHREADINGPATH)/*.cpp)
+      LIBSRC += $(wildcard $(LIBUTILTHREADINGPATH)/*.cpp)
       USES_LIBKERN=1
 endif
 
@@ -118,11 +119,18 @@ ifdef USES_LIBCORE
       LIBSRC += $(wildcard $(LIBCOREPATH)/*.cpp)
 endif
 
-ifdef USES_LIBUTILSMAPPING
-      LIBUTILSMAPPINGPATH = $(BASE_DIR)/utils/mapping
-      INCLUDES += -I$(LIBUTILSMAPPINGPATH)
+ifdef USES_LIBUTILFILTERING
+      LIBUTILFILTERINGPATH = $(BASE_DIR)/utils/filtering
+      INCLUDES += -I$(LIBUTILFILTERINGPATH)
       LIBS += 
-      LIBSRC += $(wildcard $(LIBUTILSMAPPINGPATH)/*.cpp)
+      LIBSRC += $(wildcard $(LIBUTILFILTERINGPATH)/*.cpp)
+endif
+
+ifdef USES_LIBUTILMAPPING
+      LIBUTILMAPPINGPATH = $(BASE_DIR)/utils/mapping
+      INCLUDES += -I$(LIBUTILMAPPINGPATH)
+      LIBS += 
+      LIBSRC += $(wildcard $(LIBUTILMAPPINGPATH)/*.cpp)
 endif
 
 OBJ+=$(LIBSRC:.cpp=.o)
@@ -137,10 +145,17 @@ makelibs:
 # make prerequisite libraries
 # List the most independent ones first: this ensures that the most independent libraries are marked as built for any further dependent libraries.
 
-ifdef USES_LIBUTILSMAPPING
-ifndef BUILT_UTILSMAPPING
-	$(eval built_libs+=BUILT_UTILSMAPPING=1)
-	$(MAKE) -C $(LIBUTILSMAPPINGPATH) $(built_libs)
+ifdef USES_LIBUTILMAPPING
+ifndef BUILT_UTILMAPPING
+	$(eval built_libs+=BUILT_UTILMAPPING=1)
+	$(MAKE) -C $(LIBUTILMAPPINGPATH) $(built_libs)
+endif
+endif
+
+ifdef USES_LIBUTILFILTERING
+ifndef BUILT_UTILFILTERING
+	$(eval built_libs+=BUILT_UTILFILTERING=1)
+	$(MAKE) -C $(LIBUTILFILTERINGPATH) $(built_libs)
 endif
 endif
 
@@ -158,10 +173,10 @@ ifndef BUILT_KERN
 endif
 endif
 
-ifdef USES_LIBUTILSTHREADING
-ifndef BUILT_UTILSTHREADING
-	$(eval built_libs+=BUILT_UTILSTHREADING=1)
-	$(MAKE) -C $(LIBUTILSTHREADINGPATH) $(built_libs)
+ifdef USES_LIBUTILTHREADING
+ifndef BUILT_UTILTHREADING
+	$(eval built_libs+=BUILT_UTILTHREADING=1)
+	$(MAKE) -C $(LIBUTILTHREADINGPATH) $(built_libs)
 endif
 endif
 

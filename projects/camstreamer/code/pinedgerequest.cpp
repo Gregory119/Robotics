@@ -8,17 +8,15 @@ PinEdgeRequest::PinEdgeRequest(StateEdgeRequest::Owner* o,
 {
   assert(o!=nullptr);
   
-  d_error_timer.setTimeoutCallback([](){
-      d_owner.call(&StateEdgeRequest::Owner::handleError, this, d_err_msg);
-    });
-      
-  if (!P_WP::isNumInPinRange(num))
+  if (!P_WP::PIN_UTILS::isNumInPinRange(num))
     {
       std::ostringstream stream("PinEdgeRequest::PinEdgeRequest - The request number of '",
 				std::ios_base::app);
       stream << num << "' is not a valid pin number.";
       d_err_msg = stream.str();
-      d_error_timer.singleShotZero();
+      d_error_timer.singleShotZero([&](){
+	  ownerError(d_err_msg);
+	});
       return;
     }
 
@@ -28,4 +26,10 @@ PinEdgeRequest::PinEdgeRequest(StateEdgeRequest::Owner* o,
   d_pin->setTriggerCallback([this](bool state){
       processState(state);
     });
+}
+
+//----------------------------------------------------------------------//
+void PinEdgeRequest::start()
+{
+  d_pin->start();
 }

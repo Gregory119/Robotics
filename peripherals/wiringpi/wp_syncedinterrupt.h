@@ -14,7 +14,7 @@ namespace P_WP
     {
       OWNER_SPECIAL_MEMBERS(SyncedInterrupt);
       virtual void handleInterrupt(SyncedInterrupt*,
-				   Interrupt::Vals) = 0;
+				   Interrupt::Vals&&) = 0;
       virtual void handleError(SyncedInterrupt*,
 			       Interrupt::Error,
 			       const std::string& msg) = 0;
@@ -27,9 +27,12 @@ namespace P_WP
 
     SET_OWNER();
 
+    void start(); // only call once
+    bool hasStarted() { return d_interrupt->hasStarted(); }
+
   private:
     void handleInterrupt(Interrupt*,
-			 Interrupt::Vals) override;
+			 Interrupt::Vals&&) override;
     void handleError(Interrupt*,
 		     Interrupt::Error,
 		     const std::string&) override;

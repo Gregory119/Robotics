@@ -5,6 +5,7 @@
 #include "crc_pwmutils.h"
 
 #include "kn_safecallbacktimer.h"
+#include "utl_medianfilter.h"
 #include "wp_syncedinterrupt.h"
 
 #include <chrono>
@@ -33,10 +34,11 @@ namespace C_RC
     public:
       PwmReader(Owner* o,
 		P_WP::PinNum pin,
-		PwmLimits<T> limits);
+		const PwmLimits<T>& limits);
       PwmReader(PwmReader&&) = delete;
 
       SET_OWNER();
+      void start();
       void capData() { d_cap_data = true; }
 
     
@@ -48,13 +50,12 @@ namespace C_RC
 
     private:
       void handleInterrupt(P_WP::SyncedInterrupt*,
-			   P_WP::Interrupt::Vals) override;
+			   P_WP::Interrupt::Vals&&) override;
       void handleError(P_WP::SyncedInterrupt*,
 		       P_WP::Interrupt::Error,
 		       const std::string&) override;
     
     private:
-      std::chrono::nanoseconds getFilteredDuration();
       void ownerPulseDuration(const std::chrono::microseconds& dur);
       void ownerError(PwmReaderError e, const std::string& msg);
 
@@ -66,8 +67,9 @@ namespace C_RC
     
       std::chrono::time_point<std::chrono::steady_clock> d_pulse_start_pt;
 
-      std::vector<std::chrono::nanoseconds> d_durations_buffer;
-    
+      UTIL::MedianFilter<std::chrono::microseconds> d_filter =
+	UTIL::MedianFilter<std::chrono::microseconds>(3);
+      
       bool d_had_first_interrupt = false;
       bool d_prev_pin_state = false;
       bool d_cap_data = false;
@@ -77,9 +79,9 @@ namespace C_RC
   template <class T>
     PwmReader<T>::PwmReader(Owner* o,
 			    P_WP::PinNum pin,
-			    PwmLimits<T> limits)
+			    const PwmLimits<T>& limits)
     : d_owner(o),
-    d_map(std::move(limits))
+    d_map(limits)
       {
 	if (!std::is_fundamental<T>::value)
 	  {
@@ -95,8 +97,15 @@ namespace C_RC
 
   //----------------------------------------------------------------------//
   template <class T>
+    void PwmReader<T>::start()
+    {
+      d_interrupt->start();
+    }
+  
+  //----------------------------------------------------------------------//
+  template <class T>
     void PwmReader<T>::handleInterrupt(P_WP::SyncedInterrupt*,
-				       P_WP::Interrupt::Vals vals)
+				       P_WP::Interrupt::Vals&& vals)
     {
       if (!d_had_first_interrupt)
 	{
@@ -110,7 +119,7 @@ namespace C_RC
 	{
 	  return;
 	}
-
+      
       // determine the PWM pulse duration
       if (vals.pin_state) // start of pulse
 	{
@@ -119,9 +128,8 @@ namespace C_RC
       // implied low state
       else if (d_prev_pin_state) // end of pulse
 	{
-	  std::chrono::nanoseconds dur_raw = vals.time_point - d_pulse_start_pt;
-	  d_durations_buffer.push_back(std::move(dur_raw));
-	  ownerPulseDuration(std::chrono::duration_cast<std::chrono::microseconds>(getFilteredDuration()));
+	  d_filter.pushBack(std::chrono::duration_cast<std::chrono::microseconds>(vals.time_point - d_pulse_start_pt));
+	  ownerPulseDuration(d_filter.getMedian());
 	}
       d_prev_pin_state = vals.pin_state;
     }
@@ -136,27 +144,6 @@ namespace C_RC
       new_msg += msg;
       ownerError(PwmReaderError::InternalInterrupt,
 		 new_msg);
-    }
-  
-  //----------------------------------------------------------------------//
-  template <class T>
-    std::chrono::nanoseconds PwmReader<T>::getFilteredDuration()
-    {
-      // Using a median filter
-      int diff = static_cast<int>(d_durations_buffer.size()) - 3;
-      if (diff > 0)
-	{
-	  assert(d_durations_buffer.size() == 4);
-	  d_durations_buffer.erase(d_durations_buffer.begin());
-	}
-      else if (diff < 0)
-	{
-	  return d_durations_buffer.back();
-	}
-      assert(d_durations_buffer.size() == 3);
-      std::vector<std::chrono::nanoseconds> sorted_buffer = d_durations_buffer;
-      std::sort(sorted_buffer.begin(), sorted_buffer.end());
-      return sorted_buffer.at(1);
     }
     
   //----------------------------------------------------------------------//

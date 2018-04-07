@@ -4,21 +4,27 @@
 #include "stateedgerequest.h"
 #include "crc_stateppmreader.h"
 
-class PpmEdgeRequest final : StateEdgeRequest,
+class PpmEdgeRequest final : public StateEdgeRequest,
   C_RC::StatePpmReader::Observer
 {
  public:
   PpmEdgeRequest(StateEdgeRequest::Owner* o,
-		 int req_num,
+		 int num,
 		 C_RC::StatePpmReader*);
 
+  void start() override;
+  
  private:
   // StatePpmReader::Observer
-  void handleState(PpmReader<unsigned>*, bool state) override;
-  unsigned getChannel() override { return d_channel; }
+  void handleState(C_RC::PpmReader<unsigned>*, bool state) override;
+  void handleError(C_RC::PpmReader<unsigned>*,
+		   C_RC::PpmReaderError,
+		   const std::string& msg) override;
+  unsigned getChannel() const override { return d_channel; }
 
  private:
   const unsigned d_channel = 0;
+  C_RC::StatePpmReader* d_reader = nullptr;
 };
 
 #endif

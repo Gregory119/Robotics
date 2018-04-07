@@ -5,7 +5,7 @@
 #include "crc_pwmreader.h"
 
 #include "kn_asiokernel.h"
-#include "wiringPi.h"
+#include <wiringPi.h>
 
 #include <iostream>
 
@@ -18,6 +18,7 @@ class Test final : C_RC::PwmReader<unsigned>::Owner
 						C_RC::PwmNarrowLimits<unsigned>(2000,0)))
     {
       d_pwmreader->capData();
+      d_pwmreader->start();
     }
   
  private:

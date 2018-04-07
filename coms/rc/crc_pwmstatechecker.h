@@ -1,6 +1,9 @@
 #ifndef CRC_PWMSTATECHECKER_H
 #define CRC_PWMSTATECHECKER_H
 
+#include <type_traits>
+#include <cassert>
+
 namespace C_RC
 {
   template <class T>

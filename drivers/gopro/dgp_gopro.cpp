@@ -12,19 +12,21 @@ GoPro::GoPro(GoPro::Owner* o)
 }
 
 //----------------------------------------------------------------------//
-void GoPro::ownerHandleCommandFailed(GoPro::Cmd cmd, GoPro::Error err)
+void GoPro::ownerCommandFailed(GoPro::Cmd cmd,
+			       GoPro::Error err,
+			       const std::string& msg)
 {
-  d_owner->handleCommandFailed(this, cmd, err);
+  d_owner->handleCommandFailed(this, cmd, err, msg);
 }
 
 //----------------------------------------------------------------------//
-void GoPro::ownerHandleCommandSuccessful(GoPro::Cmd cmd)
+void GoPro::ownerCommandSuccessful(GoPro::Cmd cmd)
 {
   d_owner->handleCommandSuccessful(this, cmd);
 }
 
 //----------------------------------------------------------------------//
-void GoPro::ownerHandleStreamDown()
+void GoPro::ownerStreamDown()
 {
   d_owner->handleStreamDown(this);
 }

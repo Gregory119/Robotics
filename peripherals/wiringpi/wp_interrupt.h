@@ -25,10 +25,11 @@ namespace P_WP
     enum class Error
     {
       EdgeMode,
-	SetupInterrupt,
+	Start,
 	MaxInstances,
 	DuplicatePin,
 	Pin,
+	AlreadyStarted,
 	None
     };
 
@@ -51,7 +52,7 @@ namespace P_WP
       OWNER_SPECIAL_MEMBERS(Interrupt);
       // this function is called from a thread
       virtual void handleInterrupt(Interrupt*,
-				   Vals) = 0;
+				   Vals&&) = 0;
       virtual void handleError(Interrupt*, Error, const std::string&) = 0;
     };
     
@@ -64,6 +65,10 @@ namespace P_WP
     ~Interrupt();
 
     SET_OWNER();
+
+    // This function must only be called once. This function must be called to activate the interrupt callbacks. This function is necessary to avoid interrupt callbacks being called immediately after class creation, and possibly before other dependent classes have been constructed.
+    void start();
+    bool hasStarted() { return d_started; }
     
     bool readPin(); // reads physical pin value and updates cached value
     bool getCachedPinState();
@@ -93,7 +98,10 @@ namespace P_WP
     EdgeMode d_mode = EdgeMode::Both;
     bool d_pin_state = false;
     const int d_callback_index = -1;
+    std::function<void()> d_temp_callback;
 
+    bool d_started = false;
+    
     Error d_error = Error::None;
     std::string d_err_msg;
     KERN::AsioCallbackTimer d_error_timer = KERN::AsioCallbackTimer("P_WP::Interrupt - Error timer.");

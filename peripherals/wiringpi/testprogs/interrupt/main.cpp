@@ -2,56 +2,43 @@
   This test program reads pwm values from a specified pin number and prints them out.
  */
 
-#include "crc_ppmreader.h"
+#include "wp_interrupt.h"
 
 #include "kn_asiokernel.h"
 #include <wiringPi.h>
 
 #include <iostream>
 
-class Test final : C_RC::PpmReader<unsigned>::Observer
+class Test final : P_WP::Interrupt::Owner
 {
  public:
   Test(P_WP::PinNum pin)
-    : d_ppmreader(new C_RC::PpmReader<unsigned>(this,
-						pin,
-						C_RC::PwmLimits<unsigned>::create(C_RC::PwmLimitsType::Narrow,2000,1000)))
+    : d_interrupt(new P_WP::Interrupt(this,
+				      pin,
+				      P_WP::Interrupt::EdgeMode::Both))
     {
-      d_ppmreader->capData();
-      d_ppmreader->attachObserver(this);
-      d_ppmreader->start();
+      d_interrupt->start();
     }
   
  private:
-  // PpmReader::Observer
-  void handleValue(C_RC::PpmReader<unsigned>*, unsigned val) override
+  void handleInterrupt(P_WP::Interrupt*, P_WP::Interrupt::Vals&& vals) override
   {
-    std::cout << "PwmReader::handleValue - Measured pwm output value = " << val << std::endl;
+    std::cout << "Int state = " << vals.pin_state << std::endl;
   }
   
-  void handleValueOutOfRange(C_RC::PpmReader<unsigned>*,
-			     unsigned val) override
+  void handleError(P_WP::Interrupt*, P_WP::Interrupt::Error, const std::string&) override
   {
-    std::cout << "PwmReader::handleValueOutOfRange - Measured pwm output value = " << val << std::endl;
+    std::cout << "handleError(Interrupt*...)" << std::endl;
   }
-
-  void handleError(C_RC::PpmReader<unsigned>*,
-		   C_RC::PpmReaderError,
-		   const std::string& msg) override
-  {
-    std::cout << "PpmReader::handleError: \n" << msg << std::endl;
-  }
-
-  unsigned getChannel() const override { return 1; }
 
  private:
-  std::unique_ptr<C_RC::PpmReader<unsigned>> d_ppmreader;
+  std::unique_ptr<P_WP::Interrupt> d_interrupt;
 };
 
 //----------------------------------------------------------------------//
 void PrintHelp()
 {
-  std::cout << "./pwmreader [pin]\n" 
+  std::cout << "./interrupt [pin]\n" 
 	    << "[pin]\n" 
 	    << "This is the wiring pi pin number.\n" 
 	    << std::endl;
