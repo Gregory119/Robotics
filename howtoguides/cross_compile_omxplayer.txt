@@ -26,6 +26,14 @@ libsmbclient:
  - Install on the pi and then copy to the cross compiler built libraries folder.
  - create a symbolic link of libsmbclient.so pointing to the latest version
 
+ON THE PI:
+- install omxplayer
+ - $ apt-get install omxplayer
+- install libavutils (for omxplayer)
+ - $ apt-get install libav-tools
+ - fix any ldconfig links
+
+
 References:
 https://github.com/popcornmix/omxplayer
 https://trac.ffmpeg.org/wiki/CompilationGuide/RaspberryPi
