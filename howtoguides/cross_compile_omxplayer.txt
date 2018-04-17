@@ -1,0 +1,34 @@
+THIS PROCESS IS INCOMPLETE AND UNSUCCESSFUL.
+
+
+add/edit the following in Makefile.ffmpeg:
+  pkg_config=$(which pkg-config) PKG_CONFIG_PATH=/home/rasppi_xcompile/extra_libs_install/pkgconfig ./configure \
+			--extra-cflags="-mfpu=vfp -mfloat-abi=hard -mno-apcs-stack-check -mstructure-size-boundary=32 -mno-sched-prolog -I/home/rasppi_xcompile/extra_libs_install/" \
+			--enable-cross-compile \
+			--sysroot=/home/rasppi_xcompile/sysroot \
+			--arch=armhf \
+			--cpu=cortex-a5 \
+			--cross-prefix=/home/rasppi_xcompile/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf- \
+			--prefix=/home/rasppi_xcompile/extra_libs_install/ \
+			--extra-ldflags="-L/home/rasppi_xcompile/extra_libs_install/" \
+
+remove the following in Makefile from "CFLAGS=" at the top of the file:
+-mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -mcpu=arm1176jzf-s
+
+add the following in Makefile after "INCLUDES+=":
+CFLAGS+=-mtune=cortex-a5 -march=armv6 -mfpu=vfp -mfloat-abi=hard --sysroot=/home/rasppi_xcompile/sysroot -L/home/rasppi_xcompile/extra_libs_install/
+INCLUDES+=-I/home/rasppi_xcompile/extra_libs_install/
+
+
+BUILD/GET DEPENDENCY LIBRARIES:
+
+libsmbclient:
+ - Install on the pi and then copy to the cross compiler built libraries folder.
+ - create a symbolic link of libsmbclient.so pointing to the latest version
+
+References:
+https://github.com/popcornmix/omxplayer
+https://trac.ffmpeg.org/wiki/CompilationGuide/RaspberryPi
+
+
+/home/rasppi_xcompile/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-gcc -L/home/rasppi_xcompile/extra_libs_install --sysroot=/home/rasppi_xcompile/sysroot -isysroot /home/rasppi_xcompile/sysroot -mcpu=cortex-a5 -Wl,--as-needed -Wl,-z,noexecstack -o /tmp/ffconf.FaflHktE /tmp/ffconf.q7JSDPRk.o -lsmbclient -lm -lz -pthread

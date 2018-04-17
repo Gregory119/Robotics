@@ -40,7 +40,7 @@ apt-get install build-essential
 - unzip the file
 - check the offset for mounting
   - $ fdisk -l /path/to/imagefile
-  - multiple the start value of the second listed image by the sector size (for the above image 137216*512 = 70254592)
+  - multiply the start value of the second listed image by the sector size (for the above image 137216*512 = 70254592)
 - mount the image
   - $ mount -o loop,offset=70254592 2016-05-27-raspbian-jessie-lite.img /rasppi_xcompile/sysroot/
 

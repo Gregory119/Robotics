@@ -1,0 +1,19 @@
+WORK IN PROGRESS
+
+install:
+apt-get install gstreamer-tools
+
+apt-get install libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-omx gstreamer1.0
+
+gst-launch udpsrc port=8554 ! application/x-rtp, clock-rate=90000,payload=96 ! rtph264pay queue-delay=0 ! ffdec_h264 ! fakesink
+
+https://www.raspberrypi.org/forums/viewtopic.php?t=112354
+https://gstreamer.freedesktop.org/documentation/tools/gst-launch.html
+
+
+audio_fifo  n         Size of audio output fifo in seconds
+    --video_fifo  n         Size of video output fifo in MB
+    --audio_queue n         Size of audio input queue in MB
+    --video_queue n         Size of video input queue in MB
+    --threshold   n         Amount of buffered data required to finish buffering [s]
+    --timeout     n
