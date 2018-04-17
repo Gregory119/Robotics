@@ -25,6 +25,7 @@ namespace CORE
     };
     
   public:
+    // no errors will occur on construction
     FileParamManager(std::string file_path);
 
     // eg. pin_number=5, which implies name_match is "pin_number=" and the returned string is "5".

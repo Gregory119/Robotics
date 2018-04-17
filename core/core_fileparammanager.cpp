@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 using namespace CORE;
@@ -121,7 +120,6 @@ void FileParamManager::setParamFromTo(const std::string& name_match,
       int length_diff = current_value.length()-new_value.length();
       if (length_diff >= 0)
 	{
-	  std::cout << "length_diff >= 0" << std::endl;
 	  file.seekp(val_pos); // set output pos indicator
 	  if (file.fail())
 	    {
@@ -170,7 +168,8 @@ void FileParamManager::setParamFromTo(const std::string& name_match,
       file << trailing_data.rdbuf();
       if (file.fail())
 	{
-	  std::ostringstream stream("setParam - Unexpected failure when outputting the new file data to the file '");
+	  std::ostringstream stream("setParam - Unexpected failure when outputting the new file data to the file '",
+				    std::ios_base::app);
 	  stream << d_file_path << "'.";
 	  setError(Error::OutputToFile, stream.str());
 	  return;
@@ -178,7 +177,8 @@ void FileParamManager::setParamFromTo(const std::string& name_match,
     }
   catch (...)
     {
-      std::ostringstream stream("setParam - Unexpected exception while trying to set the new parameter value in the file '");
+      std::ostringstream stream("setParam - Unexpected exception while trying to set the new parameter value in the file '",
+				std::ios_base::app);
       stream << d_file_path << "'.";
       setError(Error::SetParamException, stream.str());
       return;
@@ -230,32 +230,35 @@ std::iostream::pos_type FileParamManager::getParamValuePos(std::fstream& file,
 	  previous_ipos = file.tellg();
 	  std::getline(file, line);
 
-	  if (file.fail())
-	    {
-	      std::ostringstream stream("getParamValuePos - Failed to extract characters from the file '");
-	      stream << d_file_path << "'.";
-	      setError(Error::FileCharacterExtraction, stream.str());
-	      return std::iostream::pos_type(-1);
-	    }
-      
 	  line_match_pos = line.find(name_match);
 	  if (line_match_pos != std::string::npos)
 	    {
 	      break; // found!
 	    }
-
+	  
 	  if (file.eof())
 	    {
-	      std::ostringstream stream("getParamValuePos - The parameter '",std::ios_base::app);
+	      std::ostringstream stream("getParamValuePos - The parameter '",
+					std::ios_base::app);
 	      stream << name_match << "' does not exist in the file '" << d_file_path << "'.";
 	      setError(Error::ParamNotFound,stream.str());
+	      return std::iostream::pos_type(-1);
+	    }
+	  
+	  if (file.fail())
+	    {
+	      std::ostringstream stream("getParamValuePos - Failed to extract characters from the file '",
+					std::ios_base::app);
+	      stream << d_file_path << "'.";
+	      setError(Error::FileCharacterExtraction, stream.str());
 	      return std::iostream::pos_type(-1);
 	    }
 	}
     }
   catch (...)
     {
-      std::ostringstream stream("getParamValuePosException - Unexpected exception while trying to get the position index of the start of the value of the parameter '",std::ios_base::app);
+      std::ostringstream stream("getParamValuePosException - Unexpected exception while trying to get the position index of the start of the value of the parameter '",
+				std::ios_base::app);
       stream << name_match << "' in the file '" << d_file_path << "'.";
       setError(Error::GetParamValuePosException, stream.str());
       return false;
@@ -271,7 +274,8 @@ void FileParamManager::goToParamValue(std::fstream& file,
   std::iostream::pos_type val_pos = getParamValuePos(file, name_match);
   if (hasError())
     {
-      std::ostringstream stream("goToParamValue - Failed to go to the parameter value of the parameter '",std::ios_base::app);
+      std::ostringstream stream("goToParamValue - Failed to go to the parameter value of the parameter '",
+				std::ios_base::app);
       stream << name_match << "' in the file '"
 	     << d_file_path << "' because of the following error:\n"
 	     << getErrorMsg();
@@ -286,6 +290,6 @@ void FileParamManager::goToParamValue(std::fstream& file,
 void FileParamManager::setError(Error e, const std::string& msg)
 {
   d_error = e;
-  d_error_msg = "FileParamManager::";
+  d_error_msg = "CORE::FileParamManager::";
   d_error_msg += msg;
 }
