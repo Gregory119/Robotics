@@ -1,10 +1,11 @@
 #!/bin/bash
+# THIS SCRIPT CURRENTLY DOES NOT WORK AND IS NOT USED BECAUSE IT IS UNSECURE TO COPY AN RUN A SCRIPT FROM THE USB.
 # This script will be in the files copied from the usb drive, and will be run to install the usb files.
 
 set -e # exit shell on a simple command failure
 install_dir=$1
 mount_dir=$2
-config_filename="config.txt"
+config_filename="userconfig.txt"
 led_dir=/sys/class/leds/led0
 
 # First kill the firmware and start script

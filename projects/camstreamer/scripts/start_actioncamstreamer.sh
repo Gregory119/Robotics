@@ -11,7 +11,7 @@ while true; do
     fi
     if [ -z $(pidof "omxplayer") ]; then
 	echo "Starting omxplayer"
-	omxplayer --live -o hdmi udp://:8554 > /dev/null 2>&1
+	omxplayer --live udp://:8554 > /dev/null 2>&1
 	# Run in the foreground because omxplayer has a timeout when no data has been received
     fi
 done

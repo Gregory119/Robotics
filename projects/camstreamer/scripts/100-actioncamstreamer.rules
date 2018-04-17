@@ -1,1 +1,1 @@
-ENV{DEVTYPE}=="disk", ENV{SUBSYSTEM}=="block", ACTION=="add", RUN+="/actioncamstreamer/udev_start_usb_install.sh"
+ENV{DRIVERS}=="usb-storage", ENV{SUBSYSTEM}=="usb", ACTION=="add", RUN+="/actioncamstreamer/udev_start_usb_install.sh"
