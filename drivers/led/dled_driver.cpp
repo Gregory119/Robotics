@@ -53,21 +53,21 @@ Driver::Driver(Owner* o, const std::string dir)
 //----------------------------------------------------------------------//
 void Driver::useMemory()
 {
-  d_adv_timer.disableIfEnabled();
+  disableTimers();
   internalUseMemory();
 }
 
 //----------------------------------------------------------------------//
 void Driver::turnOn()
 {
-  d_adv_timer.disableIfEnabled();
+  disableTimers();
   internalTurnOn();
 }
 
 //----------------------------------------------------------------------//
 void Driver::turnOff()
 {
-  d_adv_timer.disableIfEnabled();
+  disableTimers();
   internalTurnOff();
 }
 
@@ -75,21 +75,21 @@ void Driver::turnOff()
 void Driver::flashOnOff(const std::chrono::milliseconds& delay_on,
 			const std::chrono::milliseconds& delay_off)
 {
-  d_adv_timer.disableIfEnabled();
+  disableTimers();
   internalFlashOnOffCount(delay_on, delay_off);
 }
 
 //----------------------------------------------------------------------//
 void Driver::flashPerSec(unsigned rate)
 {
-  d_adv_timer.disableIfEnabled();
+  disableTimers();
   internalFlashPerSecCount(rate);
 }
 
 //----------------------------------------------------------------------//
 void Driver::flashAdvanced(const AdvancedSettings& set)
 {
-  d_adv_timer.disableIfEnabled();
+  disableTimers();
   internalFlashAdvanced(set);
 }
 
@@ -312,4 +312,11 @@ void Driver::advCheckRepeat()
 	}
       return;
     }
+}
+
+//----------------------------------------------------------------------//
+void Driver::disableTimers()
+{
+  d_adv_timer.disableIfEnabled();
+  d_on_off_timer.disableIfEnabled();
 }

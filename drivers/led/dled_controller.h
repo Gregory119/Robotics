@@ -29,7 +29,7 @@ namespace D_LED
       OWNER_SPECIAL_MEMBERS(Controller);
       // This is only called for an advanced flash request that has a limited number of repetitions.
       // It is called once the repetitions are complete.
-      virtual void handleFlashCycleEnd(Controller*) = 0;
+      virtual void handleFlashCycleEnd(Controller*) {}
     
       virtual void handleReqFailed(Controller*, Req, const std::string& msg) = 0;
       virtual void handleInternalError(Controller*) = 0;
@@ -83,7 +83,7 @@ namespace D_LED
 
     std::unique_ptr<Driver> d_led_driver;
 
-    std::list<Req> d_reqs;
+    std::vector<Req> d_reqs;
     std::vector<ParamsFlashOnOff> d_reqs_flash_on_off;
     std::vector<unsigned> d_reqs_flash_per_secs;
     std::vector<Driver::AdvancedSettings> d_reqs_adv_settings;

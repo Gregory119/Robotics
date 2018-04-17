@@ -107,7 +107,7 @@ void Controller::startReq(Req req)
 	}
     }
 
-  d_reqs.emplace_back(req);
+  d_reqs.push_back(req);
   if (!is_processing_reqs)
     {
       processReq();
@@ -134,7 +134,27 @@ void Controller::replaceReqFlashAdvanced()
 //----------------------------------------------------------------------//
 void Controller::popFrontReq()
 {
-  d_reqs.pop_front();
+  assert(!d_reqs.empty());
+  switch (d_reqs.front())
+    {
+    case Req::Memory:
+    case Req::On:
+    case Req::Off:
+      break;
+      
+    case Req::FlashOnOff:
+      d_reqs_flash_on_off.erase(d_reqs_flash_on_off.begin());
+      break;
+      
+    case Req::FlashPerSec:
+      d_reqs_flash_per_secs.erase(d_reqs_flash_per_secs.begin());
+      break;
+      
+    case Req::FlashAdvanced:
+      d_reqs_adv_settings.erase(d_reqs_adv_settings.begin());
+      break;
+    }
+  d_reqs.erase(d_reqs.begin());
 }
 
 //----------------------------------------------------------------------//
@@ -143,7 +163,6 @@ void Controller::popBackReq()
   assert(!d_reqs.empty());
   Req back = d_reqs.back();
   d_reqs.pop_back();
-  
   switch (back)
     {
     case Req::Memory:

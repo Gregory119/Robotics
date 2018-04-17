@@ -104,6 +104,8 @@ namespace D_LED
     
     void internalFlashAdvanced(const AdvancedSettings&); // limited to 10
 
+    void disableTimers();
+
   private:
     Owner* d_owner = nullptr;
     
