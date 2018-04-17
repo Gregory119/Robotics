@@ -105,11 +105,20 @@ ifdef USES_LIBUTILTHREADING
       USES_LIBKERN=1
 endif
 
+ifdef USES_LIBUTILLOGGING
+      LIBUTILLOGGINGPATH = $(BASE_DIR)/utils/logging
+      INCLUDES += -I$(LIBUTILLOGGINGPATH)
+      LIBS += -lboost_system -lboost_date_time -lpthread -lboost_log -lboost_filesystem -lboost_regex -lboost_chrono -lboost_atomic -lboost_thread
+      LIBSRC += $(wildcard $(LIBUTILLOGGINGPATH)/*.cpp)
+      DEFINES += -DBOOST_ALL_DYN_LINK # use with all boost libraries
+endif
+
 ifdef USES_LIBKERN
       LIBKERNPATH = $(BASE_DIR)/kern
       INCLUDES += -I$(LIBKERNPATH)
       LIBS += -lboost_system -lboost_date_time -lpthread
       LIBSRC += $(wildcard $(LIBKERNPATH)/*.cpp)
+      DEFINES += -DBOOST_ALL_DYN_LINK # use with all boost libraries
       USES_LIBCORE=1
 endif
 
@@ -170,6 +179,13 @@ ifdef USES_LIBKERN
 ifndef BUILT_KERN
 	$(eval built_libs+=BUILT_KERN=1)
 	$(MAKE) -C $(LIBKERNPATH) $(built_libs)
+endif
+endif
+
+ifdef USES_LIBUTILLOGGING
+ifndef BUILT_LIBUTILLOGGING
+	$(eval built_libs+=BUILT_LIBUTILLOGGING=1)
+	$(MAKE) -C $(LIBUTILLOGGINGPATH) $(built_libs)
 endif
 endif
 
