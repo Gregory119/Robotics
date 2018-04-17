@@ -25,8 +25,7 @@ namespace P_WIFI
   public:
     enum class Error
     {
-      OpenFile,
-	SSID,
+      SSID,
 	Password
 	};
 

@@ -1,7 +1,6 @@
 #include "wifi_configurator.h"
 
 #include <cassert>
-#include <iostream>
 #include <sstream>
 
 using namespace P_WIFI;
@@ -15,27 +14,11 @@ Configurator::Configurator(Owner* o, std::string file_path)
     d_file_param_man(new CORE::FileParamManager(std::move(file_path)))
 {
   assert(o != nullptr);
-  if (d_file_param_man->hasError())
-    {
-      std::ostringstream stream("Config - Failed to start wifi configuration because of the following error: \n",
-				std::ios_base::app);
-      stream << d_file_param_man->getErrorMsg();
-      std::string err_msg = stream.str();
-      d_zero_timer.setTimeoutCallback([=](){
-	  ownerHandleError(Error::OpenFile, err_msg);
-	});
-      d_zero_timer.singleShotZero();
-    }
 }
 
 //----------------------------------------------------------------------//
 void Configurator::parseFile()
 {
-  if (hasError())
-    {
-      return;
-    }
-  
   d_ssid.erase();
   d_pw.erase();
   
@@ -46,7 +29,6 @@ void Configurator::parseFile()
 //----------------------------------------------------------------------//
 void Configurator::setSsid(const std::string& new_ssid)
 {
-  std::cout << "setSsid: ssid match = " << s_ssid_match << " new ssid = " << new_ssid << std::endl;
   d_file_param_man->setParamFromTo(s_ssid_match, new_ssid);
   if (d_file_param_man->hasError())
     {
@@ -79,7 +61,6 @@ void Configurator::setPasswordWithQuotes(const std::string& pw)
 //----------------------------------------------------------------------//
 void Configurator::setPassword(const std::string& new_pw)
 {
-  std::cout << "setPassword: password match = " << s_pw_match << " new password = " << new_pw << std::endl;
   d_file_param_man->setParamFromTo(s_pw_match, new_pw);
   if (d_file_param_man->hasError())
     {
