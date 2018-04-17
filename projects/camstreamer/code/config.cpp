@@ -71,27 +71,11 @@ Config::Config(Owner* o,
     d_file_param_man(new CORE::FileParamManager(std::move(file_path)))
 {
   assert(o != nullptr);
-  if (d_file_param_man->hasError())
-    {
-      std::ostringstream stream("Config - Failed to start extracting configuration because of the following error: \n",
-				std::ios_base::app);
-      stream << d_file_param_man->getErrorMsg();
-      std::string err_msg = stream.str();
-      d_zero_timer.singleShotZero([=](){
-	  ownerHandleError(Error::OpenFile, err_msg);
-	});
-    }
 }
 
 //----------------------------------------------------------------------//
 void Config::parseFile()
 {
-  if (hasError())
-    {
-      assert(false);
-      return;
-    }
-  
   extractWifiSSID();
   extractWifiPw();
   
@@ -108,7 +92,7 @@ void Config::parseFile()
       // must be valid if provided
       if (!d_next_mode_req_conf.isValid())
 	{
-	  std::string msg = "parseFile - Invalid Next Mode Request because of the following error:\n";
+	  std::string msg = "parseFile - Invalid Next Mode request configuration because of the following error:\n";
 	  msg += d_next_mode_req_conf.getErrMsg();
 	  ownerHandleError(Error::NextModeReqConfig, msg);
 	  return;
@@ -123,7 +107,7 @@ void Config::parseFile()
 		 d_trigger_req_conf);
   if (!d_trigger_req_conf.isValid())
     {
-      std::string msg = "parseFile - Invalid Trigger Request because of the following error:\n";
+      std::string msg = "parseFile - Invalid Trigger request configuration because of the following error:\n";
       msg += d_trigger_req_conf.getErrMsg();
       ownerHandleError(Error::TriggerReqConfig, msg);
       return;
@@ -144,6 +128,7 @@ void Config::parseFile()
     }
   
   checkDuplicateReqNums();
+  checkInterruptCount();
   extractPpmPinNum();
 
   extractPwmPulse("pwm_pulse_high_us=",
@@ -483,6 +468,51 @@ void Config::checkDuplicateReqNums()
 }
 
 //----------------------------------------------------------------------//
+void Config::checkInterruptCount()
+{
+  unsigned int_count = 0;
+  // trigger
+  if (usesInterrupt(d_trigger_req_conf.mode))
+    {
+      ++int_count;
+    }
+
+  // mode
+  // both pwm with different pin numbers
+  if (d_next_mode_req_conf.mode == ReqMode::Pwm &&
+      d_trigger_req_conf.mode  == d_next_mode_req_conf.mode &&
+      d_trigger_req_conf.num != d_next_mode_req_conf.num)
+    {
+      ++int_count;
+    }
+  // one is pwm and the other is ppm => different pins
+  else if (usesInterrupt(d_next_mode_req_conf.mode) &&
+	   d_trigger_req_conf.mode != d_next_mode_req_conf.mode)
+    {
+      ++int_count;
+    }
+  
+  if (d_power_req_conf.mode == ReqMode::Pwm)
+    {
+      ++int_count;
+    }
+  else if (d_power_req_conf.mode == ReqMode::Ppm &&
+	   (d_trigger_req_conf.mode == ReqMode::Pwm ||
+	    d_next_mode_req_conf.mode == ReqMode::Pwm))
+    {
+      ++int_count;
+    }
+  
+  if (int_count > 1)
+    {
+      std::ostringstream stream("checkInterruptCount - Only one pin can use either PWM or PPM mode.",
+				std::ios_base::app);
+      stream << " There are currently " << int_count << " pins using either PWM or PPM mode.";
+      ownerHandleError(Error::InterruptCount, stream.str());
+    }
+}
+
+//----------------------------------------------------------------------//
 void Config::checkPwmPulses()
 {
   if (d_pwm_high_us < d_pwm_low_us)
@@ -550,6 +580,25 @@ bool Config::usesChannel(ReqMode req_mode)
   ownerHandleError(Error::Internal, "usesChannel - Failed to identify the request mode enum value.");
 }
 
+//----------------------------------------------------------------------//
+bool Config::usesInterrupt(ReqMode req_mode)
+{
+  switch (req_mode)
+    {
+    case ReqMode::Up:
+    case ReqMode::Down:
+    case ReqMode::Float:
+    case ReqMode::Unknown:
+      return false;
+      
+    case ReqMode::Pwm:
+    case ReqMode::Ppm:
+      return true;
+    }
+  assert(false);
+  ownerHandleError(Error::Internal, "usesInterrupt - Failed to identify the request mode enum value.");
+}
+ 
 //----------------------------------------------------------------------//
 void Config::ownerHandleError(Error e, const std::string& msg)
 {

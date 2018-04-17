@@ -34,8 +34,7 @@ class Config
  public:
   enum class Error
   {
-    OpenFile,
-      WifiSSID,
+    WifiSSID,
       WifiPassword,
       NextModeReqNum,
       NextModeReqMode,
@@ -53,6 +52,7 @@ class Config
       PwmLow,
       PwmHighAndLow,
       PpmPinNum,
+      InterruptCount,
       Internal
   };
 
@@ -116,10 +116,12 @@ class Config
 		       Error,
 		       int&);
   void checkDuplicateReqNums();
+  void checkInterruptCount();
   void checkPwmPulses();
   bool areConflictingReqModes(ReqMode, ReqMode); // both use pins (digital or pwm) or ppm channels
   bool usesPin(ReqMode);
   bool usesChannel(ReqMode);
+  bool usesInterrupt(ReqMode);
   void ownerHandleError(Error, const std::string& msg);
   
  private:
