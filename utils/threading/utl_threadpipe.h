@@ -30,7 +30,7 @@ namespace UTIL
 
     private:
       mutable std::mutex d_m; // mutable for use in const functions
-      unsigned d_max_size = 100;   
+      unsigned d_max_size = 300;
       unsigned d_data_drop_count = 0;
       
       std::deque<T> d_data;
