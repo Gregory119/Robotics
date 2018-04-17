@@ -9,6 +9,9 @@
 
 #include "kn_asiocallbacktimer.h"
 #include "kn_anydeleteontimeout.h"
+
+#include "utl_filelogger.h"
+
 #include "wifi_configurator.h"
 #include "wp_edgeinputpin.h"
 
@@ -35,12 +38,13 @@ class CamStreamer final : RequestManager::Owner,
 		   const std::string& msg) override;
   
   // D_GP::ModeController::Owner
-  void handleFailedRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
+  void handleFailedRequest(D_GP::ModeController*,
+			   D_GP::ModeController::Req,
+			   const std::string&) override;
   void handleInternalFailure(D_GP::ModeController*) override;
   void handleSuccessfulRequest(D_GP::ModeController*, D_GP::ModeController::Req) override;
 
   // D_LED::Controller::Owner
-  void handleFlashCycleEnd(D_LED::Controller*) override;
   void handleReqFailed(D_LED::Controller*,
 		       D_LED::Controller::Req req,
 		       const std::string& msg) override;
@@ -62,7 +66,6 @@ class CamStreamer final : RequestManager::Owner,
     InvalidConfig,
       Connecting,
       Connected,
-      CommandSuccessful,
       InternalFailure,
       Unknown
       };
@@ -70,10 +73,14 @@ class CamStreamer final : RequestManager::Owner,
  private:
   void setupWifi();
   void restartGPController();
-  void setState(State);
   void stop();
 
+  void setState(State);
+  void processState();
+  void ledForPinReq();
+  
  private:
+  State d_state = State::Unknown;
   std::unique_ptr<RequestManager> d_req_man;
   std::unique_ptr<P_WIFI::Configurator> d_wifi_config;
   std::unique_ptr<Config> d_config;
@@ -87,6 +94,8 @@ class CamStreamer final : RequestManager::Owner,
   std::unique_ptr<D_LED::Controller> d_led_ctrl;
 
   KERN::AnyDeleteOnTimeout d_timeout_deleter;
+
+  std::unique_ptr<UTIL::FileLogger> d_logger;
 };
 
 #endif
