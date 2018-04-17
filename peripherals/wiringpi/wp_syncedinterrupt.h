@@ -27,8 +27,8 @@ namespace P_WP
 
     SET_OWNER();
 
-    void start(); // only call once
-    bool hasStarted() { return d_interrupt->hasStarted(); }
+    void start();
+    void stop();
 
   private:
     void handleInterrupt(Interrupt*,

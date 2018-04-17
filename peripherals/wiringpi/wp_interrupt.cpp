@@ -23,20 +23,32 @@ Interrupt::Interrupt(Owner* o,
     d_pin(pin),
     d_mode(mode),
     d_callback_index(static_cast<int>(pin))
-{
-  d_error_timer.setTimeoutCallback([this](){
-      d_owner.call(&Owner::handleError,
-		   this,
-		   d_error,
-		   d_err_msg);
-    });
+{}
 
+//----------------------------------------------------------------------//
+Interrupt::~Interrupt()
+{
+  if (d_started)
+    {
+      stop();
+    }
+  s_callbacks.erase(d_callback_index); // erases if it exists
+}
+
+//----------------------------------------------------------------------//
+void Interrupt::start()
+{
+  if (d_started)
+    {
+      return;
+    }
+  d_started = true;
+  
   if (s_callbacks.size() >= 2)
     {
-      assert(false);
-      d_error = Error::MaxInstances;
-      d_err_msg = "Interrupt::Interrupt - The limit on the number of interrupt instances is 2.";
-      d_error_timer.singleShotZero();
+      //assert(false);
+      ownerError(Error::MaxInstances,
+		 "Interrupt - The limit on the number of interrupt instances is 2.");
       return;
     }
 
@@ -44,12 +56,10 @@ Interrupt::Interrupt(Owner* o,
     {
       s_callbacks.at(d_callback_index);
       // success at this point => pin used
-      d_error = Error::DuplicatePin;
       std::ostringstream stream("Interrupt::Interrupt - Failed to create an interrupt for pin '",
 				std::ios_base::app);
       stream << static_cast<int>(d_pin) << "' because one already exists.";
-      d_err_msg = stream.str();
-      d_error_timer.singleShotZero();
+      ownerError(Error::DuplicatePin, stream.str());
     }
   catch (...)
     {
@@ -172,9 +182,7 @@ Interrupt::Interrupt(Owner* o,
       break;
       
     case PinNum::Unknown:
-      d_error = Error::Pin;
-      d_err_msg = "Interrupt::Interrupt - The pin number is not set.";
-      d_error_timer.singleShotZero();
+      ownerError(Error::Pin, "Interrupt - The pin number is not set.");
       return;
     }
   
@@ -208,39 +216,29 @@ Interrupt::Interrupt(Owner* o,
 
   PIN_UTILS::setPullMode(d_pin, P_WP::PullMode::None);
   d_pin_state = digitalRead(static_cast<int>(d_pin));
-}
 
-//----------------------------------------------------------------------//
-Interrupt::~Interrupt()
-{
-  s_callbacks.erase(d_callback_index);
-}
-
-//----------------------------------------------------------------------//
-void Interrupt::start()
-{
-  if (d_started)
-    {
-      assert(false);
-      d_owner.call(&Owner::handleError,
-		   this,
-		   Error::AlreadyStarted,
-		   "Interrupt::start - Failed to start when already started.");
-      return;
-    }
-  d_started = true;
-  
   if (wiringPiISR(static_cast<int>(d_pin),
 		  getWiringPiEdgeMode(d_mode),
 		  *d_temp_callback.target<void(*)(void)>()) < 0)
     {
       s_callbacks.erase(d_callback_index);
-      d_owner.call(&Owner::handleError,
-		   this,
-		   Error::Start,
-		   "Interrupt::start - Failed to setup the WiringPi interrupt.");
+      ownerError(Error::Internal,
+		 "Interrupt::start - Failed to setup the WiringPi interrupt.");
       return;
     }
+}
+
+//----------------------------------------------------------------------//
+void Interrupt::stop()
+{
+  if (!d_started)
+    {
+      return;
+    }
+  d_started = false;
+
+  // this should disable the interrupt callback
+  PIN_UTILS::setPullMode(d_pin, P_WP::PullMode::None);
 }
 
 //----------------------------------------------------------------------//
@@ -274,8 +272,13 @@ int Interrupt::getWiringPiEdgeMode(EdgeMode mode)
   std::ostringstream stream("Interrupt::getWiringPiEdgeMode - The mode value of '",
 			    std::ios_base::app);
   stream << static_cast<int>(mode) << "' does not exist.";
-  d_owner.call(&Owner::handleError,
-	       this,
-	       Error::EdgeMode,
-	       stream.str());
+  ownerError(Error::EdgeMode, stream.str());
+}
+
+//----------------------------------------------------------------------//
+void Interrupt::ownerError(Error e, const std::string& msg)
+{
+  std::string new_msg = "P_WP::Interrupt::";
+  new_msg += msg;
+  d_owner.call(&Owner::handleError, this, e, new_msg);
 }
