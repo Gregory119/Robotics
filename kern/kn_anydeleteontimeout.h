@@ -71,7 +71,7 @@ namespace KERN
       // already deleted previous classes => need to restart timer to delete new list
       if (d_base_deleters.empty())
 	{
-	  d_timer.singleShot(std::chrono::seconds(0));
+	  d_timer.singleShotZero();
 	}
       
       // Check that the pointer is not already going to be deleted
