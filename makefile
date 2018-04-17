@@ -36,4 +36,5 @@ clean:
 	$(MAKE) clean -C projects CLEANING=1
 	$(MAKE) clean -C peripherals CLEANING=1
 	$(MAKE) clean -C general_testprogs CLEANING=1
+	$(MAKE) clean -C howtoguides CLEANING=1
 	$(RM) *~ *.d* *.o* *# *.core
