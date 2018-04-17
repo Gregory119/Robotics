@@ -38,6 +38,7 @@ class StateEdgeRequest
   SET_OWNER();
 
   virtual void start() = 0; // this should only be called once
+  virtual void stop() {} // must be called as soon as it needs to stop
   
   // This class will trigger by default to a high and low state.
   // For TriggerSetting::None, the duration is not used

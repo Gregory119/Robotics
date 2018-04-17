@@ -35,7 +35,19 @@ void PpmEdgeRequest::start()
       return;
     }
   // multiple instances of this class, who are observers, will call this function
-  d_reader->startIfNotStarted();
+  d_reader->start();
+}
+
+//----------------------------------------------------------------------//
+void PpmEdgeRequest::stop()
+{
+  if (d_reader == nullptr)
+    {
+      assert(false);
+      return;
+    }
+  // multiple instances of this class, who are observers, will call this function
+  d_reader->stop();
 }
 
 //----------------------------------------------------------------------//

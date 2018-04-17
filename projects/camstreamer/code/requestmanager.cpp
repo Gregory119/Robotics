@@ -14,11 +14,27 @@ RequestManager::RequestManager(Owner* o,
 //----------------------------------------------------------------------//
 void RequestManager::start()
 {
+  if (d_started)
+    {
+      return;
+    }
+  d_started = true;
+  
   d_config->parseFile(); // errors handled in error callback, which are passed to the owner
 
-  if (d_config->getReqConfig(Config::Request::NextMode).isValid())
+  Config::ReqConfig next_mode_config = d_config->getReqConfig(Config::Request::NextMode);
+  if (next_mode_config.isValid())
     {
-      d_mode = Mode::SeparateModeAndTrigger;
+      Config::ReqConfig trigger_config = d_config->getReqConfig(Config::Request::Trigger);
+      if (trigger_config.mode == next_mode_config.mode &&
+	  trigger_config.num == next_mode_config.num)
+	{
+	  d_mode = Mode::CombinedModeAndTrigger;
+	}
+      else
+	{
+	  d_mode = Mode::SeparateModeAndTrigger;
+	}
     }
   else
     {

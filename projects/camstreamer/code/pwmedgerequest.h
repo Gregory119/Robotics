@@ -17,7 +17,8 @@ class PwmEdgeRequest final : public StateEdgeRequest,
 		 std::chrono::microseconds max_pulse_duration,
 		 std::chrono::microseconds min_pulse_duration);
 
-  void start() override;
+  void start() override { d_reader->start(); }
+  void stop() override { d_reader->stop(); }
   
  private:
   void handleState(C_RC::StatePwmReader*, bool) override;

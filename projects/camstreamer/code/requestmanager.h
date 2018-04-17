@@ -43,6 +43,7 @@ class RequestManager final : Config::Owner,
   SET_OWNER();
   
   void start();
+  void stop();
 
  private:
   enum class Mode
@@ -68,6 +69,8 @@ class RequestManager final : Config::Owner,
   std::unique_ptr<Config> d_config;
   Mode d_mode = Mode::SeparateModeAndTrigger;
 
+  bool d_started = false;
+  
   std::unique_ptr<StateEdgeRequest> d_next_mode_req;
   std::unique_ptr<StateEdgeRequest> d_trigger_req;
   std::unique_ptr<StateEdgeRequest> d_power_req;

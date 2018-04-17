@@ -13,6 +13,7 @@ class PpmEdgeRequest final : public StateEdgeRequest,
 		 C_RC::StatePpmReader*);
 
   void start() override;
+  void stop() override;
   
  private:
   // StatePpmReader::Observer

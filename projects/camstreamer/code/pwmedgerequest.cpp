@@ -26,12 +26,6 @@ PwmEdgeRequest::PwmEdgeRequest(StateEdgeRequest::Owner* o,
 }
 
 //----------------------------------------------------------------------//
-void PwmEdgeRequest::start()
-{
-  d_reader->start();
-}
-
-//----------------------------------------------------------------------//
 void PwmEdgeRequest::handleState(C_RC::StatePwmReader*, bool state)
 {
   processState(state);
