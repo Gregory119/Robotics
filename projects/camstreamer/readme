@@ -39,20 +39,9 @@ SD card
  - $ apt-get install openssh-server
 - install github
  - $ apt-get install git
-- install xboxdrv driver for the xbox controller (NOT NEEDED ANYMORE)
- - $ apt-get install xboxdrv
 - install wiringPi
  - $ apt-get install wiringPi
  - or use the files in Robotics/arm_pkgs if there are any problems experienced with compiling/runtime
-- compile and install servoblaster
- - $ cd /
- - $ git clone https://github.com/richardghirst/PiBits.git
- - $ cd PiBits/ServoBlaster/user/
- - $ make
- - the following command will install the driver so that it can be called from any directory. It also sets up a start script to start it from power up of the pi.
- - $ make install
- - change the start script such that the driver continuously provides a pulse signal:
-  - open up the start script /etc/init.d/servoblaster and change the line "OPTS="--idle-timeout=2000"" to "OPTS="""
 
 =================================================
 Project Compilation
@@ -84,3 +73,8 @@ Disable the OS from using the serial port as a login interface:
 This process has been known to disable the serial port. To enable it for external device use:
 - open the file /boot/config.txt
 - change "enable_uart=0" to "enable_uart=1"
+
+To manually disable the serial port completely:
+- open the file /boot/config.txt
+- delete the console entry that refers to any serial related names eg. console=serial0,115200
+ref: https://www.raspberrypi.org/documentation/configuration/uart.md
