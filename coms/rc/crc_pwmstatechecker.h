@@ -18,7 +18,7 @@ namespace C_RC
       bool isLow(T val);
 
     private:
-      unsigned d_detect_perc = 20;
+      unsigned d_detect_perc = 15;
       T d_max = 0;
       T d_min = 0;
       const unsigned d_range = 0;

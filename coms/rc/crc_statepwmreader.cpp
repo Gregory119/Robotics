@@ -28,12 +28,6 @@ StatePwmReader::StatePwmReader(Owner* o,
 }
 
 //----------------------------------------------------------------------//
-void StatePwmReader::start()
-{
-  d_reader->start();
-}
-
-//----------------------------------------------------------------------//
 void StatePwmReader::handleValue(PwmReader<unsigned>*, unsigned val)
 {
   d_state_detector->checkValue(val);

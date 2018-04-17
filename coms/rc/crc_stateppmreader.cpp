@@ -44,12 +44,6 @@ StatePpmReader::StatePpmReader(P_WP::PinNum pin,
 }
 
 //----------------------------------------------------------------------//
-void StatePpmReader::start()
-{
-  d_reader->start();
-}
-  
-//----------------------------------------------------------------------//
 void StatePpmReader::attachObserver(Observer* ob)
 {
   d_reader->attachObserver(ob);

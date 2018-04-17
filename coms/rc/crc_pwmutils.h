@@ -35,7 +35,7 @@ namespace C_RC
 
     bool isDurationValid(const std::chrono::microseconds&);
     bool isValueValid(T);
-    std::chrono::microseconds capDuration(const std::chrono::microseconds&);
+    bool capDuration(const std::chrono::microseconds&, std::chrono::microseconds&);
 
     static PwmLimits<T> create(PwmLimitsType, T max_val, T min_val);
     
@@ -44,6 +44,7 @@ namespace C_RC
     const T val_range = 0;
     const unsigned max_duration_micros = 0;
     const unsigned min_duration_micros = 0;
+    const unsigned duration_range_micros = 0;
   };
   
   template <class T>
@@ -59,7 +60,7 @@ namespace C_RC
     T getValue(const std::chrono::microseconds&);
     bool isDurationValid(const std::chrono::microseconds&);
     bool isValueValid(T);
-    std::chrono::microseconds capDuration(const std::chrono::microseconds& dur);
+    bool capDuration(const std::chrono::microseconds&, std::chrono::microseconds&);
     const PwmLimits<T>& getPwmLimits() const { return d_limits; }
 
   private:
@@ -79,7 +80,8 @@ namespace C_RC
     min_val(min_v),
     val_range(max_val-min_val),
     max_duration_micros(max_dur.count()),
-    min_duration_micros(min_dur.count())
+    min_duration_micros(min_dur.count()),
+    duration_range_micros(max_duration_micros - min_duration_micros)
       {
 	if (!std::is_fundamental<T>::value)
 	  {
@@ -96,7 +98,7 @@ namespace C_RC
 	  }
 	
 	if (max_dur.count() > 3000 ||
-	    max_dur.count() < min_dur.count()) // implies min_dur.count() >= 0
+	    max_dur.count() < min_dur.count()) // implies requirement of min_dur.count() >= 0
 	  {
 	    // LOG
 	    assert(false);
@@ -121,18 +123,31 @@ namespace C_RC
 
   //----------------------------------------------------------------------//
   template <class T>
-    std::chrono::microseconds PwmLimits<T>::capDuration(const std::chrono::microseconds& dur) 
+    bool PwmLimits<T>::capDuration(const std::chrono::microseconds& in,
+				   std::chrono::microseconds& out)
     {
-      if (dur.count() > max_duration_micros)
+      if (in.count() > max_duration_micros)
 	{
-	  return std::chrono::microseconds(max_duration_micros);
+	  if ((in.count() - max_duration_micros)*100/duration_range_micros > 30)
+	    {
+	      return false;
+	    }
+	  out = std::chrono::microseconds(max_duration_micros);
+	  return true;
 	}
       
-      if (dur.count() < min_duration_micros)
+      if (in.count() < min_duration_micros)
 	{
-	  return std::chrono::microseconds(min_duration_micros);
+	  if ((min_duration_micros - in.count())*100/duration_range_micros > 30)
+	    {
+	      return false;
+	    }
+	  out = std::chrono::microseconds(min_duration_micros);
+	  return true;
 	}
-      return dur;
+
+      out = in;
+      return true;
     }
 
   //----------------------------------------------------------------------//
@@ -217,10 +232,10 @@ namespace C_RC
 
   //----------------------------------------------------------------------//
   template <class T>
-    std::chrono::microseconds
-    PwmMap<T>::capDuration(const std::chrono::microseconds& dur) 
+    bool PwmMap<T>::capDuration(const std::chrono::microseconds& in,
+			   std::chrono::microseconds& out) 
     {
-      return d_limits.capDuration(dur);
+      return d_limits.capDuration(in, out);
     }
 };
 

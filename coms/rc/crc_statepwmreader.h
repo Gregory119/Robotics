@@ -32,7 +32,8 @@ namespace C_RC
     
     SET_OWNER();
 
-    void start();
+    void start() { d_reader->start(); }
+    void stop() { d_reader->stop(); }
 
   private:
     // PwmReader<unsigned>::Owner

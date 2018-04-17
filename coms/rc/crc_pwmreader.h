@@ -38,7 +38,10 @@ namespace C_RC
       PwmReader(PwmReader&&) = delete;
 
       SET_OWNER();
+
       void start();
+      void stop();
+            
       void capData() { d_cap_data = true; }
 
     
@@ -101,6 +104,13 @@ namespace C_RC
     {
       d_interrupt->start();
     }
+
+  //----------------------------------------------------------------------//
+  template <class T>
+    void PwmReader<T>::stop()
+    {
+      d_interrupt->stop();
+    }
   
   //----------------------------------------------------------------------//
   template <class T>
@@ -152,14 +162,19 @@ namespace C_RC
     {
       if (d_cap_data)
 	{
+	  std::chrono::microseconds capped_dur;
+	  if (!d_map.capDuration(dur, capped_dur))
+	    {
+	      return;
+	    }
 	  d_owner.call(&Owner::handleValue,
 		       this,
-		       d_map.getValue(d_map.capDuration(dur)));
+		       d_map.getValue(capped_dur));
 	  return;
 	}
       
       if (!d_map.isDurationValid(dur))
-	{
+	{	  
 	  d_owner.call(&Owner::handleValueOutOfRange, this, d_map.getValue(dur));
 	  return;
 	}

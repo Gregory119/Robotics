@@ -14,7 +14,8 @@ class Test final : C_RC::StatePwmReader::Owner
   Test(P_WP::PinNum pin)
     : d_reader(new C_RC::StatePwmReader(this,
 					pin,
-					C_RC::PwmLimitsType::Narrow))
+					std::chrono::microseconds(2000),
+					std::chrono::microseconds(1000)))
     {
       d_reader->start();
     }

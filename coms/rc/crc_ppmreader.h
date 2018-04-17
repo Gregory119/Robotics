@@ -49,7 +49,8 @@ namespace C_RC
       void clearObservers() { d_observers.clear(); }
 
       void start();
-      void startIfNotStarted();
+      void stop();
+      
       void capData() { d_cap_data = true; }
 
       T getMaxVal() { return d_map.getPwmLimits().max_val; }
@@ -135,14 +136,9 @@ namespace C_RC
 
   //----------------------------------------------------------------------//
   template <class T>
-    void PpmReader<T>::startIfNotStarted()
+    void PpmReader<T>::stop()
     {
-      if (d_interrupt->hasStarted())
-	{
-	  return;
-	}
-      
-      d_interrupt->start();
+      d_interrupt->stop();
     }
   
   //----------------------------------------------------------------------//
@@ -220,7 +216,7 @@ namespace C_RC
 	}
       catch(...)
 	{
-	  d_channel_filters[dur.channel] = UTIL::MedianFilter<std::chrono::microseconds>(3);
+	  d_channel_filters[dur.channel] = UTIL::MedianFilter<std::chrono::microseconds>(4);
 	}
       UTIL::MedianFilter<std::chrono::microseconds>& filter = d_channel_filters[dur.channel];
       filter.pushBack(dur.duration);
@@ -249,14 +245,18 @@ namespace C_RC
       // cap value
       if (d_cap_data)
 	{
-	  unsigned cap_val = d_map.getValue(d_map.capDuration(dur_filtered)); // cache for multiple observers with the same channel
+	  std::chrono::microseconds dur_filt_capped;
+	  if (!d_map.capDuration(dur_filtered, dur_filt_capped)) // cache for multiple observers with the same channel
+	    {
+	      return;
+	    }
 	  for (auto i=obs_range.first; i!=obs_range.second; ++i)
 	    {
-	      i->second->handleValue(this, cap_val);
+	      i->second->handleValue(this, d_map.getValue(dur_filt_capped));
 	    }
 	  return;
 	}
-
+	  
       // out of range
       if (!d_map.isDurationValid(dur_filtered))
 	{

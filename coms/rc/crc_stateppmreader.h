@@ -36,8 +36,9 @@ namespace C_RC
 		   std::chrono::microseconds min_pulse_duration);
     StatePpmReader(StatePpmReader&&) = delete;
 
-    void start();
-    void startIfNotStarted() { d_reader->startIfNotStarted(); }
+    void start() { d_reader->start(); }
+    void stop() { d_reader->stop(); }
+    
     void attachObserver(Observer*);
     
   private:
