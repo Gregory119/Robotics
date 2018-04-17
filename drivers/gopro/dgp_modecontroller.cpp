@@ -3,9 +3,36 @@
 #include "dgp_factory.h"
 
 #include <cassert>
-#include <iostream>
 
 using namespace D_GP;
+
+//----------------------------------------------------------------------//
+std::string ModeController::getReqStr(Req req)
+{
+  switch (req)
+    {
+    case Req::Connect:
+      return "Connect";
+      
+    case Req::NextMode:
+      return "NextMode";
+      
+    case Req::Trigger:
+      return "Trigger";
+      
+    case Req::StartStream:
+      return "StartStream";
+      
+    case Req::StopStream:
+      return "StopStream";
+      
+    case Req::Unknown:
+      assert(false);
+      return std::string();
+    }
+  assert(false);
+  return std::string();
+}
 
 //----------------------------------------------------------------------//
 ModeController::ModeController(Owner* o,
@@ -51,28 +78,36 @@ void ModeController::stopStream()
 //----------------------------------------------------------------------//
 void ModeController::handleCommandSuccessful(GoPro*, GoPro::Cmd cmd)
 {
-  std::cout << "D_GP::ModeController::handleCommandSuccessful " << std::endl;
   assert(!d_reqs.empty());
-  processReqWithLastCmd(cmd);
+  processReqWithLastSuccessfulCmd(cmd);
 }
 
 //----------------------------------------------------------------------//
 void ModeController::handleCommandFailed(GoPro*,
 					 GoPro::Cmd cmd,
-					 GoPro::Error err)
+					 GoPro::Error err,
+					 const std::string& msg)
 {
-  std::cout << "D_GP::ModeController::handleCommandFailed " << std::endl;
-  // stop further consequetive failed messages that have been buffered/queued
-  ownerFailedRequest();
+  d_gp->cancelBufferedCmds();
+  Req req = d_reqs.front();
+  d_reqs.clear();
+  std::string new_msg = className();
+  new_msg += "handleCommandFailed(GoPro*..) - The command ";
+  new_msg += GoPro::getCmdStr(cmd);
+  new_msg += " failed with the following error:\n";
+  new_msg += msg;
+  d_owner.call(&Owner::handleFailedRequest, this, req, new_msg);
 }
 
 //----------------------------------------------------------------------//
 void ModeController::handleStreamDown(GoPro*)
 {
-  if (d_owner != nullptr)
-    {
-      d_owner->handleFailedRequest(this, Req::StartStream);
-    }
+  std::string new_msg = className();
+  new_msg += "handleStreamDown(GoPro*) - The stream went down.";
+  d_owner.call(&Owner::handleFailedRequest,
+	       this,
+	       Req::StartStream,
+	       new_msg);
 }
 
 //----------------------------------------------------------------------//
@@ -94,11 +129,11 @@ void ModeController::processNextReq()
       return;
     }
     
-  processReqWithLastCmd(GoPro::Cmd::Unknown);
+  processReqWithLastSuccessfulCmd(GoPro::Cmd::Unknown);
 }
 
 //----------------------------------------------------------------------//
-void ModeController::processReqWithLastCmd(GoPro::Cmd last_cmd)
+void ModeController::processReqWithLastSuccessfulCmd(GoPro::Cmd last_cmd)
 {
   assert(!d_reqs.empty());
   switch (d_reqs.front())
@@ -401,25 +436,10 @@ void ModeController::internalStopStream(GoPro::Cmd last_cmd)
 }
 
 //----------------------------------------------------------------------//
-void ModeController::ownerFailedRequest()
-{
-  d_gp->cancelBufferedCmds();
-  Req req = d_reqs.front();
-  d_reqs.clear();
-  if (d_owner != nullptr)
-    {
-      d_owner->handleFailedRequest(this, req);
-    }
-}
-
-//----------------------------------------------------------------------//
 void ModeController::ownerInternalFailure()
 {
   d_gp->cancelBufferedCmds();
-  if (d_owner != nullptr)
-    {
-      d_owner->handleInternalFailure(this);
-    }
+  d_owner.call(&Owner::handleInternalFailure, this);
 }
 
 //----------------------------------------------------------------------//
@@ -427,8 +447,5 @@ void ModeController::ownerSuccessfulRequest()
 {
   Req req = d_reqs.front();
   d_reqs.pop_front(); // completed last request
-  if (d_owner != nullptr)
-    {
-      d_owner->handleSuccessfulRequest(this, req);
-    }
+  d_owner.call(&Owner::handleSuccessfulRequest, this, req);
 }

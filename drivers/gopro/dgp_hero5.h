@@ -15,7 +15,7 @@ namespace D_GP
   // Accommodates multiple simultaneous requests by buffering them.
   
   class GoProHero5 final : public GoPro,
-    C_HTTP::OperationsOwner,
+    C_HTTP::Operations::Owner,
     C_UDP::Client::Owner
   {
   public:
@@ -37,8 +37,10 @@ namespace D_GP
     void cancelBufferedCmds() override; // will not stop a command currently being processed
 
   private:    
-    // C_HTTP::OperationsOwner
-    void handleFailed(C_HTTP::Operations*, C_HTTP::OpError) override;
+    // C_HTTP::Operations::Owner
+    void handleFailed(C_HTTP::Operations*,
+		      C_HTTP::OpError,
+		      const std::string&) override;
     void handleResponse(C_HTTP::Operations*,
 			C_HTTP::ResponseCodeNum,
 			const std::vector<std::string>& headers,
@@ -53,6 +55,8 @@ namespace D_GP
     void requestCmd(GoPro::Cmd);
     void internalStopLiveStream(); // does not notify owner
     void maintainStream();
+
+    void ownerCmdFailed(GoPro::Cmd, GoPro::Error, const std::string&);
     
   private:
     std::unique_ptr<C_HTTP::Operations> d_http; 

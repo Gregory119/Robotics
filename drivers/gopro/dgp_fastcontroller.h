@@ -80,7 +80,10 @@ namespace D_GP
   private:
     //GoPro::Owner
     void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
-    void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) override;
+    void handleCommandFailed(GoPro*,
+			     GoPro::Cmd,
+			     GoPro::Error,
+			     const std::string&) override;
     void handleStreamDown(GoPro*) override { /* nothing for now*/ }
 
   private:

@@ -3,6 +3,8 @@
 
 #include "dgp_gopro.h"
 
+#include "core_owner.h"
+
 #include <list>
 #include <memory>
 #include <map>
@@ -26,21 +28,14 @@ namespace D_GP
       Unknown
     };
 
+    static std::string getReqStr(Req);
+    
     class Owner
     {
-    public:
-      Owner& operator=(const Owner&) = delete;
-      Owner(const Owner&) = delete;
-      Owner(Owner&&) = delete;
-      Owner& operator=(Owner&&) = delete;
-
-    protected:
-      Owner() = default; // enforce inheritance
-      ~Owner() = default; // only deleteable by child class
-      
-    private:
-      friend ModeController;
-      virtual void handleFailedRequest(ModeController*, Req) = 0;
+      OWNER_SPECIAL_MEMBERS(ModeController);
+      virtual void handleFailedRequest(ModeController*,
+				       Req,
+				       const std::string&) = 0;
 
       // Internal state is not guaranteed, so delete on a zero timer in this callback.
       virtual void handleInternalFailure(ModeController*) = 0;
@@ -58,7 +53,8 @@ namespace D_GP
     
   public:
     ModeController(Owner*, const CtrlParams&);
-    void setOwner(Owner* o) { d_owner = o; }
+
+    SET_OWNER();
 
     void connect(); 
     void nextMode();
@@ -69,7 +65,10 @@ namespace D_GP
   private:
     //GoPro::Owner
     void handleCommandSuccessful(GoPro*, GoPro::Cmd) override;
-    void handleCommandFailed(GoPro*, GoPro::Cmd, GoPro::Error) override;
+    void handleCommandFailed(GoPro*,
+			     GoPro::Cmd,
+			     GoPro::Error,
+			     const std::string&) override;
     void handleStreamDown(GoPro*) override;
 
   private:
@@ -77,7 +76,7 @@ namespace D_GP
 
     void processNextReq();
     // This function will always result in calling a gopro command; it does not check if there is a request in process.
-    void processReqWithLastCmd(GoPro::Cmd last_cmd);
+    void processReqWithLastSuccessfulCmd(GoPro::Cmd last_cmd);
 
     // For all of the following internal requests, providing a last command parameter of GoPro::Cmd::Unknown
     // will start the request from its first command.
@@ -89,12 +88,13 @@ namespace D_GP
     
     void nextModeCmdsAfterStatus();
     
-    void ownerFailedRequest();
     void ownerInternalFailure();
     void ownerSuccessfulRequest();
+
+    static std::string className() { static std::string name = "D_GP::ModeController::"; return name; }
     
   private:		
-    Owner* d_owner = nullptr;
+    CORE::Owner<Owner> d_owner;
 
     std::unique_ptr<GoPro> d_gp;
     std::list<Req> d_reqs;

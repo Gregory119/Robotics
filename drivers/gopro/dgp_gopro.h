@@ -48,6 +48,8 @@ namespace D_GP
       Unknown
     };
 
+    static std::string getCmdStr(Cmd);
+    
     class Owner // inherit privately
     {
       OWNER_SPECIAL_MEMBERS(GoPro);
@@ -67,6 +69,8 @@ namespace D_GP
     GoPro(GoPro&&) = delete;
     GoPro& operator=(GoPro&&) = delete;
 
+    SET_OWNER();
+    
     virtual void connect() = 0;
     virtual void status() = 0; 
     virtual void setMode(Mode) = 0;
@@ -90,7 +94,7 @@ namespace D_GP
     Status d_status;
 
   private:
-    Owner* d_owner = nullptr;
+    CORE::Owner<Owner> d_owner;
   };
 };
 

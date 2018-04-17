@@ -10,7 +10,7 @@ using namespace D_GP;
 //----------------------------------------------------------------------//
 GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
   : GoPro(o),
-    d_http(new C_HTTP::Operations(this)),
+    d_http(new C_HTTP::Operations(this, std::chrono::seconds(10))),
     d_udp_client(new C_UDP::Client(this,
 				   "10.5.5.9",//D_GP::Utils::ipAddr(CamModel::Hero5),
 				   "8554"))
@@ -37,9 +37,6 @@ GoProHero5::GoProHero5(GoPro::Owner* o, const std::string& name)
     });
 
   d_http->appendHeaders({"Connection: Keep-Alive"});
-  
-  // Will call failure callback if failed
-  d_http->init(std::chrono::seconds(10));
 }
 
 //----------------------------------------------------------------------//
@@ -107,11 +104,18 @@ void GoProHero5::setMode(Mode mode)
 	
     case Mode::Unknown:
       assert(false);
-      ownerCommandFailed(GoPro::Cmd::Unknown, GoPro::Error::Internal);
+      ownerCmdFailed(GoPro::Cmd::Unknown,
+		     GoPro::Error::Internal,
+		     "setMode - Failed. The mode is unknown.");
       return;
     }
   assert(false);
-  ownerCommandFailed(GoPro::Cmd::Unknown, GoPro::Error::Internal);
+  std::ostringstream stream("setMode - Failed. The mode value of ",
+			    std::ios_base::app);
+  stream << static_cast<int>(mode) << " is invalid.";
+  ownerCmdFailed(GoPro::Cmd::Unknown,
+		 GoPro::Error::Internal,
+		 stream.str());
 }
 
 //----------------------------------------------------------------------//
@@ -207,7 +211,12 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
   if (code >= static_cast<C_HTTP::ResponseCodeNum>(C_HTTP::ResponseCode::BadRequest))
     {
       // not successful
-      ownerCommandFailed(cmd, GoPro::Error::Response);
+      std::ostringstream stream("handleResponse - Received an error response code with the value ",
+				std::ios_base::app);
+      stream << static_cast<int>(code) << ".";
+      ownerCmdFailed(cmd,
+		     GoPro::Error::Response,
+		     stream.str());
       return;
     }
 
@@ -239,19 +248,26 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
       {
 	if (body.empty())
 	  {
-	    ownerCommandFailed(cmd, GoPro::Error::Response);
+	    ownerCmdFailed(cmd,
+			   GoPro::Error::Response,
+			   "handleResponse - Received an empty body response to a GoPro Status query.");
 	    return;
 	  }
 	
 	std::string body_str = std::string(body.begin(),body.end());
 	if (d_status.loadStr(body_str, CamModel::Hero5))
 	  {
-	    d_status.print();
+	    //d_status.print();
 	    ownerCommandSuccessful(cmd);
 	    return;
 	  }
 	// LOG
-	ownerCommandFailed(cmd, GoPro::Error::ResponseData);
+	std::ostringstream stream("handleResponse - Failed to extract the Status data from the following response body:\n",
+				  std::ios_base::app);
+	stream << body_str;
+	ownerCmdFailed(cmd,
+		       GoPro::Error::ResponseData,
+		       stream.str());
       }
       return;
 
@@ -265,7 +281,8 @@ void GoProHero5::handleResponse(C_HTTP::Operations* http,
 
 //----------------------------------------------------------------------//
 void GoProHero5::handleFailed(C_HTTP::Operations* http,
-			      C_HTTP::OpError error)
+			      C_HTTP::OpError error,
+			      const std::string& msg)
 {
   // sent command was unsuccessful
   GoPro::Cmd cmd = d_cmd_reqs.front();
@@ -275,17 +292,33 @@ void GoProHero5::handleFailed(C_HTTP::Operations* http,
     {
       internalStopLiveStream();
     }
+
+  std::string new_msg = "handleFailed(C_HTTP::Operations*...) - ";
   
   switch (error)
     {
     case C_HTTP::OpError::Internal:
-      // LOG
-      ownerCommandFailed(cmd, GoPro::Error::Internal);
+      new_msg += "Internal failure with the following message:\n";
+      new_msg += msg;
+      ownerCmdFailed(cmd,
+		     GoPro::Error::Internal,
+		     new_msg);
       return;
 
     case C_HTTP::OpError::Timeout:
-      // LOG
-      ownerCommandFailed(cmd, GoPro::Error::Timeout);
+      new_msg += "Timeout failure with the following message:\n";
+      new_msg += msg;
+      ownerCmdFailed(cmd,
+		     GoPro::Error::Timeout,
+		     new_msg);
+      return;
+
+    case C_HTTP::OpError::Response:
+      new_msg += "Response failure with the following message:\n";
+      new_msg += msg;
+      ownerCmdFailed(cmd,
+		     GoPro::Error::Response,
+		     new_msg);
       return;
     }
   assert(false);
@@ -356,4 +389,14 @@ void GoProHero5::requestCmd(GoPro::Cmd cmd)
   d_http->get(Utils::cmdToUrl(cmd,
 			      CamModel::Hero5));
   d_cmd_reqs.push_back(cmd);
+}
+
+//----------------------------------------------------------------------//
+void GoProHero5::ownerCmdFailed(GoPro::Cmd cmd,
+				GoPro::Error e,
+				const std::string& msg)
+{
+  std::string new_msg = "D_GP::GoProHero5::";
+  new_msg += msg;
+  ownerCommandFailed(cmd, e, new_msg);
 }
