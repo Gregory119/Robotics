@@ -19,8 +19,12 @@ public:
 	
 private:
   // C_HTTP::OperationsOwner
-  void handleFailed(C_HTTP::Operations*,C_HTTP::OpError err) override
+  void handleFailed(C_HTTP::Operations*,
+		    C_HTTP::OpError err,
+		    const std::string& msg) override
   {
+    std::cout << "The error messages is:\n" << msg;
+    
     switch (err)
       {
       case C_HTTP::OpError::Internal:

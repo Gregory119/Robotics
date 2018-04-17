@@ -3,6 +3,8 @@
 
 #include "kn_asiocallbacktimer.h"
 
+#include "core_owner.h"
+
 #include <chrono>
 #include <curl/curl.h>
 #include <string>
@@ -31,34 +33,35 @@ namespace C_HTTP
   enum class OpError
   {
     Internal, // this should not happen
-    Timeout
+      Timeout,
+      Response
   };
 
   using ResponseCodeNum = int;
 
-  class Operations;
-  class OperationsOwner // inherit privately
-  {
-  private:
-    friend class Operations;
-    virtual void handleFailed(Operations*,OpError) = 0;
-    virtual void handleResponse(Operations*,
-				ResponseCodeNum,
-				const std::vector<std::string>& headers,
-				const std::vector<char>& body) = 0;
-  };
-	
   class Operations final
   {
   public:
-    explicit Operations(OperationsOwner* o);
+    class Owner // inherit privately
+    {
+      OWNER_SPECIAL_MEMBERS(Operations);
+      virtual void handleFailed(Operations*,
+				OpError,
+				const std::string&) = 0;
+      virtual void handleResponse(Operations*,
+				  ResponseCodeNum,
+				  const std::vector<std::string>& headers,
+				  const std::vector<char>& body) = 0;
+    };
+  public:
+    // failure will call a zero timer 
+    Operations(Owner* o,
+	       std::chrono::seconds timeout = std::chrono::seconds(30));
     ~Operations();
     Operations& operator=(const Operations&) = delete;
     Operations(const Operations&) = delete;
 
-    // Must be called before using class.
-    // On failure, handleFailed will be called on a zero timeout
-    void init(std::chrono::seconds timeout = std::chrono::seconds(30));
+    SET_OWNER();
 
     // Must be called before initializing
     void appendHeaders(const std::list<std::string>&);
@@ -77,8 +80,7 @@ namespace C_HTTP
   private:
     // Timer callbacks
     void process();
-    void failedInit();
-
+    
     // Curl callbacks
     static size_t respBodyWrite(char *ptr,
 				size_t size_mem,
@@ -95,8 +97,10 @@ namespace C_HTTP
 			    void *userdata);
 
   private:
-    void processMessage();
+    void processMessage(); // processes the response messages
     void processNextBufferedReq();
+    void ownerFailed(OpError,
+		     const std::string&);
 
   private:
     enum class RequestType
@@ -113,8 +117,9 @@ namespace C_HTTP
     };
     
   private:
-    OperationsOwner *d_owner = nullptr;
-
+    CORE::Owner<Owner> d_owner;
+    std::chrono::seconds d_timeout;
+    
     CURL *d_curl = nullptr;
     CURLM *d_curl_multi = nullptr;
     struct curl_slist *d_header_list = nullptr;
@@ -129,7 +134,7 @@ namespace C_HTTP
     int d_running_transfers = 0;
 		
     KERN::AsioCallbackTimer d_timer_process = KERN::AsioCallbackTimer("C_HTTP::Operations - chttp_operations process timer");
-    KERN::AsioCallbackTimer d_timer_failed_init = KERN::AsioCallbackTimer("C_HTTP::Operations - initialisation failure timer");
+    KERN::AsioCallbackTimer d_timer_error = KERN::AsioCallbackTimer("C_HTTP::Operations - initialization failure timer");
 
     std::list<Request> d_buf_reqs;
   };
