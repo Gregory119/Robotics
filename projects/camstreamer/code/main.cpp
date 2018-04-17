@@ -10,13 +10,9 @@
 //----------------------------------------------------------------------//
 // Still to do for the first release:
 
-// - change pin detection to be used with RC receivers (PPM and PWM). (1)
-//   - test pwm and ppm readers
-// - duplicate pin number in config check (2)
-// - check that the selected PPM pin number is in range of the measured number of channels
-// - pin shutdown/restart => led should use memory (3) **
-// - test/modify usb scripts (4)
+// - duplicate parameters in config check (2)
 // - add logging and copy to usb when inserted so that the user can see the logs (check if logs auto backup) (5)
+//   - log the version of the software when it starts
 // - encryption (6)
 
 // - test video analog output
@@ -51,7 +47,7 @@ int main()
   wiringPiSetup(); // terminates on failure
 
   KERN::AsioKernel k;
-  CamStreamer cam_streamer("config.txt");
+  CamStreamer cam_streamer("GoPie_userconfig.txt");
   cam_streamer.start();
   
   k.run();
