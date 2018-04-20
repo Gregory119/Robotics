@@ -96,17 +96,17 @@ FileLogger::FileLogger(const Params& params)
       // The backend requires synchronization in the frontend.
       boost::shared_ptr<sink_t> d_sink(new sink_t(backend));
 
-      auto format_with_thread = expr::format("[%1%] [%2%] [%3%] %4% : %5%")
+      auto format_with_thread = expr::format("%1% [%2%] [%3%] [%4%] : %5%")
+	% expr::attr<unsigned int>("LineID")
 	% expr::attr<boost::posix_time::ptime>("TimeStamp")
 	% expr::attr<SeverityLevel, SeverityTag>("Severity")
 	% expr::attr<unsigned int>("ThreadID")
-	% expr::attr<unsigned int>("LineID")
 	% expr::smessage;
       
-      auto format_no_thread = expr::format("[%1%] [%2%] %3% : %4%")
+      auto format_no_thread = expr::format("%1% [%2%] [%3%] : %4%")
+	% expr::attr<unsigned int>("LineID")
 	% expr::attr<boost::posix_time::ptime>("TimeStamp")
 	% expr::attr<SeverityLevel, SeverityTag>("Severity")
-	% expr::attr<unsigned int>("LineID")
 	% expr::smessage;
 
       if (params.enable_thread_id)
