@@ -71,6 +71,7 @@ Config::Config(Owner* o,
     d_file_param_man(new CORE::FileParamManager(std::move(file_path)))
 {
   assert(o != nullptr);
+  d_file_param_man->enableFailOnDuplicateParams();
 }
 
 //----------------------------------------------------------------------//
@@ -138,6 +139,12 @@ void Config::parseFile()
 		  Error::PwmLow,
 		  d_pwm_low_us);
   checkPwmPulses();
+}
+
+//----------------------------------------------------------------------//
+std::string Config::str()
+{
+  return d_file_param_man->str();
 }
 
 //----------------------------------------------------------------------//

@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
 
 //----------------------------------------------------------------------//
 CamStreamer::CamStreamer(std::string config_file_path)
@@ -25,6 +24,10 @@ void CamStreamer::start()
       assert(false);
       return;
     }
+
+  std::string msg = "Starting with the following user configuration:\n";
+  msg += d_config->str();
+  d_logger->log(INFO, msg);
   
   d_config->parseFile();
   if (d_config->hasError())
@@ -32,8 +35,11 @@ void CamStreamer::start()
       return;
     }
 
-  // LOG: the configuration being used
-  
+  d_wifi_config->parseFile();
+  if (d_wifi_config->hasError())
+    {
+      return;
+    }
   setupWifi();
 
   d_gpcont_params.setType(D_GP::CamModel::Hero5).setName("CamStreamer");
@@ -43,6 +49,7 @@ void CamStreamer::start()
   d_restart_gp_timer.setTimeoutCallback([this](){
       restartGPController();
     });
+
   d_req_man->start();
 }
 
@@ -101,8 +108,9 @@ void CamStreamer::handleError(RequestManager*,
 			      RequestManager::Error e,
 			      const std::string& msg)
 {
-  d_logger->log(ERROR, "The request manager failed with the following message:");
-  d_logger->log(ERROR, msg);
+  std::string new_msg = "The request manager failed with the following message:";
+  new_msg += msg;
+  d_logger->log(ERROR, new_msg);
   // any config related errors here should be picked up first by the local config
   if (e == RequestManager::Error::Config)
     {
@@ -180,9 +188,9 @@ void CamStreamer::handleError(P_WIFI::Configurator*,
 			      P_WIFI::Configurator::Error e,
 			      const std::string& msg)
 {
-  std::cerr << "CamStreamer::handleError(P_WIFI::Configurator*..) - The Wifi configurator failed with the following error message:\n"
-	    << msg << "\n" << std::endl;
-  d_logger->log(CRIT, "The LED controller had an internal failure.");
+  std::string new_msg = "The Wifi configurator had the following error:\n";
+  new_msg += msg;
+  d_logger->log(ERROR, new_msg);
   // no errors here show whether the configuration values are not what they should be
   setState(State::InternalFailure);
 }
@@ -201,12 +209,6 @@ void CamStreamer::handleError(Config*,
 //----------------------------------------------------------------------//
 void CamStreamer::setupWifi()
 {
-  d_wifi_config->parseFile();
-  if (d_wifi_config->hasError())
-    {
-      return;
-    }
-
   // only set wifi config and restart if the new config is different
   const std::string& new_ssid = d_config->getWifiSsid();
   const std::string& new_pw = d_config->getWifiPassword();
@@ -224,7 +226,6 @@ void CamStreamer::setupWifi()
   // These commands are currently synchronous
   // If they need the sudo password then add the following in front: echo raspberry | sudo -S 
   int resp = system("wpa_cli -i wlan0 reconfigure");
-  // LOG!!!!
   std::ostringstream stream("The system call of 'wpa_cli -i wlan0 reconfigure' returned with the value ",
 			    std::ios_base::app);
   stream << resp << ".";
@@ -302,7 +303,6 @@ void CamStreamer::processState()
       
     case State::InternalFailure:
       {
-	assert(false);
 	stop();
 	
 	D_LED::Driver::AdvancedSettings adv_set;
@@ -317,7 +317,6 @@ void CamStreamer::processState()
       
     case State::Unknown:
       assert(false);
-      std::cerr << "CamStreamer::processState - Camstreamer::State is unknown." << "\n" << std::endl;
       d_logger->log(CRIT, "The camera manager had an internal error because its state is unknown.");
       stop();
       return;

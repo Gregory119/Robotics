@@ -87,7 +87,8 @@ class Config
   SET_OWNER();
 
   // parseFile() must be called before any other functions
-  void parseFile(); 
+  void parseFile();
+  std::string str();
 
   ReqConfig getReqConfig(Request);
   int getReqNum(Request);

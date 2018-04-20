@@ -10,7 +10,6 @@
 //----------------------------------------------------------------------//
 // Still to do for the first release:
 
-// - duplicate parameters in config check (2)
 // - add logging and copy to usb when inserted so that the user can see the logs (check if logs auto backup) (5)
 //   - log the version of the software when it starts
 // - encryption (6)
