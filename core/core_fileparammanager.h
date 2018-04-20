@@ -15,6 +15,7 @@ namespace CORE
       None,
 	FileOpen,
 	ParamNotFound,
+	MultiParamDef,
 	FileCharacterExtraction,
 	ParamExtraction,
 	SetFilePosIndicator,
@@ -28,6 +29,8 @@ namespace CORE
     // no errors will occur on construction
     FileParamManager(std::string file_path);
 
+    void enableFailOnDuplicateParams();
+    
     // eg. pin_number=5, which implies name_match is "pin_number=" and the returned string is "5".
     // The file is first opened, then the first occurence of name_match is searched for, and finally the file is closed when returning the found parameter string. It is assumed that there is one parameter per line; the returned value will contain all the line text after the name_match.
     // On failure the returned string is empty. 
@@ -37,6 +40,7 @@ namespace CORE
 			const std::string& new_value);
 
     const std::string& getFilePath() const { return d_file_path; }
+    std::string str(); // of the entire file contents
     
     // Removes the start and end quotes of a parameter string. Only double style quotes can be used.
     // Eg. "five" changes to five. On error the no_quotes parameter is not modified.
@@ -66,6 +70,8 @@ namespace CORE
 
     Error d_error = Error::None;
     std::string d_error_msg;
+
+    bool d_check_duplicate_params = false;
   };
 };
 

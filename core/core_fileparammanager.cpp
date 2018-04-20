@@ -13,6 +13,12 @@ FileParamManager::FileParamManager(std::string file_path)
 {}
 
 //----------------------------------------------------------------------//
+void FileParamManager::enableFailOnDuplicateParams()
+{
+  d_check_duplicate_params = true;
+}
+
+//----------------------------------------------------------------------//
 std::string FileParamManager::getParam(const std::string& name_match)
 {
   d_error = Error::None;
@@ -48,11 +54,11 @@ std::string FileParamManager::getParam(const std::string& name_match)
 	  return std::string();
 	}
     }
-  catch (...)
+  catch (const std::exception& e)
     {
       std::ostringstream stream("getParam - Failed to extract the parameter value of the parameter '",
 				std::ios_base::app);
-      stream << name_match << "' from the file '" << d_file_path << "'.";
+      stream << name_match << "' from the file '" << d_file_path << "' because of the exception '" << e.what() << ".";
       setError(Error::GetParamException, stream.str());
       return std::string();
     }
@@ -80,12 +86,8 @@ void FileParamManager::setParamFromTo(const std::string& name_match,
     {
       // search and get the parameter value position and value
       std::iostream::pos_type val_pos = getParamValuePos(file, name_match);
-      if (file.fail())
+      if (hasError())
 	{
-	  std::ostringstream stream("setParam - Failed to set the parameter value because of the following error: \n",
-				    std::ios_base::app);
-	  stream << getErrorMsg();
-	  setError(Error::SetFilePosIndicator, stream.str());
 	  return;
 	}
       
@@ -175,15 +177,34 @@ void FileParamManager::setParamFromTo(const std::string& name_match,
 	  return;
 	}
     }
-  catch (...)
+  catch (const std::exception& e)
     {
-      std::ostringstream stream("setParam - Unexpected exception while trying to set the new parameter value in the file '",
+      std::ostringstream stream("setParam - Unexpected exception '",
 				std::ios_base::app);
-      stream << d_file_path << "'.";
+      stream << e.what() << "' while trying to set the new parameter value in the file" << d_file_path << "'.";
       setError(Error::SetParamException, stream.str());
       return;
     }
   return;
+}
+
+//----------------------------------------------------------------------//
+std::string FileParamManager::str()
+{
+  std::fstream file(d_file_path);
+
+  if (file.fail())
+    {
+      std::ostringstream stream("str - Failed to open the file '",
+				std::ios_base::app);
+      stream << d_file_path << "'.";
+      setError(Error::FileOpen, stream.str());
+      return std::string();
+    }
+  
+  std::string out;
+  std::getline(file, out, file.widen(std::char_traits<char>::eof()));
+  return out;
 }
 
 //----------------------------------------------------------------------//
@@ -219,52 +240,68 @@ std::iostream::pos_type FileParamManager::getParamValuePos(std::fstream& file,
 {
   file.seekg(0); // reset input stream position indicator
 
+  std::iostream::pos_type ret = -1;
   std::string line;
-  size_t line_match_pos = 0;
-  std::iostream::pos_type previous_ipos = 0;
+  size_t line_match_pos = std::string::npos;
+  std::iostream::pos_type first_match_previous_ipos = 0;
 
   try
     {
       while (1)
 	{
-	  previous_ipos = file.tellg();
-	  std::getline(file, line);
-
-	  line_match_pos = line.find(name_match);
-	  if (line_match_pos != std::string::npos)
+	  if (line_match_pos == std::string::npos) // not found yet
 	    {
-	      break; // found!
+	      first_match_previous_ipos = file.tellg();
 	    }
 	  
-	  if (file.eof())
+	  std::getline(file, line);
+
+	  if (line_match_pos == std::string::npos) // not found yet
+	    {
+	      line_match_pos = line.find(name_match);
+	      if (line_match_pos != std::string::npos &&
+		  !d_check_duplicate_params)
+		{
+		  break;
+		}
+	    }
+	  // has been found but if..
+	  else if (line.find(name_match) != std::string::npos)
 	    {
 	      std::ostringstream stream("getParamValuePos - The parameter '",
 					std::ios_base::app);
-	      stream << name_match << "' does not exist in the file '" << d_file_path << "'.";
-	      setError(Error::ParamNotFound,stream.str());
-	      return std::iostream::pos_type(-1);
+	      stream << name_match << "' was found multiple times in the file '" << d_file_path << "'. The parameter value must only be defined once.";
+	      setError(Error::MultiParamDef, stream.str());
+	      return ret;
 	    }
-	  
+
 	  if (file.fail())
 	    {
-	      std::ostringstream stream("getParamValuePos - Failed to extract characters from the file '",
+	      if (line_match_pos != std::string::npos)
+		{
+		  // found only one match in the entire file
+		  break;
+		}
+	      std::ostringstream stream("getParamValuePos - Failed to find the parameter '",
 					std::ios_base::app);
-	      stream << d_file_path << "'.";
-	      setError(Error::FileCharacterExtraction, stream.str());
-	      return std::iostream::pos_type(-1);
+	      stream << name_match << "' in the file '" << d_file_path << "'.";
+	      setError(Error::ParamNotFound, stream.str());
+	      return ret;
 	    }
 	}
     }
-  catch (...)
+  catch (const std::exception& e)
     {
-      std::ostringstream stream("getParamValuePosException - Unexpected exception while trying to get the position index of the start of the value of the parameter '",
+      std::ostringstream stream("getParamValuePosException - Unexpected exception '",
 				std::ios_base::app);
-      stream << name_match << "' in the file '" << d_file_path << "'.";
+      stream << e.what() << "' while trying to get the position index of the start of the value of the parameter '" << name_match << "' in the file '" << d_file_path << "'.";
       setError(Error::GetParamValuePosException, stream.str());
-      return false;
+      return ret;
     }
+  file.seekg(0); // reset input stream position indicator
+  file.clear(); // clear the failed state due to reaching the eof
   size_t line_value_pos = line_match_pos+name_match.length();
-  return previous_ipos+static_cast<std::streamoff>(line_value_pos);
+  return first_match_previous_ipos+static_cast<std::streamoff>(line_value_pos);
 }
 
 //----------------------------------------------------------------------//
@@ -272,16 +309,12 @@ void FileParamManager::goToParamValue(std::fstream& file,
 				      const std::string& name_match)
 {
   std::iostream::pos_type val_pos = getParamValuePos(file, name_match);
+
   if (hasError())
     {
-      std::ostringstream stream("goToParamValue - Failed to go to the parameter value of the parameter '",
-				std::ios_base::app);
-      stream << name_match << "' in the file '"
-	     << d_file_path << "' because of the following error:\n"
-	     << getErrorMsg();
-      setError(Error::ParamNotFound,stream.str());
       return;
     }
+  
   file.seekg(val_pos); // set input indicator
   file.seekp(val_pos); // set output indicator
 }
