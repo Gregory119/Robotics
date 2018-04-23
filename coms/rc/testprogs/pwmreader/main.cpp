@@ -15,7 +15,9 @@ class Test final : C_RC::PwmReader<unsigned>::Owner
   Test(P_WP::PinNum pin)
     : d_pwmreader(new C_RC::PwmReader<unsigned>(this,
 						pin,
-						C_RC::PwmNarrowLimits<unsigned>(2000,0)))
+						C_RC::PwmLimits<unsigned>::create(C_RC::PwmLimitsType::Narrow,
+										  2000,
+										  0)))
     {
       d_pwmreader->capData();
       d_pwmreader->start();

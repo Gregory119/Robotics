@@ -39,7 +39,8 @@ public:
 private:
   //D_GP::ModeController
   void handleFailedRequest(D_GP::ModeController*,
-			   D_GP::ModeController::Req req) override
+			   D_GP::ModeController::Req req,
+			   const std::string&) override
   {
     std::cout << "handleFailedRequest: " << std::endl;
   }

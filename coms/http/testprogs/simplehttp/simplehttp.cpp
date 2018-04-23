@@ -6,14 +6,13 @@
 #include <chrono>
 #include <iostream>
 
-class TestHttp : C_HTTP::OperationsOwner
+class TestHttp : C_HTTP::Operations::Owner
 {
 public:
   TestHttp(const std::string& url)
   {
-    d_http.reset(new C_HTTP::Operations(static_cast<C_HTTP::OperationsOwner*>(this)));
-
-    d_http->init(std::chrono::seconds(60));
+    d_http.reset(new C_HTTP::Operations(static_cast<C_HTTP::Operations::Owner*>(this),
+					std::chrono::seconds(60)));
     d_http->get(url);
   }
 	
@@ -31,6 +30,10 @@ private:
 	std::cout << "Got an internal error. This should never happen." << std::endl;
 	return;
 
+      case C_HTTP::OpError::Response:
+	std::cout << "Got a response error." << std::endl;
+	return;
+	
       case C_HTTP::OpError::Timeout:
 	std::cout << "Got a timeout error." << std::endl;
 	return;

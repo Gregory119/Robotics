@@ -13,8 +13,7 @@ class Test final : C_RC::PpmReader<unsigned>::Observer
 {
  public:
   Test(P_WP::PinNum pin)
-    : d_ppmreader(new C_RC::PpmReader<unsigned>(this,
-						pin,
+    : d_ppmreader(new C_RC::PpmReader<unsigned>(pin,
 						C_RC::PwmLimits<unsigned>::create(C_RC::PwmLimitsType::Narrow,2000,1000)))
     {
       d_ppmreader->capData();

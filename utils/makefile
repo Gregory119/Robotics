@@ -8,9 +8,6 @@ all:
 
 testprogs:
 	$(MAKE) testprogs -C mapping
-	$(MAKE) testprogs -C threading
-	$(MAKE) testprogs -C filtering
-	$(MAKE) testprogs -C logging
 
 clean:
 	$(RM) *~ *.d* *.o* *# *.core

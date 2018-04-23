@@ -32,12 +32,13 @@ namespace C_RC
     PwmLimits(PwmLimits&&) = default;
     PwmLimits& operator=(PwmLimits&&) = default;
     virtual ~PwmLimits() = default;
-
+    
+    static PwmLimits<T> create(PwmLimitsType, T max_val, T min_val);
+    
     bool isDurationValid(const std::chrono::microseconds&);
     bool isValueValid(T);
     bool capDuration(const std::chrono::microseconds&, std::chrono::microseconds&);
 
-    static PwmLimits<T> create(PwmLimitsType, T max_val, T min_val);
     
     const T max_val = 0;
     const T min_val = 0;
