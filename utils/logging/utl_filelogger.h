@@ -29,7 +29,7 @@ namespace UTIL
     struct Params
     {
       std::string file_name; // The name can include the path. It will be appended with the rotation number. If it is empty, then the rotation number is used as the name.
-      std::string rotation_dir = "previous_logs"; // Where the rotated log files are automatically stored by FileLogger. This directory should not be in the file name. This rotation directory is created if not found.
+      std::string rotation_dir = "backup_logs"; // Where the rotated log files are automatically stored by FileLogger. This directory should not be in the file name. This rotation directory is created if not found.
       int rotation_size_kb = 1024; // [KiB] the log will rotate if its size exceeds this
       int max_rotated_files = 10;
       bool enable_thread_id = false;
