@@ -1,5 +1,0 @@
-To update these files, compile this on the pi:
-  - $ git clone git://git.drogon.net/wiringPi
-  - $ make
-  - $ make install
-  - compress and copy the library and header files to this directory
