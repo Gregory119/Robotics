@@ -4,7 +4,8 @@ After=multi-user.target # ensures that this unit is started after multi-user.tar
 
 [Service]
 Type=idle
-ExecStart=/actioncamstreamer/start_actioncamstreamer.sh
+ExecStart=/.actioncamstreamer/start_actioncamstreamer.sh
 
-[Install] # used by the enable/disable to link and unlink with dependencies
+# used by the enable/disable to link and unlink with dependencies
+[Install]
 WantedBy=multi-user.target
