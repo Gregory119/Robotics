@@ -1,20 +1,13 @@
 =================================================
 Introduction
 =================================================
-/* EDIT THIS FOR THE CAMSTREAMER PROJECT */
-
-Bushbot is a wildlife based photography robot.
-Raspberry pis are used for the robot and for a
-ground station. A single sd card image needs to be created,
-which is then slightly modified to be used as either
-the robot or base station. This document describes 
-the process of creating these sd card images.
+For the ActionCam Streamer Project
 
 =================================================
 Requirements
 =================================================
 - Raspberry Pi B+ (with power source)
-- 8 GB sd card
+- 4 GB sd card
 - network connection to the pi (eg. wifi, ethernet) 
 for ssh control from another computer, or connect
 the pi to an HDMI tv and connect a keyboard and 
@@ -23,58 +16,61 @@ mouse to the pi.
 =================================================
 Installing Raspbian on the SD Card
 =================================================
-- download the raspbian lite image and load it onto the 8 GB sd card
-- setup wifi by following: - https://thepihut.com/blogs/raspberry-pi-tutorials/83502916-how-to-setup-wifi-on-raspbian-jessie-lite
-- create root password
- - $ sudo passwd
- - follow instructions
+- download the raspbian lite image and load it onto the sd card
+- setup wifi by reading instructions in the howtoguides folder or following: - https://thepihut.com/blogs/raspberry-pi-tutorials/83502916-how-to-setup-wifi-on-raspbian-jessie-lite
+- on first boot, configure the pi using raspi-config:
+ - change hostname to gopie
+ - enable remote ssh
+ - disable shell over serial and serial hardware
+ - disable I2C
+ - disable remote GPIO
+ - disable camera
+ - disable SPI
+ - disable one-wire interface
+- change the default username
+ - ssh as the pi user and set a root password: $ sudo passwd
+ - login as root using "$ su" and open /etc/ssh/sshd_config
+ - find the line "PermitRootLogin without-password"
+ - edit it to "PermitRootLogin yes". This is temporary.
+ - restart the ssh service: $ /etc/init.d/ssh restart
+ - exit the ssh session and then ssh as root with "$ ssh <ip>"
+ - change the default username with: $ usermod -l D3vThis4SUCc3Ss pi
+ - change the default home directory with: $ usermod -m -d /home/D3vThis4SUCc3Ss D3vThis4SUCc3Ss
+ - undo the changes to /etc/ssh/sshd_config, restart the service, and exit the ssh session
+- change the default password
+ - start an ssh session with: $ ssh D3vThis4SUCc3Ss@<ip>
+ - set password with: $ passwd &8*%^12lva;io"yjkl;,?/+h=()&
 
 =================================================
 Install Pre-requisite Software Packages on the 
 SD card
 =================================================
-- update
- - $ apt-get update
-- install ssh
- - $ apt-get install openssh-server
-- install github
- - $ apt-get install git
-- install wiringPi
- - $ apt-get install wiringPi
- - or use the files in Robotics/arm_pkgs if there are any problems experienced with compiling/runtime
+- Copy the following compiled library files to the Pi. 
+The directory should be /usr/local/lib (.so files) and /usr/local/include (.h files):
+ - wiring pi
+ - boost
+ - curl
+ - cryptopp (if the paid version)
+
+- Install omxplayer: $ apt-get install omxplayer
 
 =================================================
-Project Compilation
+Install Files
 =================================================
-- download repository
- - $ cd /
- - $ git clone https://github.com/Gregory119/Robotics.git
- - $ cd Robotics
-- switch to branch if necessary (this step will not be necessary after first version is made)
- - $ git checkout <branch>
-- build the bushbot project software
- - $ cd projects/bushbot
- - $ make
+- on the Pie
+- create the directory /.actioncamstreamer (the dot is to make it hidden)
+- copy the binary to /.actioncamstreamer
+- copy the following scripts to /.actioncamstreamer:
+ - start_usb_install.sh
+ - start_actioncamstreamer.sh
+ - udev_start_usb_install.sh
+- then provide executeable permissions with $ chmod +x <script_name>
+- copy the service file start_actioncamstreamer.service to /lib/systemd/system/
+- $ systemctl daemon-reload
+- $ systemctl enable start_actioncamstreamer.service
+- copy 100-actioncamstreamer.rules to /etc/udev/rules.d/
 
 =================================================
 Start Scipts
 =================================================
 - set up the start up script as described in ./scripts/readme
-=================================================
-Serial Port Configuration
-=================================================
-Disable the OS from using the serial port as a login interface:
-- $ sudo raspi-config
-- select "Advanced Options"
-- select "Serial"
-- select "No"
-- select "Ok"
-- select "finish" and then reboot
-This process has been known to disable the serial port. To enable it for external device use:
-- open the file /boot/config.txt
-- change "enable_uart=0" to "enable_uart=1"
-
-To manually disable the serial port completely:
-- open the file /boot/config.txt
-- delete the console entry that refers to any serial related names eg. console=serial0,115200
-ref: https://www.raspberrypi.org/documentation/configuration/uart.md
