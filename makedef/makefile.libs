@@ -3,6 +3,7 @@
 # LIBS - holds external library names
 # IS_TESTPROG - define this in the makefile of a test program
 # TEST_NAME - list of test program names
+# OBJ_EXCLUDES - a list of object file names to be excluded during compilation. Exclude the ".o" at the end of each name.
 
 # When adding a new library:
 # - add it before any of the dependent libraries
@@ -20,7 +21,7 @@ endif
 ifdef USES_LIBCONTROL
       LIBCONTROLPATH = $(BASE_DIR)/control
       INCLUDES += -I$(LIBCONTROLPATH)
-      LIBS += -lpthread
+      LIBS +=
       LIBSRC += $(wildcard $(LIBCONTROLPATH)/*.cpp)
       USES_LIBUTILMAPPING=1
       USES_LIBKERN=1
@@ -41,7 +42,7 @@ endif
 ifdef USES_LIBJS
       LIBJSPATH = $(BASE_DIR)/drivers/joystick
       INCLUDES += -I$(LIBJSPATH)
-      LIBS += -lpthread
+      LIBS +=
       LIBSRC += $(wildcard $(LIBJSPATH)/*.cpp)
       USES_LIBKERN=1
       USES_LIBUTILMAPPING=1
@@ -51,7 +52,7 @@ endif
 ifdef USES_LIBGP
       LIBGPPATH = $(BASE_DIR)/drivers/gopro
       INCLUDES += -I$(LIBGPPATH)
-      LIBS += -lpthread
+      LIBS +=
       LIBSRC += $(wildcard $(LIBGPPATH)/*.cpp)
       USES_LIBHTTP=1
       USES_LIBKERN=1
@@ -142,7 +143,16 @@ ifdef USES_LIBUTILMAPPING
       LIBSRC += $(wildcard $(LIBUTILMAPPINGPATH)/*.cpp)
 endif
 
+ifdef USES_LIBCRYPT
+      LIBS += -lcryptopp -lpthread
+endif
+
 OBJ+=$(LIBSRC:.cpp=.o)
+
+ifdef OBJ_EXCLUDES
+      OBJ_EXCLUDES:=$(OBJ_EXCLUDES:=.o) # add a ".o" at the end of each name
+      OBJ:=$(filter-out $(OBJ_EXCLUDES),$(OBJ))
+endif
 
 .PHONY: thisdir $(TEST_NAME)
 

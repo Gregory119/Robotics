@@ -40,13 +40,13 @@ ifneq ($(filter PI1,$(TARGET)),) # if pi 1
      MARCH=-march=armv6
      MFPU=-mfpu=vfp
      SYSROOT=--sysroot=/home/rasppi_xcompile/sysroot
-     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/
-     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/
+     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI1/
+     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI1/
 else ifneq ($(filter PI2,$(TARGET)),) # if pi 2
      MTUNE=-mtune=cortex-a7
      MARCH=-march=armv7-a+vfpv4-d16
-     SYSROOT= # STILL TO DO!!!
-     LIBPATHS= # STILL TO DO!!!
+     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI2/
+     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI2/
 else ifneq ($(filter PI2V2,$(TARGET)),) # if pi 2 v1.2
      MTUNE=-cortex-a53
      MARCH=-armv8-a+simd
@@ -55,8 +55,8 @@ else ifneq ($(filter PI2V2,$(TARGET)),) # if pi 2 v1.2
 else ifneq ($(filter PI3,$(TARGET)),) # if pi 3
      MTUNE=-cortex-a53
      MARCH=-armv8-a+simd
-     SYSROOT= # STILL TO DO!!!
-     LIBPATHS= # STILL TO DO!!!
+     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI3/
+     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI3/
 endif
 	CXXFLAGS+= $(MTUNE) $(MARCH) -mfloat-abi=hard $(MFPU) $(SYSROOT) $(LIBPATHS)
 endif
