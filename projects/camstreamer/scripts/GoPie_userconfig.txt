@@ -1,0 +1,11 @@
+wifi_ssid=
+wifi_pw=
+next_mode_req_num=15
+next_mode_req_mode=up
+trigger_req_num=16
+trigger_req_mode=up
+power_req_num=1
+power_req_mode=up
+ppm_pin_num=15
+pwm_pulse_high_us=2000
+pwm_pulse_low_us=1000
