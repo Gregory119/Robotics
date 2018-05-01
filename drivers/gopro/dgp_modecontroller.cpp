@@ -197,7 +197,11 @@ void ModeController::nextModeCmdsAfterStatus()
       
     case Mode::MultiTimeLapse:
     case Mode::MultiNightLapse:
+#ifndef EXCLUDE_VIDEO_MODE
       d_gp->setMode(Mode::VideoNormal);
+#else
+      d_gp->setMode(Mode::PhotoContinuous);
+#endif
       return;
 	
     case Mode::Unknown:
