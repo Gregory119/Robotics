@@ -1,4 +1,4 @@
-bushbot:
+default:
 	$(MAKE) -C code
 
 .PHONY:clean 

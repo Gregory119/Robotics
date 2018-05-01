@@ -69,6 +69,7 @@ Install Files
 - $ systemctl daemon-reload
 - $ systemctl enable start_actioncamstreamer.service
 - copy 100-actioncamstreamer.rules to /etc/udev/rules.d/
+- copy the default user configuration file "GoPie_userconfig.txt" to /.actioncamstreamer
 
 =================================================
 Start Scipts
