@@ -16,17 +16,19 @@
 // - do NOT use quotation marks around the wifi ssid or wifi password
 // - all parameters must be valid to start the program
 // -------------------------------------//
-// wifi_ssid=<ssid>
-// wifi_pw=<password>
-// next_mode_req_num=<pin_number/ppm_channel>
-// next_mode_req_mode=<up/down/float/pwm/ppm>
-// trigger_req_num=<pin_number/ppm_channel>
-// trigger_req_mode=<up/down/float/pwm/ppm>
-// power_req_num=<pin_number/ppm_channel>
-// power_req_mode=<up/down/float/pwm/ppm>
-// ppm_pin_num=<number>
-// pwm_pulse_high_us=<number>
-// pwm_pulse_low_us=<number>
+/*
+wifi_ssid=<ssid>
+wifi_pw=<password>
+next_mode_req_num=<pin_number/ppm_channel>
+next_mode_req_mode=<up/down/float/pwm/ppm>
+trigger_req_num=<pin_number/ppm_channel>
+trigger_req_mode=<up/down/float/pwm/ppm>
+power_req_num=<pin_number/ppm_channel>
+power_req_mode=<up/down/float/pwm/ppm>
+ppm_pin_num=<number>
+pwm_pulse_high_us=<number>
+pwm_pulse_low_us=<number>
+*/
 // -------------------------------------//
 
 class Config

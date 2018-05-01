@@ -10,9 +10,10 @@
 //----------------------------------------------------------------------//
 // Still to do for the first release:
 
-// - add logging and copy to usb when inserted so that the user can see the logs (check if logs auto backup) (5)
-//   - log the version of the software when it starts
+// - copy the license request file to the usb
+// - expand file system to size of sd card on first boot (apparently rasp pi distro already does this automatically on the first boot)
 // - encryption (6)
+// disable having to wait for network connection at boot
 
 // - test video analog output
 // - test and support most GoPro models (consider adding older ones if time permits - add to config file)
@@ -28,8 +29,10 @@
 //----------------------------------------------------------------------//
 // To be added after the first release:
 
+// - add configuration of which modes to include in the next mode command
+
 // - support older GoPro models
-// - research common pin control methods using an rc receiver (PWM, HIGH/LOW STATE, SERIAL TYPES). Add support for additional protocols in future releases.
+// - add other rc protocols
 
 // - config xml doc (will support app config)
 
@@ -47,6 +50,7 @@ int main()
 
   KERN::AsioKernel k;
   CamStreamer cam_streamer("GoPie_userconfig.txt");
+
   cam_streamer.start();
   
   k.run();

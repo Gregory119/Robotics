@@ -2,6 +2,9 @@
 #define CAMSTREAMER_H
 
 #include "config.h"
+#ifdef LICENSED
+#include "license.h" // remember that Stream is secretly the license
+#endif
 #include "requestmanager.h"
 
 #include "dled_controller.h"
@@ -96,6 +99,10 @@ class CamStreamer final : RequestManager::Owner,
   KERN::AnyDeleteOnTimeout d_timeout_deleter;
 
   std::unique_ptr<UTIL::FileLogger> d_logger;
+
+#ifdef LICENSED
+  std::unique_ptr<Stream> d_license;
+#endif
 };
 
 #endif

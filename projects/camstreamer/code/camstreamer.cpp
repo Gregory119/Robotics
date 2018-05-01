@@ -1,5 +1,7 @@
 #include "camstreamer.h"
 
+#include "utils.h"
+
 #include <cstdlib>
 #include <fstream>
 
@@ -7,9 +9,13 @@
 CamStreamer::CamStreamer(std::string config_file_path)
   : d_req_man(new RequestManager(this, config_file_path)),
     d_wifi_config(new P_WIFI::Configurator(this,"/etc/wpa_supplicant/wpa_supplicant.conf")),
-    d_config(new Config(this, std::move(config_file_path))),
+    d_config(new Config(this, config_file_path)),
     d_led_ctrl(new D_LED::Controller(this))
 {
+#ifdef LICENSED
+  d_license.reset(new Stream());
+#endif
+  
   UTIL::FileLogger::Params params;
   params.file_name = "GoPie";
     
@@ -25,9 +31,23 @@ void CamStreamer::start()
       return;
     }
 
-  std::string msg = "Starting with the following user configuration:\n";
+  std::string msg;
+  msg.reserve(100);
+  msg = "Starting with the following user configuration:\n";
   msg += d_config->str();
   d_logger->log(INFO, msg);
+  
+  msg = "The cpu info is as follows:\n";
+  msg += Utils::CpuInfoNoSerial();
+  d_logger->log(INFO, msg);
+
+  // here for now
+#ifdef LICENSED
+  if (!d_license->start())
+    {
+      return;
+    }
+#endif
   
   d_config->parseFile();
   if (d_config->hasError())
