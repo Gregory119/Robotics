@@ -14,6 +14,15 @@ ifndef TARGET
        TARGET=NATIVE
 endif
 
+# use file name to specify target
+ifneq ($(wildcard $(TOP_DIR)/TARGET_PI1),)
+    TARGET:=PI1
+else ifneq ($(wildcard $(TOP_DIR)/TARGET_PI2),)
+    TARGET:=PI2
+else ifneq ($(wildcard $(TOP_DIR)/TARGET_PI3),)
+    TARGET:=PI3
+endif
+
 ifneq ($(filter PI%,$(TARGET)),) # for all the pis
       IS_ARM_TARGET=1
 else ifeq ($(TARGET),NATIVE)
@@ -27,38 +36,41 @@ UNAME_S := $(shell uname -s)
 
 ifdef IS_ARM_TARGET
       CXX=arm-linux-gnueabihf-g++
-ifneq ($(filter arm%,$(UNAME_P)),) # if the build system is on an arm
-      CXXFLAGS+= -mtune=generic-arch -mfloat-abi=hard -march=native
-else # build system is not on an arm => cross-compiling
-     IS_CROSS_COMPILE=1
-endif
+      ifneq ($(filter arm%,$(UNAME_P)),) # if the build system is on an arm
+      	  CXXFLAGS+= -mtune=generic-arch -mfloat-abi=hard -march=native
+      else # build system is not on an arm => cross-compiling
+          IS_CROSS_COMPILE=1
+      endif
 endif
 
 ifdef IS_CROSS_COMPILE
-ifneq ($(filter PI1,$(TARGET)),) # if pi 1
-     MTUNE=-mtune=cortex-a5
-     MARCH=-march=armv6
-     MFPU=-mfpu=vfp
-     SYSROOT=--sysroot=/home/rasppi_xcompile/sysroot
-     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI1/
-     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI1/
-else ifneq ($(filter PI2,$(TARGET)),) # if pi 2
-     MTUNE=-mtune=cortex-a7
-     MARCH=-march=armv7-a+vfpv4-d16
-     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI2/
-     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI2/
-else ifneq ($(filter PI2V2,$(TARGET)),) # if pi 2 v1.2
-     MTUNE=-cortex-a53
-     MARCH=-armv8-a+simd
-     SYSROOT= # STILL TO DO!!!
-     LIBPATHS= # STILL TO DO!!!
-else ifneq ($(filter PI3,$(TARGET)),) # if pi 3
-     MTUNE=-cortex-a53
-     MARCH=-armv8-a+simd
-     LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI3/
-     INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI3/
-endif
-	CXXFLAGS+= $(MTUNE) $(MARCH) -mfloat-abi=hard $(MFPU) $(SYSROOT) $(LIBPATHS)
+    ifeq (PI1,$(TARGET))
+        MTUNE=-mtune=cortex-a5
+	MARCH=-march=armv6
+	MFPU=-mfpu=vfp
+	LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI1/
+	INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI1/
+    else ifeq (PI2,$(TARGET))
+        #MTUNE=-mtune=cortex-a7 #avoiding tuning in order to avoid possible incompatibilities with v1.2
+        MARCH=-march=armv7-a
+        MFPU=-mfpu=vfpv4-d16
+        LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI2/
+        INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI2/
+#   else ifeq (PI2V2,$(TARGET)) # if pi 2 v1.2
+#       MTUNE=-mtune=-cortex-a53
+#       MARCH=-march=-armv8-a+simd
+#       SYSROOT= # STILL TO DO!!!
+#       LIBPATHS= # STILL TO DO!!!
+    else ifeq (PI3,$(TARGET))
+        MTUNE=-cortex-a53
+        MARCH=-armv8-a+simd
+        LIBPATHS=-L/home/rasppi_xcompile/extra_libs_install/PI3/
+        INCLUDES=-I/home/rasppi_xcompile/extra_libs_install/PI3/
+    endif
+    SYSROOT=--sysroot=/home/rasppi_xcompile/sysroot
+    LIBPATHS+=-L/home/rasppi_xcompile/extra_libs_install/PI123/
+    INCLUDES+=-I/home/rasppi_xcompile/extra_libs_install/PI123/
+    CXXFLAGS+= $(MTUNE) $(MARCH) -mfloat-abi=hard $(MFPU) $(SYSROOT) $(LIBPATHS)
 endif
 
 ifdef VERBOSE

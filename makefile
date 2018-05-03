@@ -1,29 +1,31 @@
+TOP_DIR:=$(shell pwd)
+
 normal:
-	$(MAKE) libs
-	$(MAKE) testprogs
-	$(MAKE) projects
+	$(MAKE) libs TOP_DIR=$(TOP_DIR)
+	$(MAKE) testprogs TOP_DIR=$(TOP_DIR)
+	$(MAKE) projects TOP_DIR=$(TOP_DIR)
 
 .PHONY:clean libs testprogs projects all control
 
 libs:
-	$(MAKE) -C core
-	$(MAKE) -C utils
-	$(MAKE) -C kern
-	$(MAKE) -C drivers
-	$(MAKE) -C coms
-	$(MAKE) -C peripherals
-	$(MAKE) -C control
+	$(MAKE) -C core TOP_DIR=$(TOP_DIR)
+	$(MAKE) -C utils TOP_DIR=$(TOP_DIR)
+	$(MAKE) -C kern TOP_DIR=$(TOP_DIR)
+	$(MAKE) -C drivers TOP_DIR=$(TOP_DIR)
+	$(MAKE) -C coms TOP_DIR=$(TOP_DIR)
+	$(MAKE) -C peripherals TOP_DIR=$(TOP_DIR)
+	$(MAKE) -C control TOP_DIR=$(TOP_DIR)
 
 testprogs:
-	$(MAKE) testprogs -C utils
-	$(MAKE) testprogs -C kern
-	$(MAKE) testprogs -C drivers
-	$(MAKE) testprogs -C coms
+	$(MAKE) testprogs -C utils TOP_DIR=$(TOP_DIR)
+	$(MAKE) testprogs -C kern TOP_DIR=$(TOP_DIR)
+	$(MAKE) testprogs -C drivers TOP_DIR=$(TOP_DIR)
+	$(MAKE) testprogs -C coms TOP_DIR=$(TOP_DIR)
 #	$(MAKE) testprogs -C core
-	$(MAKE) testprogs -C control
+	$(MAKE) testprogs -C control TOP_DIR=$(TOP_DIR)
 
 projects:
-	$(MAKE) -C projects
+	$(MAKE) -C projects TOP_DIR=$(TOP_DIR)
 
 clean:
 	$(MAKE) clean -C kern CLEANING=1
