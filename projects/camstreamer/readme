@@ -68,7 +68,8 @@ Install Files
 - copy the service file start_actioncamstreamer.service to /lib/systemd/system/
 - $ systemctl daemon-reload
 - $ systemctl enable start_actioncamstreamer.service
-- copy 100-actioncamstreamer.rules to /etc/udev/rules.d/
+- copy 10-actioncamstreamer.rules to /etc/udev/rules.d/
+- then reload udev rules with $ udevadm control --reload
 - copy the default user configuration file "GoPie_userconfig.txt" to /.actioncamstreamer
 
 =================================================
