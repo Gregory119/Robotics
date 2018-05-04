@@ -1,0 +1,1 @@
+KERNEL=="sd[a-z]1", SUBSYSTEM=="block", ACTION=="add", RUN+="/.actioncamstreamer/udev_start_usb_install.sh"

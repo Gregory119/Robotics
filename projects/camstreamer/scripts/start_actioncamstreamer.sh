@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e # exit shell on a simple command failure
-
 project_dir=/.actioncamstreamer
 binary="actioncamstreamer"
 expand_file=fs_expanded

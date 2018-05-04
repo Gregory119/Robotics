@@ -3,9 +3,9 @@
 
 set -e # exit shell on a simple command failure
 install_dir=$1 # eg. /actioncamstreamer
-dev_name=/dev/$2 # eg. /dev/sdd1
+dev_name=$2 # eg. /dev/sdd1
 mount_dir=/mount/usb_drive/
-usb_firmware_dir=$mount_dir/GoPie/
+usb_firmware_dir=$mount_dir/GoPie
 binary_name=actioncamstreamer
 
 # start LED flash
@@ -33,6 +33,7 @@ then
 
     # copy the new firmware
     cp firmware/* .
+    gpg --passphrase Hl4?8Q@@#jio $binary_name.gpg # better than nothing
     chmod +x $binary_name
 fi
 

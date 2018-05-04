@@ -1,6 +1,6 @@
 [Unit]
 Description=ActionCamStreamer Service
-After=multi-user.target # ensures that this unit is started after multi-user.target, otherwise they would start simultaneously.
+Before=multi-user.target # Ensures that this unit is started before multi-user.target, otherwise they would start simultaneously. This use to be 'After', but the start time after a reboot was over a minute on the 2018 raspbian image.
 
 [Service]
 Type=idle
