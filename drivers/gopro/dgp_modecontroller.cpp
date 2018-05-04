@@ -311,7 +311,11 @@ void ModeController::internalTrigger(GoPro::Cmd last_cmd)
       return;
 
     case GoPro::Cmd::Status:
+#ifndef EXCLUDE_VIDEO_MODE
       d_gp->setShutter(!d_gp->getStatus().d_is_recording);
+#else
+      processNextReq();
+#endif
       return;
 
     case GoPro::Cmd::SetShutterTrigger:
