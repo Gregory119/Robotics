@@ -8,23 +8,31 @@
 
 // TO DO:
 //----------------------------------------------------------------------//
-// Still to do for the first release:
+// FREE VERSION:
 
+// script to decrypt firmware after copying from usb
+
+// image and firmware version tracking
+//  - move to new private repo (GitLab?)
+//  - move libraries to a separate repo from the projects.
+// log firmware version
+// log image version and architecture
+// log detected architecture
+// log file system version and details
+
+// compile in RELEASE for testing
+// setup image for pi 2
+// final pi 2 test
+// setup image and cross compile for pi 3
+// final pi 3 test
+// setup image for pi 1
+// final test for pi 1
+
+// - test and support most GoPro models (consider adding older ones if time permits - add to config file) 
+
+// PAID VERSION:
 // - copy the license request file to the usb
-// - expand file system to size of sd card on first boot (apparently rasp pi distro already does this automatically on the first boot)
 // - encryption (6)
-// disable having to wait for network connection at boot
-
-// - test video analog output
-// - test and support most GoPro models (consider adding older ones if time permits - add to config file)
-
-// - cross compile all dependency libraries for all pi versions
-// - save omxplayer version
-// - test on pi 2 and 3
-// - create pi 2 and 3 images
-
-// - release versioning (code base and on pi), branching
-//   - private repo purchase: Github, or other.
 
 //----------------------------------------------------------------------//
 // To be added after the first release:

@@ -216,16 +216,16 @@ RequestManager::createRequest(Config::Request config_req)
 	    return std::unique_ptr<StateEdgeRequest>();;
 	  }
 	return std::unique_ptr<StateEdgeRequest>(new PinEdgeRequest(this,
-								      d_config->getReqNum(config_req),
-								      pull_mode));
+								    d_config->getReqNum(config_req),
+								    pull_mode));
       }
 
       // use config to specify the pwm limits
     case ReqMode::Pwm:
       return std::unique_ptr<StateEdgeRequest>(new PwmEdgeRequest(this,
-								    d_config->getReqNum(config_req),
-								    std::chrono::microseconds(d_config->getPwmHighUs()),
-								    std::chrono::microseconds(d_config->getPwmLowUs())));
+								  d_config->getReqNum(config_req),
+								  std::chrono::microseconds(d_config->getPwmHighUs()),
+								  std::chrono::microseconds(d_config->getPwmLowUs())));
       
     case ReqMode::Ppm:
       if (d_stateppmreader == nullptr)

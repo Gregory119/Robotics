@@ -31,16 +31,41 @@ void CamStreamer::start()
       return;
     }
 
-  std::string msg;
-  msg.reserve(100);
-  msg = "Starting with the following user configuration:\n";
-  msg += d_config->str();
-  d_logger->log(INFO, msg);
-  
-  msg = "The cpu info is as follows:\n";
-  msg += Utils::CpuInfoNoSerial();
-  d_logger->log(INFO, msg);
+  std::ostringstream stream("Up time [HH::MM::SS:MS]:\n",
+			    std::ios::app);
+  unsigned ms = Utils::UpTime().count();
+  unsigned hour = ms / 1000 / 60 / 60;
+  ms -= hour*1000*60*60;
+  unsigned min = ms / 1000 / 60;
+  ms -= min*1000*60;
+  unsigned sec = ms / 10000;
+  ms -= sec*1000;
+  stream << hour << ":" << min << ":" << sec << ":" << ms;
+  d_logger->log(INFO, stream.str());
+  stream.str("");
 
+  stream << "Cpu information:\n";
+  stream << Utils::CpuInfoNoSerial();
+  d_logger->log(INFO, stream.str());
+  stream.str("");
+
+  stream << "Kernel information:\n";
+  stream << Utils::KernelInfo();
+  d_logger->log(INFO, stream.str());
+  stream.str("");
+  
+  stream << "Image version: " << Utils::StrFile("image_version.txt");
+  d_logger->log(INFO, stream.str());
+  stream.str("");
+
+  stream << "Firmware version: STILL TO DO";
+  d_logger->log(INFO, stream.str());
+  stream.str("");
+
+  stream << "User configuration:\n";
+  stream << d_config->str();
+  d_logger->log(INFO, stream.str());
+  
   // here for now
 #ifdef LICENSED
   if (!d_license->start())
