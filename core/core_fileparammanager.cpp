@@ -275,7 +275,7 @@ std::iostream::pos_type FileParamManager::getParamValuePos(std::fstream& file,
 	      return ret;
 	    }
 
-	  if (file.fail())
+	  if (file.fail() || file.eof())
 	    {
 	      if (line_match_pos != std::string::npos)
 		{
