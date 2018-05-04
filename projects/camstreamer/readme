@@ -72,6 +72,37 @@ Install Files
 - copy the default user configuration file "GoPie_userconfig.txt" to /.actioncamstreamer
 
 =================================================
-Start Scipts
+Wifi
 =================================================
-- set up the start up script as described in ./scripts/readme
+- ensure that the contents of /etc/wpa_supplicant/wpa_supplicant.conf is as follows:
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+  update_config=1
+
+  network={
+           ssid=""
+           psk=""
+  }
+
+==================================================
+Udev Rules
+==================================================
+I had a major issue with udev rules on the raspbian image "2018-04-18-raspbian-stretch-lite.img". For some weird reason the script added to the RUN variable was failing. I could see this by grepping "fail" in /var/logs. I found a solution at:
+https://www.raspberrypi.org/forums/viewtopic.php?t=192123
+
+I modified the solution as follows. Open the file "/lib/systemd/system/systemd-udevd.service" and comment out the last seven lines as follows:
+#KillMode=mixed
+#WatchdogSec=3min
+#TasksMax=infinity
+#MountFlags=slave
+#MemoryDenyWriteExecute=yes
+#RestrictRealtime=yes
+#RestrictAddressFamilies=AF_UNIX AF_NETLINK AF_INET AF_INET6
+
+reload and restart the service: 
+ - $ systemctl daemon-reload
+ - $ systemctl restart systemd-udevd.service
+
+==================================================
+Versioning
+==================================================
+Create a file in /.actioncamstreamer called image_version.txt and enter the image version and Pi type. eg. 1.0 Pi2
