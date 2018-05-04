@@ -5,7 +5,7 @@ normal:
 	$(MAKE) testprogs TOP_DIR=$(TOP_DIR)
 	$(MAKE) projects TOP_DIR=$(TOP_DIR)
 
-.PHONY:clean libs testprogs projects all control
+.PHONY:clean libs testprogs projects camstreamer all control
 
 libs:
 	$(MAKE) -C core TOP_DIR=$(TOP_DIR)
@@ -26,6 +26,9 @@ testprogs:
 
 projects:
 	$(MAKE) -C projects TOP_DIR=$(TOP_DIR)
+
+camstreamer:
+	$(MAKE) -C projects/camstreamer TOP_DIR=$(TOP_DIR)
 
 clean:
 	$(MAKE) clean -C kern CLEANING=1
